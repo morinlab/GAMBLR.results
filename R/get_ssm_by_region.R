@@ -60,14 +60,14 @@ get_ssm_by_region = function(chromosome,
 
   #check remote connection
   remote_session = check_remote_configuration(auto_connect = TRUE)
-  
+
   if(mode == "strelka2"){
     message("Mode is set to strelka2. Streamlined = TRUE is hardcoded for this mode...")
     streamlined = TRUE #force streamlined to TRUE, if strelka2 output is requested.
     augmented = FALSE #force augmented to FALSE (since t_alt_count column is not available for the strelka2 bed file).
     maf_columns = c("Chromosome", "Start_Position", "End_Position", "Tumor_Sample_Barcode")
     maf_column_types = "iiic"
-    
+
     #add some checks
     if(projection == "hg38"){
       stop("Strelka2 outputs are currently only available in respect to grch37...")
@@ -79,7 +79,7 @@ get_ssm_by_region = function(chromosome,
     if(streamlined){
       maf_columns = names(maf_header)[c(6, 16, 42)]
       maf_column_types = "ici"
-      
+
     }else if(basic_columns){ #get first 45 columns of the MAF
       maf_columns = names(maf_header)[c(1:45)]
       maf_column_types =  "ciccciiccccccclcccclllllllllllllllccccciiiiii"
@@ -88,7 +88,7 @@ get_ssm_by_region = function(chromosome,
       maf_column_types = "ciccciiccccccclcccclllllllllllllllccccciiiiiiccccccccccccinnccccccccccccccccccclcccccccccnclcncccclncccclllllllllicn"
     }
   }
-  
+
   #check that maf_columns requested all exist in the header and get their indexes
   if(!all(maf_columns %in% names(maf_header))){
     stop("Cannot find one of the requested maf_columns in your MAF header")
@@ -198,7 +198,7 @@ get_ssm_by_region = function(chromosome,
         }else if(mode == "strelka2"){
           tabix_command = paste("/home/rmorin/miniconda3/bin/tabix", full_maf_path_comp, region)
         }
-        
+
         if(verbose){
           print(tabix_command)
         }

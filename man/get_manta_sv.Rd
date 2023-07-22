@@ -65,7 +65,7 @@ To return SV calls for multiple samples, give `these_sample_ids` a vector of sam
 give this parameter one sample ID, as a string (or a vector of characters). The user can also call the `these_samples_metadata`
 parameter to make use of an already subset metadata table. In this case, the returned calls will be restricted to the sample_ids
 within that data frame. This function relies on a set of specific internal functions [GAMBLR::id_ease] and [GAMBLR::get_manta_sv_by_samples] (if `from_cache = FALSE`).
-This function can also restrict the returned calls to any genomic regions specified within `chromosome`, `qstart`, `qend`, 
+This function can also restrict the returned calls to any genomic regions specified within `chromosome`, `qstart`, `qend`,
 or the complete region specified under `region` (in chr:start-end format), note that chromosome can be either prefixed or not prefixed.
 Useful filtering parameters are also available, use `min_vaf` to set the minimum tumour VAF for a SV to be returned and `min_score`
 to set the lowest Manta somatic score for a SV to be returned. `pair_status` can be used to return variants from either matched or unmatched samples.
