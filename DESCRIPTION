@@ -17,10 +17,18 @@ Imports:
     dplyr,
     readr,
     RMariaDB,
+    stats,
     stringr,
     tibble,
     tidyr,
+    utils,
     vroom
+Suggests: 
+    GAMBLR.data,
+    glue,
+    ssh
+Remotes:
+    morinLab/GAMBLR.data
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
