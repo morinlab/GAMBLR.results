@@ -2,6 +2,15 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom GAMBLR check_host
+#' @importFrom GAMBLR check_remote_configuration
+#' @importFrom GAMBLR fread_maf
+#' @importFrom GAMBLR id_ease
+#' @importFrom GAMBLR liftover_bedpe
+#' @importFrom GAMBLR tidy_lymphgen
+#' @importFrom GAMBLR.helpers add_icgc_metadata
+#' @importFrom GAMBLR.helpers check_config_value
+#' @importFrom GAMBLR.helpers get_gambl_outcomes
 #' @importFrom stats end
 #' @importFrom stats start
 #' @importFrom utils head
