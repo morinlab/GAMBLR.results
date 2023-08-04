@@ -33,7 +33,7 @@ get_ashm_count_matrix = function(regions_bed,
     seq_type = head(these_samples_metadata) %>% pull(seq_type)
   }
   if(missing(regions_bed)){
-    regions_bed = grch37_ashm_regions
+    regions_bed = GAMBLR.data::grch37_ashm_regions
   }
   ashm_maf = get_ssm_by_regions(regions_bed = regions_bed,
                                 streamlined = TRUE,

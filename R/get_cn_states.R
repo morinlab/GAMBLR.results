@@ -22,7 +22,7 @@
 #'
 #' @examples
 #' #basic usage, generic lymphoma gene list
-#' cn_matrix = get_cn_states(regions_bed=grch37_lymphoma_genes_bed)
+#' cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 #'
 #' myc_region <- gene_to_region(
 #'  gene_symbol = "MYC",

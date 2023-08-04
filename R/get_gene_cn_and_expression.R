@@ -22,7 +22,7 @@ get_gene_cn_and_expression = function(gene_symbol,
                                       this_seq_type = "genome"){
 
     if(!missing(gene_symbol)){
-      this_row = grch37_gene_coordinates %>%
+      this_row = GAMBLR.data::grch37_gene_coordinates %>%
         dplyr::filter(hugo_symbol == gene_symbol)
 
       this_region = paste0(this_row$chromosome, ":", this_row$start, "-", this_row$end)
@@ -30,7 +30,7 @@ get_gene_cn_and_expression = function(gene_symbol,
       }
 
     else{
-      this_row = grch37_gene_coordinates %>%
+      this_row = GAMBLR.data::grch37_gene_coordinates %>%
         dplyr::filter(ensembl_gene_id == ensembl_id)
 
       this_region = paste0(this_row$chromosome, ":", this_row$start, "-",this_row$end)
