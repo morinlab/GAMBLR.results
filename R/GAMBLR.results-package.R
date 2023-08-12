@@ -5,7 +5,6 @@
 #' @importFrom GAMBLR check_host
 #' @importFrom GAMBLR check_remote_configuration
 #' @importFrom GAMBLR fread_maf
-#' @importFrom GAMBLR id_ease
 #' @importFrom GAMBLR liftover_bedpe
 #' @importFrom GAMBLR tidy_lymphgen
 #' @importFrom GAMBLR.helpers add_icgc_metadata
