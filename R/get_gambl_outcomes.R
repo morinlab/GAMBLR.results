@@ -2,7 +2,7 @@
 #'
 #' @description Get the patient-centric clinical metadata.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::get_gambl_metadata], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::get_gambl_metadata], not meant for out-of-package usage.
 #'
 #' @param patient_ids Vector of patient IDs.
 #' @param time_unit Return follow-up times in one of three time units: year, month or day. Default is "year".

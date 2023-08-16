@@ -51,11 +51,11 @@ Returns a data frame of variants in MAF-like format.
 Efficiently retrieve all mutations across a range of genomic regions.
 }
 \details{
-This function internally calls [GAMBLR::get_ssm_by_region] to retrieve SSM calls for the specified regions.
-See parameter descriptions for [GAMBLR::get_ssm_by_region] for more information on how the different parameters can be called.
-Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm],
-[GAMBLR::get_coding_ssm_status], [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample],
-[GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_region]
+This function internally calls \link{get_ssm_by_region} to retrieve SSM calls for the specified regions.
+See parameter descriptions for \link{get_ssm_by_region} for more information on how the different parameters can be called.
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
+\link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample},
+\link{get_ssm_by_samples}, \link{get_ssm_by_region}
 }
 \examples{
 #basic usage, adding custom names from bundled ashm data frame

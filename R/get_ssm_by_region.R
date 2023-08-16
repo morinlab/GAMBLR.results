@@ -6,8 +6,8 @@
 #' There are multiple ways a region can be specified. For example, the user can provide the full region in a "region" format (chr:start-end) to the `region` parameter.
 #' Or, the user can provide chromosome, start and end coordinates individually with `chr`, `start`, and `end` parameters.
 #' For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm],
-#' [GAMBLR::get_coding_ssm_status], [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample], [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_regions]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
+#' [GAMBLR.utils::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param chromosome The chromosome you are restricting to (with or without a chr prefix).
 #' @param qstart Query start coordinate of the range you are restricting to.

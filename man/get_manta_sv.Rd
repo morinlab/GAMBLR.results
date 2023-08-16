@@ -49,9 +49,9 @@ get_manta_sv(
 
 \item{verbose}{Set to FALSE to minimize the output to console. Default is TRUE. This parameter also dictates the verbose-ness of any helper function internally called inside the main function.}
 
-\item{from_cache}{Boolean variable for using cached results, default is TRUE. If `write_to_file = TRUE`, this parameter auto-defaults to FALSE.}
+\item{from_cache}{Boolean variable for using cached results, default is TRUE. If \code{write_to_file = TRUE}, this parameter auto-defaults to FALSE.}
 
-\item{write_to_file}{Boolean statement that outputs bedpe file if TRUE, default is FALSE. Setting this to TRUE forces `from_cache = FALSE`.}
+\item{write_to_file}{Boolean statement that outputs bedpe file if TRUE, default is FALSE. Setting this to TRUE forces \code{from_cache = FALSE}.}
 }
 \value{
 A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
@@ -61,20 +61,20 @@ Retrieve Manta SVs and filter.
 }
 \details{
 Return Manta SVs with additional VCF information to allow for filtering of high-confidence variants.
-To return SV calls for multiple samples, give `these_sample_ids` a vector of sample IDs, if only one sample is desired,
-give this parameter one sample ID, as a string (or a vector of characters). The user can also call the `these_samples_metadata`
+To return SV calls for multiple samples, give \code{these_sample_ids} a vector of sample IDs, if only one sample is desired,
+give this parameter one sample ID, as a string (or a vector of characters). The user can also call the \code{these_samples_metadata}
 parameter to make use of an already subset metadata table. In this case, the returned calls will be restricted to the sample_ids
-within that data frame. This function relies on a set of specific internal functions [GAMBLR.results::id_ease] and [GAMBLR.results::get_manta_sv_by_samples] (if `from_cache = FALSE`).
-This function can also restrict the returned calls to any genomic regions specified within `chromosome`, `qstart`, `qend`,
-or the complete region specified under `region` (in chr:start-end format), note that chromosome can be either prefixed or not prefixed.
-Useful filtering parameters are also available, use `min_vaf` to set the minimum tumour VAF for a SV to be returned and `min_score`
-to set the lowest Manta somatic score for a SV to be returned. `pair_status` can be used to return variants from either matched or unmatched samples.
-In addition, the user can chose to return all variants, even the ones not passing the filter criteria. To do so, set `pass = FALSE` (default is TRUE).
-Is it adviseed to run this function with `from_cache = TRUE` (default) to read manta calls from a previous generated merge (cached result).
-If set to FALSE in combination with `write_to_file = TRUE`, the function will generate new merged manta calls, if the data access restriction allows it.
-Note, that if `write_to_file` is set to TRUE, the function autodefaults `from_cache = FALSE` to avoid nonsense parameter combinations.
+within that data frame. This function relies on a set of specific internal functions \link{id_ease} and \link{get_manta_sv_by_samples} (if \code{from_cache = FALSE}).
+This function can also restrict the returned calls to any genomic regions specified within \code{chromosome}, \code{qstart}, \code{qend},
+or the complete region specified under \code{region} (in chr:start-end format), note that chromosome can be either prefixed or not prefixed.
+Useful filtering parameters are also available, use \code{min_vaf} to set the minimum tumour VAF for a SV to be returned and \code{min_score}
+to set the lowest Manta somatic score for a SV to be returned. \code{pair_status} can be used to return variants from either matched or unmatched samples.
+In addition, the user can chose to return all variants, even the ones not passing the filter criteria. To do so, set \code{pass = FALSE} (default is TRUE).
+Is it adviseed to run this function with \code{from_cache = TRUE} (default) to read manta calls from a previous generated merge (cached result).
+If set to FALSE in combination with \code{write_to_file = TRUE}, the function will generate new merged manta calls, if the data access restriction allows it.
+Note, that if \code{write_to_file} is set to TRUE, the function autodefaults \code{from_cache = FALSE} to avoid nonsense parameter combinations.
 Is this function not what you are looking for? Try one of the following, similar, functions;
-[GAMBLR::get_combined_sv], [GAMBLR::get_manta_sv_by_sample], [GAMBLR::get_manta_sv_by_samples]
+\link{get_combined_sv}, \link{get_manta_sv_by_sample}, \link{get_manta_sv_by_samples}
 }
 \examples{
 #lazily get every SV in the table with default quality filters

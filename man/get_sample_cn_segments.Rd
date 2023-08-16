@@ -18,7 +18,7 @@ get_sample_cn_segments(
 \arguments{
 \item{this_sample_id}{Optional argument, single sample_id for the sample to retrieve segments for.}
 
-\item{multiple_samples}{Set to TRUE to return cn segments for multiple samples specified in `samples_list` parameter. Default is FALSE.}
+\item{multiple_samples}{Set to TRUE to return cn segments for multiple samples specified in \code{samples_list} parameter. Default is FALSE.}
 
 \item{sample_list}{Optional vector of type character with one sample per row, required if multiple_samples is set to TRUE.}
 
@@ -40,9 +40,9 @@ Get all segments for a single (or multiple) sample_id(s).
 }
 \details{
 This function returns CN segments for samples. This works for single sample or multiple samples.
-For multiple samples, remember to set the Boolean parameter `multiple_samples = TRUE` and give the `sample_lsit` a vector of characters with one sample ID per row.
+For multiple samples, remember to set the Boolean parameter \code{multiple_samples = TRUE} and give the \code{sample_lsit} a vector of characters with one sample ID per row.
 For more information on how this function can be run in different ways, refer to the parameter descriptions, examples and vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::assign_cn_to_ssm], [GAMBLR::get_cn_segments], [GAMBLR::get_cn_states],
+Is this function not what you are looking for? Try one of the following, similar, functions; \link[GAMBLR.utils:assign_cn_to_ssm]{GAMBLR.utils::assign_cn_to_ssm}, \link{get_cn_segments}, \link{get_cn_states},
 }
 \examples{
 # Return cn segments for multiple samples (read csv with one sample per line):

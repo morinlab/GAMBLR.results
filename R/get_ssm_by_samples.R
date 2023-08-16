@@ -2,14 +2,14 @@
 #'
 #' @description Get MAF-format data frame for more than one sample and combine them together.
 #'
-#' @details This function internally runs [GAMBLR::get_ssm_by_sample].
+#' @details This function internally runs [GAMBLR.results::get_ssm_by_sample].
 #' The user can either give the function a vector of sample IDs of interest with `these_sample_ids`,
 #' or use a metadata table (`these_samples_metadata`), already subset to the sample IDs of interest.
 #' In most situations, this should never need to be run with subset_from_merge = TRUE.
-#' Instead use one of [GAMBLR::get_coding_ssm] or [GAMBLR::get_ssm_by_region].
-#' See [GAMBLR::get_ssm_by_sample] for more information.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm],
-#' [GAMBLR::get_coding_ssm_status], [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample], [GAMBLR::get_ssm_by_region], [GAMBLR::get_ssm_by_regions]
+#' Instead use one of [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
+#' See [GAMBLR.results::get_ssm_by_sample] for more information.
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
+#' [GAMBLR.utils::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_sample_ids A vector of sample_id that you want results for.
 #' @param these_samples_metadata Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.

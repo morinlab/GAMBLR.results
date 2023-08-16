@@ -2,9 +2,9 @@
 #'
 #' @description Load the manta output for a set of samples.
 #'
-#' @details This is a convenience wrapper function for [GAMBLR::get_manta_sv_by_sample] (and called by [GAMBLR::get_manta_sv]).
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_combined_sv],
-#' [GAMBLR::get_manta_sv], [GAMBLR::get_manta_sv_by_sample]
+#' @details This is a convenience wrapper function for [GAMBLR.results::get_manta_sv_by_sample] (and called by [GAMBLR.results::get_manta_sv]).
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_combined_sv],
+#' [GAMBLR.results::get_manta_sv], [GAMBLR.results::get_manta_sv_by_sample]
 #'
 #' @param these_samples_metadata The only required parameter is a metadata table (data frame) that must contain a row for each sample you want the data from. The additional columns the data frame needs to contain, besides sample_id, are: unix_group, genome_build, seq_type, pairing_status.
 #' @param min_vaf The minimum tumour VAF for a SV to be returned. Default value is 0.1.

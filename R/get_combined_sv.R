@@ -8,7 +8,7 @@
 #' Further, the input bedpe file is annotated with oncogenes and superenhancers from naive and germinal centre B-cells.
 #' You can subset to events affecting certain loci using the "oncogenes" argument.
 #' Is this function not what you are looking for? Try one of the following, similar, functions;
-#' [GAMBLR::get_manta_sv], [GAMBLR::get_manta_sv_by_sample], [GAMBLR::get_manta_sv_by_samples]
+#' [GAMBLR.results::get_manta_sv], [GAMBLR.results::get_manta_sv_by_sample], [GAMBLR.results::get_manta_sv_by_samples]
 #'
 #' @param min_vaf The minimum tumour VAF for a SV to be returned. Recommended: 0. (default: 0)
 #' @param these_sample_ids A character vector of tumour sample IDs you wish to retrieve SVs for.

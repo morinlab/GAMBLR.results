@@ -2,7 +2,7 @@
 #'
 #' @description Layer on ICGC metadata from a supplemental table to fill in missing COO.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::get_gambl_metadata], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::get_gambl_metadata], not meant for out-of-package usage.
 #'
 #' @param incoming_metadata A metadata table (probably output from `get_gambl_metadata`).
 #'

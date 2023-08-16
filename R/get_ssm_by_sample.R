@@ -5,8 +5,8 @@
 #' @details This was implemented to allow flexibility because there are some samples that we may want to use a different set of variants than those in the main GAMBL merge.
 #' The current use case is to allow a force_unmatched output to be used to replace the SSMs from the merge for samples with known contamination in the normal.
 #' This will also be useful to apply a blacklist to individual MAFs when coupled with [GAMBLR::annotate_ssm_blacklist].
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm], [GAMBLR::get_coding_ssm_status],
-#' [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_region], [GAMBLR::get_ssm_by_regions]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.utils::get_coding_ssm_status],
+#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param this_sample_id Required. The sample_id you want the data from.
 #' @param this_seq_type Required if not specifying these_samples_metadata. The seq_type of the sample you want data from.

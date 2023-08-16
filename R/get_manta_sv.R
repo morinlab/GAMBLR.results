@@ -16,7 +16,7 @@
 #' If set to FALSE in combination with `write_to_file = TRUE`, the function will generate new merged manta calls, if the data access restriction allows it.
 #' Note, that if `write_to_file` is set to TRUE, the function autodefaults `from_cache = FALSE` to avoid nonsense parameter combinations.
 #' Is this function not what you are looking for? Try one of the following, similar, functions;
-#' [GAMBLR::get_combined_sv], [GAMBLR::get_manta_sv_by_sample], [GAMBLR::get_manta_sv_by_samples]
+#' [GAMBLR.results::get_combined_sv], [GAMBLR.results::get_manta_sv_by_sample], [GAMBLR.results::get_manta_sv_by_samples]
 #'
 #' @param these_sample_ids A vector of multiple sample_id (or a single sample ID as a string) that you want results for.
 #' @param these_samples_metadata A metadata table to auto-subset the data to samples in that table before returning.

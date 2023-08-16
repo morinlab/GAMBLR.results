@@ -3,12 +3,12 @@
 #' @description Load the manta output (from individual flat file) for 1 sample.
 #'
 #' @details This function is used for retrieving Manta results (structural variants) from individual flat-files (one sample).
-#' For multiple samples, please see [GAMBLR::get_manta_sv_by_samples] (a convenience wrapper function for [GAMBLR::get_manta_sv_by_sample]).
+#' For multiple samples, please see [GAMBLR.results::get_manta_sv_by_samples] (a convenience wrapper function for [GAMBLR.results::get_manta_sv_by_sample]).
 #' Additional columns are extracted from the VCF column and standard filtering options are available.
 #' This function also performs a lift-over to selected projection, if needed.
 #' Please note, if `force_lift` is set to FALSE, an extra column will be added that states if the returned variant calls need to be lifted.
 #' The value for this column is returned TRUE (for all rows) if the available genome projection for the selected sample does not match the selected projection (i.e requiring the user to manually lift the calls).
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_combined_sv], [GAMBLR::get_manta_sv], [GAMBLR::get_manta_sv_by_samples]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_combined_sv], [GAMBLR.results::get_manta_sv], [GAMBLR.results::get_manta_sv_by_samples]
 #'
 #' @param this_sample_id The single sample ID you want to obtain the result from. If this parameter is not supplied, the function will retrieve sample ID from the supplied metadata table (these_samples_metadata).
 #' @param these_samples_metadata A metadata table containing metadata for this_sample_id, or sample of interest. This parameter is required.

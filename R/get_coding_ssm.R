@@ -4,15 +4,15 @@
 #'
 #' @details Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.
 #' For more information on how to implement the filtering parameters, refer to the parameter descriptions as well as examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm_status],
-#' [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample], [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_region], [GAMBLR::get_ssm_by_regions]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::get_coding_ssm_status],
+#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param limit_cohort Supply this to restrict mutations to one or more cohorts in a vector.
 #' @param exclude_cohort  Supply this to exclude mutations from one or more cohorts in a vector.
 #' @param limit_pathology Supply this to restrict mutations to one pathology.
 #' @param limit_samples Supply this to restrict mutations to a vector of sample_id (instead of subsetting using the provided metadata)
 #' @param these_samples_metadata Supply a metadata table to auto-subset the data to samples in that table before returning
-#' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR::get_ssm_by_samples].
+#' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR.results::get_ssm_by_samples].
 #' @param projection Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.
 #' @param seq_type The seq_type you want back, default is genome.
 #' @param basic_columns Set to FALSE to override the default behavior of returning only the first 45 columns of MAF data.

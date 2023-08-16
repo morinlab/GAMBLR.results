@@ -20,9 +20,9 @@ get_ssm_by_patients(
 )
 }
 \arguments{
-\item{these_patient_ids}{A vector of patient IDs that you want results for. The user can also use a metadata table that has been subset to the patient IDs of interest (`these_samples_metadata`).}
+\item{these_patient_ids}{A vector of patient IDs that you want results for. The user can also use a metadata table that has been subset to the patient IDs of interest (\code{these_samples_metadata}).}
 
-\item{these_samples_metadata}{A metadata subset to contain the rows corresponding to the patients of interest. If the vector of patient IDs is missing (`these_patient_ids`), this function will default to all patient IDs in the metadata table given to this parameter.}
+\item{these_samples_metadata}{A metadata subset to contain the rows corresponding to the patients of interest. If the vector of patient IDs is missing (\code{these_patient_ids}), this function will default to all patient IDs in the metadata table given to this parameter.}
 
 \item{tool_name}{Only supports slms-3 currently.}
 
@@ -38,7 +38,7 @@ get_ssm_by_patients(
 
 \item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters (matching columns in MAF).}
 
-\item{subset_from_merge}{Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified `seq_type`.}
+\item{subset_from_merge}{Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified \code{seq_type}.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.}
 
@@ -52,11 +52,11 @@ Get MAF-format data frame for more than one patient.
 }
 \details{
 This function returns variants from a set of patients avoiding duplicated mutations from multiple samples from that patient (i.e. unique superset of variants).
-This is done either by combining the contents of individual MAF files or subset from a merged MAF (wraps [GAMBLR::get_ssm_by_samples]).
-In most situations, this should never need to be run with `subset_from_merge = TRUE`. Instead use one of [GAMBLR::get_coding_ssm] or [GAMBLR::get_ssm_by_region].
-This function expects either a vector of patient IDs (`thse_patients_ids`) or an already subset metadata table (`these_samples_metadata`).
-Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm], [GAMBLR::get_coding_ssm_status],
-[GAMBLR::get_ssm_by_sample], [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_region], [GAMBLR::get_ssm_by_regions]
+This is done either by combining the contents of individual MAF files or subset from a merged MAF (wraps \link{get_ssm_by_samples}).
+In most situations, this should never need to be run with \code{subset_from_merge = TRUE}. Instead use one of \link{get_coding_ssm} or \link{get_ssm_by_region}.
+This function expects either a vector of patient IDs (\code{thse_patients_ids}) or an already subset metadata table (\code{these_samples_metadata}).
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status},
+\link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
 }
 \examples{
 #example 1, using a vector of patient IDs.

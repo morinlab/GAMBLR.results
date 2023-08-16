@@ -32,7 +32,7 @@ get_ssm_by_region(
 
 \item{basic_columns}{Set to FALSE to return MAF with all columns (116). Default is TRUE, which returns the first 45 columns. Note that if streamlined is set to TRUE, only two columns will be returned, regardless of what's specified in this parameter.}
 
-\item{streamlined}{Return Start_Position and Tumor_Smaple_Barcode as the only two MAF columns. Default is FALSE. Setting to TRUE will overwrite anything specified with `basic_columns`.}
+\item{streamlined}{Return Start_Position and Tumor_Smaple_Barcode as the only two MAF columns. Default is FALSE. Setting to TRUE will overwrite anything specified with \code{basic_columns}.}
 
 \item{maf_data}{An already loaded MAF like object to subset to regions of interest.}
 
@@ -58,11 +58,11 @@ Retrieve all SSMs from the GAMBL database within a single genomic coordinate ran
 }
 \details{
 This function lets the user specify a region of interest for returning SSM calls within that region.
-There are multiple ways a region can be specified. For example, the user can provide the full region in a "region" format (chr:start-end) to the `region` parameter.
-Or, the user can provide chromosome, start and end coordinates individually with `chr`, `start`, and `end` parameters.
+There are multiple ways a region can be specified. For example, the user can provide the full region in a "region" format (chr:start-end) to the \code{region} parameter.
+Or, the user can provide chromosome, start and end coordinates individually with \code{chr}, \code{start}, and \code{end} parameters.
 For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm],
-[GAMBLR::get_coding_ssm_status], [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample], [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_regions]
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
+\link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_regions}
 }
 \examples{
 #basic usage

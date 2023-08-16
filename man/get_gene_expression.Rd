@@ -37,7 +37,7 @@ Get the expression for one or more genes for all GAMBL samples.
 }
 \details{
 Effectively get gene expression for one or multiple genes for al GAMBL samples.
-This function can also take an already loaded expression matrix (`expression_data`)
+This function can also take an already loaded expression matrix (\code{expression_data})
 to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
 For examples and more info, refer to the parameter descriptions as wella s vignette examples.
 }
