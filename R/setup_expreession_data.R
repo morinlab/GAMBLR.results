@@ -4,7 +4,7 @@
 #'
 #' @details This function takes a set of genes with the `these_genes` (character of vectors) parameter and returns expression data.
 #' Expression data is then formatted to match the expected format for import to a cBioPortal study.
-#' If no genes are provided, the function will default to all genes that are defined in the `lymphoma_genes` bundled data.
+#' If no genes are provided, the function will default to all genes that are defined in the `GAMBLR.data::lymphoma_genes` bundled data.
 #' This function internally calls [GAMBLR.results::get_gene_expression] for returning expression data as outlined above.
 #'
 #' @param project_name Unique ID for your project.
@@ -37,7 +37,7 @@ setup_expreession_data = function(project_name = "gambl_genome",
 
   #default to all lymphoma genes if no specific genes are supplied for getting expression values.
   if(missing(these_genes)){
-    these_genes = lymphoma_genes %>% pull(Gene)
+    these_genes = GAMBLR.data::lymphoma_genes %>% pull(Gene)
   }
 
   if(missing(expression_df)){
