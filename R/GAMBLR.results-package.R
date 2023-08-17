@@ -2,8 +2,6 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom GAMBLR check_host
-#' @importFrom GAMBLR check_remote_configuration
 #' @importFrom GAMBLR.utils fread_maf
 #' @importFrom GAMBLR.utils tidy_lymphgen
 #' @importFrom GAMBLR.helpers check_config_value

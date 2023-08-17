@@ -10,20 +10,26 @@ License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
 Imports:
+	ComplexHeatmap,
+	DBI,
+    RMariaDB,
+	S4Vectors,
     circlize,
     config,
     data.table,
-    DBI,
+	digest,
     dplyr,
+	ggplot2,
+	grid,
     GAMBLR.data,
     GAMBLR.helpers,
     GAMBLR.utils,
-    GAMBLR.viz,
     glue,
+	purrr,
     readr,
-    RMariaDB,
+	rtracklayer,
     ssh,
-    stats,
+    stringi,
     stringr,
     tibble,
     tidyr,
@@ -32,8 +38,7 @@ Imports:
 Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,
-    morinlab/GAMBLR.utils,
-    morinlab/GAMBLR.viz
+    morinlab/GAMBLR.utils
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
