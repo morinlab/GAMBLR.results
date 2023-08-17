@@ -72,7 +72,7 @@ Regions are specified with the \code{region}parameter.
 
 Alternatively, the region of interest can also be specified by calling the function with \code{chromosome}, \code{start_pos}, and \code{end_pos} parameters.
 
-This function operates on a single region. To return a matrix of sliding window counts over multiple regions, see \link[GAMBLR:calc_mutation_frequency_bin_region]{GAMBLR::calc_mutation_frequency_bin_region}Use .
+This function operates on a single region. To return a matrix of sliding window counts over multiple regions, see \link{calc_mutation_frequency_bin_region}Use .
 }
 \examples{
 chr11_mut_freq = calc_mutation_frequency_bin_region(region = "chr11:69455000-69459900",

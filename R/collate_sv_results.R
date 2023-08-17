@@ -2,7 +2,7 @@
 #'
 #' @description Determine and summarize which cases have specific oncogene SVs.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::collate_results], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table A data frame with sample_id as the first column.
 #' @param tool Name of tool (optional, default is manta).

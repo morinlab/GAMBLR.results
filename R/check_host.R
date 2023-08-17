@@ -35,7 +35,7 @@ check_host = function(auto_connect = FALSE,
         if(verbose){
           message("You appear to be using GAMBLR on your local computer. Be sure to set up an ssh session!")
           message("requires an active VPN connection to the GSC")
-          message("?GAMBLR::get_ssh_session for more info")
+          message("?GAMBLR.results::get_ssh_session for more info")
         }
       }
     }

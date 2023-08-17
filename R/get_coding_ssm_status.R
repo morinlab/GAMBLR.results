@@ -4,11 +4,11 @@
 #'
 #' @details This function takes a vector of gene symbols and subsets the incoming MAF to specified genes. If no genes are provided, the function will default to all lymphoma genes.
 #' The function can accept a wide range of incoming MAFs. For example, the user can call this function with `these_samples_metadata` (preferably a metadata table that has been subset to the sample IDs of interest).
-#' If this parameter is not called, the function will default to all samples available with [GAMBLR::get_gambl_metadata]. The user can also provide a path to a MAF, or MAF-like file with `maf_path`,
+#' If this parameter is not called, the function will default to all samples available with [GAMBLR.results::get_gambl_metadata]. The user can also provide a path to a MAF, or MAF-like file with `maf_path`,
 #' or an already loaded MAF can be used with the `maf_data` parameter. If both `maf_path` and `maf_data` is missing, the function will default to run `get_coding_ssm`.
 #' This function also has a lot of filtering and convenience parameters giving the user full control of the return. For more information, refer to the parameter descriptions and examples.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_coding_ssm], [GAMBLR::get_ssm_by_patients], [GAMBLR::get_ssm_by_sample],
-#' [GAMBLR::get_ssm_by_samples], [GAMBLR::get_ssm_by_region], [GAMBLR::get_ssm_by_regions]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
+#' [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param gene_symbols A vector of gene symbols for which the mutation status will be tabulated. If not provided, lymphoma genes will be returned by default.
 #' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix. Only the column "sample_id" is required. If not provided, the matrix is tabulated for all available samples as default.

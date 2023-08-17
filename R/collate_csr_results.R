@@ -2,7 +2,7 @@
 #'
 #' @description Collate a few CSR annotations, including MiXCR.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::collate_results], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table A data frame with sample_id as the first column.
 #' @param seq_type_filter Filtering criteria, default is genomes.

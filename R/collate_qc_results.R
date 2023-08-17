@@ -2,7 +2,7 @@
 #'
 #' @description Expand a metadata table horizontally with quality control metrics.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::collate_results], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table df with sample ids in the first column.
 #' @param seq_type_filter default is genome, capture is also available for unix_group icgc_dart.

@@ -56,7 +56,7 @@ heatmap_mutation_frequency_bin(
 
 \item{maf_data}{Optional maf data frame. Will be subset to rows where Tumor_Sample_Barcode matches provided sample IDs or metadata table. If not provided, maf data will be obtained with get_ssm_by_regions().}
 
-\item{mut_freq_matrix}{Optional matrix of binned mutation frequencies generated outside of this function, usually by \link[GAMBLR:calc_mutation_frequency_bin_regions]{GAMBLR::calc_mutation_frequency_bin_regions}.}
+\item{mut_freq_matrix}{Optional matrix of binned mutation frequencies generated outside of this function, usually by \link{calc_mutation_frequency_bin_regions}.}
 
 \item{projection}{Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default grch37.}
 
@@ -76,7 +76,7 @@ heatmap_mutation_frequency_bin(
 
 \item{only_regions}{Optional character vector of genes to include from the default aSHM regions.}
 
-\item{customColours}{Optional list of character vectors specifying colours for heatmap annotation with metadataColumns, e.g. list(pathology = c(DLBCL = "green", BL = "purple")). If left blank, the function will attempt to match heatmap annotations with existing colours from \link[GAMBLR:get_gambl_colours]{GAMBLR::get_gambl_colours}, or will default to the Blood colour palette.}
+\item{customColours}{Optional list of character vectors specifying colours for heatmap annotation with metadataColumns, e.g. list(pathology = c(DLBCL = "green", BL = "purple")). If left blank, the function will attempt to match heatmap annotations with existing colours from \link[GAMBLR.viz:get_gambl_colours]{GAMBLR.viz::get_gambl_colours}, or will default to the Blood colour palette.}
 
 \item{backgroundColour}{Optionally specify the colour for heatmap bins with 0 mutations. Default grey90.}
 
@@ -123,7 +123,7 @@ A table of mutation counts for sliding windows across one or more regions. May b
 Obtain a heatmap of mutation counts across sliding windows for multiple regions.
 }
 \details{
-This function takes a metadata table with \code{these_samples_metadata} parameter and internally calls \link[GAMBLR:calc_mutation_frequency_bin_region]{GAMBLR::calc_mutation_frequency_bin_region} (that internally calls \link[GAMBLR:get_ssm_by_regions]{GAMBLR::get_ssm_by_regions}).
+This function takes a metadata table with \code{these_samples_metadata} parameter and internally calls \link{calc_mutation_frequency_bin_region} (that internally calls \link{get_ssm_by_regions}).
 to retrieve mutation counts for sliding windows across one or more regions and generate a heatmap. May optionally provide any combination of a maf data frame, existing metadata, or a regions data frame or named vector.
 }
 \examples{

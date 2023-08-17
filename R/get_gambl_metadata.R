@@ -19,7 +19,7 @@
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #'
-#' @import config dplyr tidyr readr RMariaDB DBI GAMBLR.helpers
+#' @import config dplyr tidyr readr RMariaDB DBI GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -375,12 +375,12 @@ get_gambl_metadata = function(seq_type_filter = "genome",
     }
   }
 
-  all_meta = GAMBLR::tidy_lymphgen(all_meta,
+  all_meta = GAMBLR.utils::tidy_lymphgen(all_meta,
               lymphgen_column_in = "lymphgen_cnv_noA53",
               lymphgen_column_out = "lymphgen",
               relevel=TRUE)
 
-  #all_meta = GAMBLR::collate_lymphgen(all_meta, verbose=FALSE)
+  #all_meta = GAMBLR.results::collate_lymphgen(all_meta, verbose=FALSE)
 
   # "catchall" pathology for those that need review
   all_meta = all_meta %>%

@@ -63,9 +63,9 @@ A table of mutation counts for sliding windows across one or more regions. May b
 Obtain a long tidy or wide matrix of mutation counts across sliding windows for multiple regions.
 }
 \details{
-This function takes a metadata table with \code{these_samples_metadata} parameter and internally calls \link[GAMBLR:calc_mutation_frequency_bin_region]{GAMBLR::calc_mutation_frequency_bin_region} (that internally calls \link[GAMBLR:get_ssm_by_regions]{GAMBLR::get_ssm_by_regions}).
+This function takes a metadata table with \code{these_samples_metadata} parameter and internally calls \link{calc_mutation_frequency_bin_region} (that internally calls \link{get_ssm_by_regions}).
 to retrieve mutation counts for sliding windows across one or more regions. May optionally provide any combination of a maf data frame, existing metadata, or a regions data frame or named vector.
-The heatmap plotting portion of this function has been moved to \link[GAMBLR:heatmap_mutation_frequency_bin]{GAMBLR::heatmap_mutation_frequency_bin}.
+The heatmap plotting portion of this function has been moved to \link{heatmap_mutation_frequency_bin}.
 }
 \examples{
 #load metadata.

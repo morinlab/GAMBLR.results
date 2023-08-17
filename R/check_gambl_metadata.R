@@ -2,7 +2,7 @@
 #'
 #' @description Check GAMBL or other metadata for compatibility with various features.
 #'
-#' @details Give this function a metadata output, preferably from [GAMBLR::get_gambl_metadata], or any other source.
+#' @details Give this function a metadata output, preferably from [GAMBLR.results::get_gambl_metadata], or any other source.
 #' The function then checks for duplicate sample IDs, colours for all values in all columns that map to a colour with `map_metadata_to_colours` and missing columns.
 #'
 #' @param metadata_df Data frame output by `get_gambl_metadata` or some other source of metadata you plan to use.
@@ -84,6 +84,6 @@ check_gambl_metadata = function(metadata_df,
   }
   if(fix){
     message("Nothing fixed. I'm waiting for someone to implement some code to fix common issues.")
-    message("maybe try something like this? GAMBLR::tidy_lymphgen(metadata,  lymphgen_with_cnv, lymphgen_with_cnv_tidy, relevel = TRUE)")
+    message("maybe try something like this? GAMBLR.utils::tidy_lymphgen(metadata,  lymphgen_with_cnv, lymphgen_with_cnv_tidy, relevel = TRUE)")
   }
 }

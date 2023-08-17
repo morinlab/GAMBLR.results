@@ -2,7 +2,7 @@
 #'
 #' @description Extract derived results stored in the database (these are usually slower to derive on the fly).
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::collate_results], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table A data frame with sample_id as the first column.
 #' @param seq_type_filter Filtering criteria, default is genomes.

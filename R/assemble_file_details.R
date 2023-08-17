@@ -7,7 +7,7 @@
 #' Lastly, specify the sample IDs with `these_sample_ids`.
 #' For more information on how to use the optional parameters, refer to the parameter descriptions.
 #'
-#' @param file_details_df Optionally supply the data frame directly instead (e.g. from [GAMBLR::find_files_extract_wildcards]).
+#' @param file_details_df Optionally supply the data frame directly instead (e.g. from [GAMBLR.results::find_files_extract_wildcards]).
 #' @param file_paths A vector of full file paths, e.g. the output of dir.
 #' @param tool_name The tool or pipeline that generated the files (should be the same for all).
 #' @param unix_group The unix group (should be the same for all).
@@ -22,13 +22,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' assemble_file_details(file_paths = c(one.maf, another.maf), 
+#' assemble_file_details(file_paths = c(one.maf, another.maf),
 #'                       tool_name = "manta",
 #'                       unix_group = "genome",
 #'                       output_type = "maf",
 #'                       these_sample_ids = c(one_sample, another_sample))
 #' }
-#' 
+#'
 assemble_file_details = function(file_details_df,
                                  file_paths,
                                  tool_name,

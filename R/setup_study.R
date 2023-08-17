@@ -2,10 +2,10 @@
 #'
 #' @description Initialize a new cBioPortal instance or update existing portal data set, can also be used to retrieve sample ids included in study.
 #'
-#' @details This function internally calls [GAMBLR::get_coding_ssm] to retrieve coding mutations to be included in the study (if `overwrite = TRUE`).
+#' @details This function internally calls [GAMBLR.results::get_coding_ssm] to retrieve coding mutations to be included in the study (if `overwrite = TRUE`).
 #' In addition, this function also creates and sets up the proper folder hierarchy and writes the files necessary to import a new cBioPortal study.
-#' Before a study is ready to be imported to cBioPortal, the user also needs to run [GAMBLR::setup_fusions] and [GAMBLR::finalize_study].
-#' Optionally the user can also run [GAMBLR::study_check] to ensure all samples described by the "clinical" file are included in the study.
+#' Before a study is ready to be imported to cBioPortal, the user also needs to run [GAMBLR.results::setup_fusions] and [GAMBLR.results::finalize_study].
+#' Optionally the user can also run [GAMBLR.results::study_check] to ensure all samples described by the "clinical" file are included in the study.
 #' Also, note that the parameters chosen for this function have to match the same parameters called for any subsequent study function calls.
 #'
 #' @param seq_type_filter the seq type you are setting up a study for, default is "genome".
@@ -26,7 +26,7 @@
 #' \dontrun{
 #' ids = setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
-#' 
+#'
 setup_study = function(seq_type_filter = "genome",
                        short_name = "GAMBL",
                        human_friendly_name = "GAMBL data",

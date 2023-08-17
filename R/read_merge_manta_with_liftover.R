@@ -1,6 +1,6 @@
 #' @title Read Merge Manta With Liftover.
 #'
-#' @description Takes a path to bedpe and runs liftover ([GAMBLR::liftover_bedpe]) based on the original genome build of the bedpe.
+#' @description Takes a path to bedpe and runs liftover ([GAMBLR.results::liftover_bedpe]) based on the original genome build of the bedpe.
 #'
 #' @details This is a helper function that is not meant to be used routinely.
 #'
@@ -9,7 +9,7 @@
 #' @param out_dir output directory
 #'
 #' @import dplyr readr
-#' 
+#'
 #' @noRd
 #'
 #' @examples
@@ -17,7 +17,7 @@
 #' manta_bedpe = read_merge_manta_with_liftover(bedpe_paths = "some_path.bedpe",
 #'                                              out_dir = "../")
 #' }
-#' 
+#'
 read_merge_manta_with_liftover = function(bedpe_paths = c(),
                                           pattern = "--matched",
                                           out_dir){

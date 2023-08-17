@@ -5,7 +5,7 @@
 #' @details This function is called to return the mutation frequency for a given region, either from a provided input maf data frame or from the GAMBL maf data.
 #' @details Regions are specified with the `region`parameter.
 #' @details Alternatively, the region of interest can also be specified by calling the function with `chromosome`, `start_pos`, and `end_pos` parameters.
-#' @details This function operates on a single region. To return a matrix of sliding window counts over multiple regions, see [GAMBLR::calc_mutation_frequency_bin_region]Use .
+#' @details This function operates on a single region. To return a matrix of sliding window counts over multiple regions, see [GAMBLR.results::calc_mutation_frequency_bin_region]Use .
 #'
 #' @param region A string describing a genomic region in the "chrom:start-end" format. The region must be specifed in this format OR as separate chromosome, start_pos, end_pos arguments.
 #' @param chromosome Chromosome name in region.
@@ -13,11 +13,11 @@
 #' @param end_pos End coordinate of region.
 #' @param these_samples_metadata Optional data frame containing a sample_id column. If not providing a maf file, seq_type is also a required column.
 #' @param these_sample_ids Optional vector of sample IDs. Output will be subset to IDs present in this vector.
-#' @param this_seq_type Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type. 
+#' @param this_seq_type Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.
 #' @param maf_data Optional maf data frame. Will be subset to rows where Tumor_Sample_Barcode matches provided sample IDs or metadata table. If not provided, maf data will be obtained with get_ssm_by_regions().
-#' @param projection Specify which genome build to use. Required. 
-#' @param slide_by Slide size for sliding window. Default 100. 
-#' @param window_size Size of sliding window. Default 1000. 
+#' @param projection Specify which genome build to use. Required.
+#' @param slide_by Slide size for sliding window. Default 100.
+#' @param window_size Size of sliding window. Default 1000.
 #' @param return_format Return format of mutations. Accepted inputs are "long" and "wide". Long returns a data frame of one sample ID/window per row. Wide returns a matrix with one sample ID per row and one window per column. Using the "wide" format will retain all samples and windows regardless of the drop_unmutated or min_count_per_bin parameters.
 #' @param min_count_per_bin Minimum counts per bin, default is 0. Setting this greater than 0 will drop unmutated windows only when return_format is long.
 #' @param return_count Boolean statement to return mutation count per window (TRUE) or binary mutated/unmutated status (FALSE). Default is TRUE.
@@ -28,7 +28,7 @@
 #' @return Either a matrix or a long tidy table of counts per window.
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr tidyr
+#' @import dplyr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -68,7 +68,7 @@ calc_mutation_frequency_bin_region <- function(region,
       end_pos
     )
   } else {
-    chunks <- GAMBLR:::region_to_chunks(region)
+    chunks <- GAMBLR.helpers:::region_to_chunks(region)
     chromosome <- chunks$chromosome
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)
@@ -76,13 +76,13 @@ calc_mutation_frequency_bin_region <- function(region,
 
   # Harmonize metadata and sample IDs
   get_meta <- id_ease(
-    these_samples_metadata, 
-    these_sample_ids, 
+    these_samples_metadata,
+    these_sample_ids,
     this_seq_type
   )
   metadata <- get_meta$this_metadata
   these_sample_ids <- get_meta$these_samples
-  
+
 
   if (
     (str_detect(chromosome, "chr") & projection == "grch37") |
@@ -130,10 +130,10 @@ calc_mutation_frequency_bin_region <- function(region,
         stop("seq_type must be present in metdata for compatibility with get_ssm_by_sample")
       }
     )
-    message("Using GAMBLR::get_ssm_by_region...")
+    message("Using GAMBLR.results::get_ssm_by_region...")
     region_ssm <- list()
     for (st in unique(metadata$seq_type)) {
-      this_seq_type <- GAMBLR::get_ssm_by_region(
+      this_seq_type <- GAMBLR.results::get_ssm_by_region(
         region = region,
         projection = projection,
         streamlined = FALSE,

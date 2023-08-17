@@ -2,7 +2,7 @@
 #'
 #' @description Wrapper function for creating a import-ready cBioPortal study.
 #'
-#' @details This function internally calls [GAMBLR::setup_study], [GAMBLR::setup_fusions], [GAMBLR::finalize_study] and [GAMBLR::study_check] to generate all necessary files for importing a study into cBioPortal.
+#' @details This function internally calls [GAMBLR.results::setup_study], [GAMBLR.results::setup_fusions], [GAMBLR.results::finalize_study] and [GAMBLR.results::study_check] to generate all necessary files for importing a study into cBioPortal.
 #' This function was developed to streamline this step and at the same time ensure that the study information and selected data type is consistent throughout the individual steps of generating a study.
 #' In addition, the user can also control if the generated study should be checked for sample IDs in case lists that are not described in the clinical file.
 #' This potentially will prevent an annoying error that prevents the study to be imported into the active cBioPortal instance, default is TRUE.
@@ -30,7 +30,7 @@
 #' #generate a cBioPortal study for all GAMVL capture samples:
 #' cbioportal_create(this_seqtype = "capture", description = "GAMBL data from exomes")
 #' }
-#' 
+#'
 cbioportal_create = function(this_seqtype = "genome",
                              short_name = "GAMBL",
                              human_friendly_name = "GAMBL data",

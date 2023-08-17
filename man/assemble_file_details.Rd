@@ -15,7 +15,7 @@ assemble_file_details(
 )
 }
 \arguments{
-\item{file_details_df}{Optionally supply the data frame directly instead (e.g. from \link[GAMBLR:find_files_extract_wildcards]{GAMBLR::find_files_extract_wildcards}).}
+\item{file_details_df}{Optionally supply the data frame directly instead (e.g. from \link{find_files_extract_wildcards}).}
 
 \item{file_paths}{A vector of full file paths, e.g. the output of dir.}
 
@@ -43,7 +43,7 @@ For more information on how to use the optional parameters, refer to the paramet
 }
 \examples{
 \dontrun{
-assemble_file_details(file_paths = c(one.maf, another.maf), 
+assemble_file_details(file_paths = c(one.maf, another.maf),
                       tool_name = "manta",
                       unix_group = "genome",
                       output_type = "maf",

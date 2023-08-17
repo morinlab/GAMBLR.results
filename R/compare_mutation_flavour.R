@@ -3,7 +3,7 @@
 #' @description Get a MAF that is just the variants unique to one of two flavours of variant calls available.
 #'
 #' @details Subset a MAF to only have variants that are unique to one flavour (specified with `flavour1`).
-#' This function is currently not exported, since there is only one flavour available at the moment (see docs for [GAMBLR::get_ssm_by_sample]).
+#' This function is currently not exported, since there is only one flavour available at the moment (see docs for [GAMBLR.results::get_ssm_by_sample]).
 #'
 #' @param these_sample_ids A vector of sample IDs to be included.
 #' @param flavour1 First flavour of variant calls, to be returned as unique if not present in flavour2. Default is "clustered".

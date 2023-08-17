@@ -7,7 +7,7 @@
 #' To do so, set `coding_only = TRUE`. It is also possible to point the function to already loaded maf/seq files, or a path to these files.
 #' See parameters; `maf_file`, `maf_path`, `seq_file` and `seg_path` for more information on how to use these parameters.
 #' This function can also take a vector with genes of interest (`genes`) that the returned data frame will be restricted to.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR::get_cn_segments], [GAMBLR::get_cn_states], [GAMBLR::get_sample_cn_segments]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states], [GAMBLR.results::get_sample_cn_segments]
 #'
 #' @param this_sample_id Sample ID of the sample you want to annotate.
 #' @param coding_only Optional. set to TRUE to restrict to only coding variants.
