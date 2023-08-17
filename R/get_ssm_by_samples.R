@@ -9,7 +9,7 @@
 #' Instead use one of [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
 #' See [GAMBLR.results::get_ssm_by_sample] for more information.
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.utils::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' [GAMBLR.results::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_sample_ids A vector of sample_id that you want results for.
 #' @param these_samples_metadata Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.

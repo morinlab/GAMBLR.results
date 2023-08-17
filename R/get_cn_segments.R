@@ -7,7 +7,7 @@
 #' For example, the user can provide the full region in a "region" format (chr:start-end) to the `region` parameter.
 #' Or, the user can provide chromosome, start and end coordinates individually with `chr`, `start`, and `end` parameters.
 #' For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::assign_cn_to_ssm], [GAMBLR.results::get_cn_states], [GAMBLR.results::get_sample_cn_segments]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_states], [GAMBLR.results::get_sample_cn_segments]
 #'
 #' @param region Region formatted like chrX:1234-5678 or X:1234-56789.
 #' @param chromosome The chromosome you are restricting to. Required parameter if region is not specified.

@@ -6,7 +6,7 @@
 #' This is done either by combining the contents of individual MAF files or subset from a merged MAF (wraps [GAMBLR.results::get_ssm_by_samples]).
 #' In most situations, this should never need to be run with `subset_from_merge = TRUE`. Instead use one of [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
 #' This function expects either a vector of patient IDs (`thse_patients_ids`) or an already subset metadata table (`these_samples_metadata`).
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.utils::get_coding_ssm_status],
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_patient_ids A vector of patient IDs that you want results for. The user can also use a metadata table that has been subset to the patient IDs of interest (`these_samples_metadata`).

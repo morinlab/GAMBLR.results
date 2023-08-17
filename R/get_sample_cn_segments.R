@@ -5,7 +5,7 @@
 #' @details This function returns CN segments for samples. This works for single sample or multiple samples.
 #' For multiple samples, remember to set the Boolean parameter `multiple_samples = TRUE` and give the `sample_lsit` a vector of characters with one sample ID per row.
 #' For more information on how this function can be run in different ways, refer to the parameter descriptions, examples and vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states],
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states],
 #'
 #' @param this_sample_id Optional argument, single sample_id for the sample to retrieve segments for.
 #' @param multiple_samples Set to TRUE to return cn segments for multiple samples specified in `samples_list` parameter. Default is FALSE.

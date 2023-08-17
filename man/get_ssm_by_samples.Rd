@@ -61,7 +61,7 @@ In most situations, this should never need to be run with subset_from_merge = TR
 Instead use one of \link{get_coding_ssm} or \link{get_ssm_by_region}.
 See \link{get_ssm_by_sample} for more information.
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
-\link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
+\link{get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
 }
 \examples{
 #examples using the these_sample_ids parameter.
