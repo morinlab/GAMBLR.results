@@ -2,6 +2,7 @@
 
 export(add_icgc_metadata)
 export(annotate_hotspots)
+export(annotate_ssm_blacklist)
 export(assemble_file_details)
 export(assign_cn_to_ssm)
 export(calc_mutation_frequency_bin_region)
