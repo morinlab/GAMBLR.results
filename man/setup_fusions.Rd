@@ -36,9 +36,9 @@ A vector of sample_id for the patients that have been included.
 Annotate SVs and create the input for fusions to be displayed in cBioPortal instance.
 }
 \details{
-This function calls \link[GAMBLR:get_combined_sv]{GAMBLR::get_combined_sv} and runs \link[GAMBLR:annotate_sv]{GAMBLR::annotate_sv} on the returned data frame.
+This function calls \link{get_combined_sv} and runs \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate_sv} on the returned data frame.
 Should be run as the next step after running \link[GAMBLR:setup_study]{GAMBLR::setup_study}. Note that the parameters called with this function
-has to match the parameter arguments of \link[GAMBLR:setup_study]{GAMBLR::setup_study}, i.e if \code{short_name} is for \link[GAMBLR:setup_study]{GAMBLR::setup_study} is "GAMBL",
+has to match the parameter arguments of \link[GAMBLR:setup_study]{GAMBLR::setup_study}, i.e if \code{short_name} is for \link{setup_study} is "GAMBL",
 then the \code{short_name} in \link[GAMBLR:setup_fusions]{GAMBLR::setup_fusions} also has to be "GAMBL", etc.
 }
 \examples{

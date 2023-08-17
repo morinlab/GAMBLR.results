@@ -11,7 +11,7 @@
 #'
 #' @return Data frame with additional columns ({tool}_{oncogene} and {tool}_{oncogene}_{partner}).
 #'
-#' @import dplyr
+#' @import dplyr GAMBLR.utils
 #'
 #' @noRd
 #'
@@ -31,7 +31,7 @@ collate_sv_results = function(sample_table,
   if(tool == "manta"){
     all_svs = get_manta_sv()
   }
-  annotated_svs = annotate_sv(all_svs) %>%
+  annotated_svs = GAMBLR.utils::annotate_sv(all_svs) %>%
   dplyr::filter(!is.na(partner))
 
   if(missing(sample_table)){

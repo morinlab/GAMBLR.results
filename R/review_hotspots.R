@@ -2,7 +2,7 @@
 #'
 #' @description Annotate MAF-like data frome with a hot_spot column indicating recurrent mutations.
 #'
-#' @details This function takes an annotated MAF (with [GAMBLR::annotate_hotspots]) and adds a new column, "hot_spot", to the same data frame.
+#' @details This function takes an annotated MAF (with [GAMBLR.results::annotate_hotspots]) and adds a new column, "hot_spot", to the same data frame.
 #' Genes for hotspot review are supplied with the `genes_of_interest` parameter.
 #' Currently only a few sets of genes are supported, see parameter description for more information and limitations.
 #' The desired genome build can be specified with `genome_build` parameter. Should be the same as the incoming MAF.
