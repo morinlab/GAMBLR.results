@@ -44,7 +44,7 @@ The other required parameter is \code{target_build}, this parameter decides the 
 hg19_sv = get_manta_sv(verbose = FALSE)
 hg19_sv = head(hg19_sv, 100)
 
-hg38_sv = liftover_bedpe(bedpe_df = hg19_sv, 
+hg38_sv = liftover_bedpe(bedpe_df = hg19_sv,
                          target_build = "hg38")
 
 }

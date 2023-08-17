@@ -17,14 +17,14 @@
 #' @return Data frame containing original bedpe data with new coordinates.
 #'
 #' @rawNamespace import(S4Vectors, except = c("merge", "second", "first", "union", "intersect", "setdiff", "setequal", "rename", "expand"))
-#' @import dplyr tidyr readr rtracklayer
+#' @import dplyr tidyr readr rtracklayer GAMBLR.data
 #' @export
 #'
 #' @examples
 #' hg19_sv = get_manta_sv(verbose = FALSE)
 #' hg19_sv = head(hg19_sv, 100)
-#' 
-#' hg38_sv = liftover_bedpe(bedpe_df = hg19_sv, 
+#'
+#' hg38_sv = liftover_bedpe(bedpe_df = hg19_sv,
 #'                          target_build = "hg38")
 #'
 liftover_bedpe = function(bedpe_file,
@@ -55,7 +55,7 @@ liftover_bedpe = function(bedpe_file,
     #convert to strings manually to avoid caused by scientific notation in rare cases when R coerces to strings
     #Error in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
     #scan() expected 'an integer', got '4.7e+07'
-    
+
     original_bedpe = original_bedpe %>% mutate(START_A = format(START_A,scientific=F),
                                                START_B = format(START_B,scientific=F),
                                                END_A = format(END_A,scientific=F),
@@ -89,9 +89,9 @@ liftover_bedpe = function(bedpe_file,
     bedpe_obj = rtracklayer::import(text = char_vec, format = "bed")
   }
   if(target_build == "grch37" | target_build == "hg19"){
-    chain = rtracklayer::import.chain(system.file("extdata", "hg38ToHg19.over.chain", package = "GAMBLR"))
+    chain = rtracklayer::import.chain(system.file("extdata", "hg38ToHg19.over.chain", package = "GAMBLR.data"))
   }else if(target_build == "grch38" | target_build == "hg38"){
-    chain = rtracklayer::import.chain(system.file("extdata", "hg19ToHg38.over.chain", package = "GAMBLR"))
+    chain = rtracklayer::import.chain(system.file("extdata", "hg19ToHg38.over.chain", package = "GAMBLR.data"))
   }
   if(!standard_bed){
     colnames(original_bedpe)[1] = "CHROM_A"
