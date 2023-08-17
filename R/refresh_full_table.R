@@ -2,7 +2,7 @@
 #'
 #' @description Refresh the contents of a database table.
 #'
-#' @details INTERNAL FUNCTION called by [GAMBLR::referesh_metadata_tables], not meant for out-of-package usage.
+#' @details INTERNAL FUNCTION called by [GAMBLR.results::referesh_metadata_tables], not meant for out-of-package usage.
 #'
 #' @param table_name Name of table to refresh.
 #' @param connection Database connection object.
