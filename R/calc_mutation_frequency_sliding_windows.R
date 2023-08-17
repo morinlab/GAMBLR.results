@@ -6,7 +6,7 @@
 #' Alternatively, the region of interest can also be specified by calling the function with `chromosome`, `start_pos`, and `end_pos` parameters.
 #' It is also possible to return a plot of the created bins. This is done with setting `plot_type = TRUE`.
 #' There are a collection of parameters available for further customizing the return, for more information, refer to the parameter descriptions and examples.
-#' This function is unlikely to be used directly in most cases. See [GAMBLR::get_mutation_frequency_bin_matrix] instead.
+#' This function is unlikely to be used directly in most cases.
 #'
 #' @param this_region Genomic region in bed format.
 #' @param chromosome Chromosome name in region.
