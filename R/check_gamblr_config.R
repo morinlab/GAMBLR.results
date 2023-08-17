@@ -9,7 +9,7 @@
 #' @param archive_mode This is not currently working but the idea here is to keep a GSC archive of GAMBL in sync with the actively updated outputs
 #' @param force_backup Boolean parameter set to FALSE per default.
 #'
-#' @import dplyr tidyr stringi
+#' @import dplyr tidyr stringi glue
 #' @export
 #'
 #' @examples

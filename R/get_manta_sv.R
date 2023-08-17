@@ -36,7 +36,7 @@
 #'
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
-#' @import dplyr readr
+#' @import dplyr readr glue
 #' @export
 #'
 #' @examples

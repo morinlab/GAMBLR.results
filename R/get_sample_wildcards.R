@@ -9,7 +9,7 @@
 #'
 #' @return Nothing.
 #'
-#' @import dplyr
+#' @import dplyr glue
 #' @export
 #'
 #' @examples

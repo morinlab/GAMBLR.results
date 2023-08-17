@@ -22,7 +22,7 @@
 #'
 #' @return A table keyed on biopsy_id that contains a bunch of per-sample results from GAMBL
 #'
-#' @import dplyr readr config
+#' @import dplyr readr config glue
 #' @export
 #'
 #' @examples

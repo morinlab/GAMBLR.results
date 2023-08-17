@@ -13,7 +13,7 @@
 #'
 #' @return A df with lymphgen information.
 #'
-#' @import dplyr tidyr readr stringr
+#' @import dplyr tidyr readr stringr glue
 #' @export
 #'
 #' @examples

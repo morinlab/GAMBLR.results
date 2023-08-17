@@ -26,7 +26,7 @@
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
-#' @import dplyr tidyr RMariaDB DBI
+#' @import dplyr tidyr RMariaDB DBI glue
 #' @export
 #'
 #' @examples

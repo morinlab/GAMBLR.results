@@ -10,7 +10,7 @@
 #'
 #' @return A list that contains the genome_build and an igv-friendly build (igv_build), a list of bam file paths for tumour, normal and mrna data.
 #'
-#' @import dplyr
+#' @import dplyr glue
 #' @export
 #'
 #' @examples

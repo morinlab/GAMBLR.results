@@ -27,7 +27,7 @@
 #' 
 #' @return A MAF format data frame with two new columns indicating the number of occurrences of each variant in the two blacklists.
 #' 
-#' @import dplyr readr tidyr
+#' @import dplyr readr tidyr glue
 #' 
 #' @export
 #'

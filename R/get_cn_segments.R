@@ -21,7 +21,7 @@
 #'
 #' @return A data frame with CN segments for the specified region.
 #'
-#' @import dplyr readr RMariaDB DBI
+#' @import dplyr readr RMariaDB DBI glue
 #' @export
 #'
 #' @examples

@@ -14,7 +14,7 @@
 #'
 #' @return The same data frame with one additional column "hot_spot".
 #'
-#' @import dplyr tidyr readr
+#' @import dplyr tidyr readr glue
 #' @export
 #'
 #' @examples

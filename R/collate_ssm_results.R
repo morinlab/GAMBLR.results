@@ -12,7 +12,7 @@
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import dplyr
+#' @import dplyr glue
 #'
 #' @noRd
 #'

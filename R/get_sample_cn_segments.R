@@ -18,7 +18,7 @@
 #'
 #' @return A data frame of segments for a specific or multiple sample ID(s).
 #'
-#' @import dplyr readr RMariaDB DBI
+#' @import dplyr readr RMariaDB DBI glue
 #' @export
 #'
 #' @examples

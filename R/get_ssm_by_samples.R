@@ -27,7 +27,7 @@
 #'
 #' @return A data frame in MAF format.
 #'
-#' @import dplyr readr tidyr
+#' @import dplyr readr tidyr glue
 #' @export
 #'
 #' @examples

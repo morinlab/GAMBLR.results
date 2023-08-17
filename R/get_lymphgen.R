@@ -15,7 +15,7 @@
 #'
 #' @return A data frame.
 #'
-#' @import config dplyr tidyr readr stringr tibble
+#' @import config dplyr tidyr readr stringr tibble glue
 #' @export
 #'
 #' @examples

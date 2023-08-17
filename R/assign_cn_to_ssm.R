@@ -30,7 +30,7 @@
 #' CN is the rounded absolute copy number estimate of the region based on log.ratio (NA when no overlap was found)
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr readr RMariaDB DBI ssh
+#' @import dplyr readr RMariaDB DBI ssh glue
 #' @export
 #'
 #' @examples

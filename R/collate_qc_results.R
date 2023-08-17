@@ -9,7 +9,7 @@
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import dplyr readr
+#' @import dplyr readr glue
 #'
 #' @noRd
 #'
