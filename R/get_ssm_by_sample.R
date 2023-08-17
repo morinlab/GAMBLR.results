@@ -23,7 +23,7 @@
 #'
 #' @return data frame in MAF format.
 #'
-#' @import dplyr tidyr glue
+#' @import dplyr tidyr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -96,15 +96,15 @@ get_ssm_by_sample = function(this_sample_id,
     return()
   }else if(flavour == "clustered"){
     vcf_base_name = "slms-3.final"
-    path_template = check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
+    path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
     path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(check_config_value(config::get("project_base",config="default")), path_complete)
-    local_full_maf_path = paste0(check_config_value(config::get("project_base")), path_complete)
+    full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
+    local_full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
     if(augmented){
-      path_template = check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
+      path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
       path_complete = unname(unlist(glue::glue(path_template)))
-      aug_maf_path = paste0(check_config_value(config::get("project_base",config="default")), path_complete)
-      local_aug_maf_path = paste0(check_config_value(config::get("project_base")), path_complete)
+      aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
+      local_aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
     }
   }else{
     warning("Currently the only flavour available to this function is 'clustered'")

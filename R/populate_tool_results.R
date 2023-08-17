@@ -17,11 +17,11 @@ populate_tool_results = function(tool_name){
 
   #IMPORTANT TODO: This function should only ever work with samples that exist in the metadata
   # Perhaps it should report any excluded outputs in case they need to be deleted from the main output directories
-  matched_analyses = unlist(check_config_value(config::get("analyses")$matched))
+  matched_analyses = unlist(GAMBLR.helpers::check_config_value(config::get("analyses")$matched))
   print(matched_analyses)
-  database_name = check_config_value(config::get("database_name"))
-  genome_builds = unlist(strsplit(check_config_value(config::get("genome_builds")), ","))
-  groups = unlist(strsplit(check_config_value(config::get("unix_groups")), ","))
+  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
+  genome_builds = unlist(strsplit(GAMBLR.helpers::check_config_value(config::get("genome_builds")), ","))
+  groups = unlist(strsplit(GAMBLR.helpers::check_config_value(config::get("unix_groups")), ","))
   for(analysis_type in names(matched_analyses)){
     tool_name = matched_analyses[analysis_type]
     message(paste("populating results for", tool_name))

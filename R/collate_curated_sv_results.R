@@ -9,7 +9,7 @@
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import readr dplyr
+#' @import readr dplyr GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -19,8 +19,8 @@
 collate_curated_sv_results = function(sample_table,
                                       seq_type_filter = "genome"){
 
-  path_to_files = check_config_value(config::get("derived_and_curated"))
-  project_base = check_config_value(config::get("project_base"))
+  path_to_files = GAMBLR.helpers::check_config_value(config::get("derived_and_curated"))
+  project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   manual_files = dir(paste0(project_base, path_to_files), pattern = ".tsv")
   for(f in manual_files){
     full = paste0(project_base, path_to_files, f)

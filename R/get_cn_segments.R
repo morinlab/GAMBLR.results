@@ -21,7 +21,7 @@
 #'
 #' @return A data frame with CN segments for the specified region.
 #'
-#' @import dplyr readr RMariaDB DBI glue
+#' @import dplyr readr RMariaDB DBI glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -84,17 +84,17 @@ get_cn_segments = function(region,
   qend = as.numeric(qend)
 
   if(from_flatfile){
-    cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
+    cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
     cnv_path =  glue::glue(cnv_flatfile_template)
-    full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+    full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
 
     #check permissions to ICGC data.
     permissions = file.access(full_cnv_path, 4)
     if(permissions == -1){
       message("restricting to non-ICGC data")
-      cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
+      cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
       cnv_path =  glue::glue(cnv_flatfile_template)
-      full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+      full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     }
 
     #check for missingness.
@@ -109,9 +109,9 @@ get_cn_segments = function(region,
       as.data.frame()
 
   }else{
-    db = check_config_value(config::get("database_name"))
-    table_name = check_config_value(config::get("results_tables")$copy_number)
-    table_name_unmatched = check_config_value(config::get("results_tables")$copy_number_unmatched)
+    db = GAMBLR.helpers::check_config_value(config::get("database_name"))
+    table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number)
+    table_name_unmatched = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number_unmatched)
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
 
     all_segs_matched = dplyr::tbl(con, table_name) %>%

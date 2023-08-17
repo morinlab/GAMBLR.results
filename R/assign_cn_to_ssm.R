@@ -30,7 +30,7 @@
 #' CN is the rounded absolute copy number estimate of the region based on log.ratio (NA when no overlap was found)
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr readr RMariaDB DBI ssh glue
+#' @import dplyr readr RMariaDB DBI ssh glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -55,8 +55,8 @@ assign_cn_to_ssm = function(this_sample_id,
   seq_type = this_seq_type
 
   remote_session = check_remote_configuration(auto_connect = TRUE)
-  database_name = check_config_value(config::get("database_name"))
-  project_base = check_config_value(config::get("project_base"))
+  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
+  project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   if(!include_silent){
     coding_class = coding_class[coding_class != "Silent"]
   }
@@ -82,7 +82,7 @@ assign_cn_to_ssm = function(this_sample_id,
   }else{
     #get all the segments for a sample and filter the small ones then assign CN value from the segment to all SSMs in that region
     con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
-    maf_table = check_config_value(config::get("results_tables")$ssm)
+    maf_table = GAMBLR.helpers::check_config_value(config::get("results_tables")$ssm)
     maf_sample = dplyr::tbl(con, maf_table) %>%
       dplyr::filter(Tumor_Sample_Barcode == this_sample_id) %>%
       as.data.frame()
@@ -119,10 +119,10 @@ assign_cn_to_ssm = function(this_sample_id,
 
   }else if(from_flatfile){
     message(paste("trying to find output from:", tool_name))
-    project_base = check_config_value(config::get("project_base",config="default"))
-    local_project_base = check_config_value(config::get("project_base"))
+    project_base = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
+    local_project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
 
-    results_path_template = check_config_value(config::get("results_flatfiles")$cnv$battenberg)
+    results_path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv$battenberg)
     results_path = paste0(project_base, results_path_template)
     local_results_path = paste0(local_project_base, results_path_template)
 

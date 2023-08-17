@@ -9,7 +9,7 @@
 #' @param archive_mode This is not currently working but the idea here is to keep a GSC archive of GAMBL in sync with the actively updated outputs
 #' @param force_backup Boolean parameter set to FALSE per default.
 #'
-#' @import dplyr tidyr stringi glue
+#' @import dplyr tidyr stringi glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -30,11 +30,11 @@ check_gamblr_config = function(compare_timestamps=FALSE,
   projection_expanded = tidyr::expand_grid(seq_type = get_template_wildcards("seq_types"),projection = get_template_wildcards("projections"))
   print(projection_expanded)
   #resources section of config (only needs blacklist right now)
-  blacklist_f = check_config_value(config::get("resources")$blacklist$template)
+  blacklist_f = GAMBLR.helpers::check_config_value(config::get("resources")$blacklist$template)
   blacklist_f = mutate(projection_expanded,output=glue::glue(blacklist_f)) %>% pull(output)
   files_to_check = c(files_to_check,blacklist_f)
 
-  merged_keys = names(check_config_value(config::get("results_merged")))
+  merged_keys = names(GAMBLR.helpers::check_config_value(config::get("results_merged")))
   #skip any file starting with "/"
   for (merge in merged_keys){
     merge_path = config::get("results_merged")[merge]

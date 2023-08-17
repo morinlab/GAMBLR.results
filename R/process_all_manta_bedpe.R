@@ -10,7 +10,7 @@
 #' @param genome_build Genome build.
 #' @param projection_build The genome we want all results to be relative to (lifted if necessary).
 #'
-#' @import dplyr readr
+#' @import dplyr readr GAMBLR.helpers
 #' 
 #' @noRd
 #'
@@ -22,8 +22,8 @@ process_all_manta_bedpe = function(file_df,
 
   to_merge = list()
   if(missing(out_dir)){
-    project_base = check_config_value(config::get("project_base"))
-    base_out_dir = check_config_value(config::get("results_staging")$manta)
+    project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    base_out_dir = GAMBLR.helpers::check_config_value(config::get("results_staging")$manta)
     out_dir = paste0(project_base, group, "/", base_out_dir)
   }
 

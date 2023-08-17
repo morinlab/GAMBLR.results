@@ -12,7 +12,7 @@
 #'
 #' @return A data frame with new columns added.
 #'
-#' @import dplyr tibble
+#' @import dplyr tibble GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -30,7 +30,7 @@ collate_sbs_results = function(sample_table,
     return(sample_table)
   }
   if(missing(file_path)){
-    base = check_config_value(config::get("project_base"))
+    base = GAMBLR.helpers::check_config_value(config::get("project_base"))
 
     file_path = paste0(base,"icgc_dart/sigprofiler-1.0/02-extract/genome--hg38/BL_HGBL_DLBCL_FL_COMFL_CLL_MCL_B-ALL_PBL_DLBCL-BL-like_UNSPECIFIED_SCBC_MM_all/SBS96/Suggested_Solution/COSMIC_SBS96_Decomposed_Solution/Activities/COSMIC_SBS96_Activities_refit.txt")
   }

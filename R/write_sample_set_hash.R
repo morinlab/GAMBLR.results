@@ -9,14 +9,14 @@
 #' @param update Leave as TRUE for default functionality (i.e. updating the existing table). If the table doesn't exist you probably need to pull from Master.
 #' @param new_sample_sets_df Data frame of all existing and new sample sets. Required when running in default update mode.
 #'
-#' @import dplyr readr
+#' @import dplyr readr GAMBLR.helpers
 #' @export
 #'
 write_sample_set_hash = function(update = TRUE,
                                  new_sample_sets_df){
 
-  sample_sets_file = paste0(check_config_value(config::get("repo_base")), check_config_value(config::get("sample_sets")$default))
-  md5_file = paste0(check_config_value(config::get("repo_base")), check_config_value(config::get("sample_sets")$hashes))
+  sample_sets_file = paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), GAMBLR.helpers::check_config_value(config::get("sample_sets")$default))
+  md5_file = paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), GAMBLR.helpers::check_config_value(config::get("sample_sets")$hashes))
 
   if(update){
     # load the existing file and update it using the contents of sample_sets_df as well as checking for consistency for existing sample sets

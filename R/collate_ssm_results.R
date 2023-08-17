@@ -12,7 +12,7 @@
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import dplyr glue
+#' @import dplyr glue GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -32,9 +32,9 @@ collate_ssm_results = function(sample_table,
   seq_type = seq_type_filter
   #iterate over every sample and compute some summary stats from its MAF
   if(from_flatfile){
-    base_path = check_config_value(config::get("project_base"))
+    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
     #test if we have permissions for the full gambl + icgc merge
-    maf_partial_path = check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
+    maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
 
     maf_path = paste0(base_path, maf_partial_path)
     maf_path = glue::glue(maf_path)

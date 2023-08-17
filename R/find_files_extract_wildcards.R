@@ -13,7 +13,7 @@
 #'
 #' @return A tibble with wildcards.
 #'
-#' @import dplyr tidyr tibble
+#' @import dplyr tidyr tibble GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -28,9 +28,9 @@ find_files_extract_wildcards = function(tool_results_path,
                                         unix_group = "gambl",
                                         tool_name){
 
-  project_base = check_config_value(config::get("project_base"))
+  project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   if(missing(tool_results_path)){
-    tool_results_paths = check_config_value(config::get("results_directories"))
+    tool_results_paths = GAMBLR.helpers::check_config_value(config::get("results_directories"))
     tool_results_path = tool_results_paths[[tool_name]]
   }
   results_paths = paste0(project_base, unix_group, "/", tool_results_path, "genome--", genome_build, "/somaticSV/")

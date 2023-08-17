@@ -16,7 +16,7 @@
 #'
 #' @return A data frame with one row per file and sample IDs parsed from the file name along with other GAMBL wildcards.
 #'
-#' @import dplyr tibble tidyr
+#' @import dplyr tibble tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -35,8 +35,8 @@ fetch_output_files = function(tool,
                               search_pattern = "cellularity_ploidy.txt"){
 
   if(!grepl("^/", base_path)){
-    project_base = check_config_value(config::get("project_base",config="default"))
-    local_project_base = check_config_value(config::get("project_base"))
+    project_base = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
+    local_project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
     #project_base = "/projects/nhl_meta_analysis_scratch/gambl/results_local/"
     local_base_path = paste0(local_project_base, base_path)
     base_path = paste0(project_base, base_path)
@@ -96,7 +96,7 @@ fetch_output_files = function(tool,
 
     return(found_files)
   }else if(tool == "manta"){
-    tool_results_path = check_config_value(config::get("results_directories")$manta)
+    tool_results_path = GAMBLR.helpers::check_config_value(config::get("results_directories")$manta)
     search_pattern=".bedpe"
     new_df = find_files_extract_wildcards(tool_name = "manta", genome_build = c("hg38", "grch37"), search_pattern = ".bed")
 

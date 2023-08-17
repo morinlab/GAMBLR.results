@@ -11,7 +11,7 @@
 #'
 #' @return A data frame with a supplemented lymphGen column.
 #'
-#' @import dplyr purrr readr
+#' @import dplyr purrr readr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -23,8 +23,8 @@ consolidate_lymphgen = function(sample_table,
                                 verbose = TRUE){
 
   if (derived_data_path == "") {
-    path_to_files = check_config_value(config::get("derived_and_curated"))
-    project_base = check_config_value(config::get("project_base"))
+    path_to_files = GAMBLR.helpers::check_config_value(config::get("derived_and_curated"))
+    project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
     derived_data_path = paste0(project_base, path_to_files)
     if (verbose) {
       message(

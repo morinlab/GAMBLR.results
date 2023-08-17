@@ -18,7 +18,7 @@
 #'
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
-#' @import config dplyr readr stringr
+#' @import config dplyr readr stringr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -30,15 +30,15 @@ get_combined_sv = function(min_vaf = 0,
                            projection = "grch37",
                            oncogenes){
 
-  base_path = check_config_value(config::get("project_base"))
-  sv_file = check_config_value(config::get()$results_flatfiles$sv_combined$icgc_dart)
+  base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+  sv_file = GAMBLR.helpers::check_config_value(config::get()$results_flatfiles$sv_combined$icgc_dart)
   if(projection == "hg38"){
     sv_file = str_replace(sv_file, "--grch37", "--hg38")
   }
   sv_file = paste0(base_path, sv_file)
   permissions = file.access(sv_file, 4)
   if(permissions == - 1){
-    sv_file = check_config_value(config::get()$results_flatfiles$sv_combined$gambl)
+    sv_file = GAMBLR.helpers::check_config_value(config::get()$results_flatfiles$sv_combined$gambl)
     sv_file = paste0(base_path, sv_file)
   }
 

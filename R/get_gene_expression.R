@@ -18,7 +18,7 @@
 #' @return A data frame with gene expression.
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr readr tidyr
+#' @import dplyr readr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -43,7 +43,7 @@ get_gene_expression = function(metadata,
                                expression_data,
                                from_flatfile = TRUE){
 
-  database_name = check_config_value(config::get("database_name"))
+  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
   if(missing(metadata)){
     if(join_with == "mrna"){
       metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
@@ -69,8 +69,8 @@ get_gene_expression = function(metadata,
   }
   #tidy_expression_file = config::get("results_merged")$tidy_expression_file
   #use combination of base path and relative path instead of full path for flexibility accross sites
-  tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
-  base_path = check_config_value(config::get("project_base"))
+  tidy_expression_path = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_path)
+  base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
   tidy_expression_file = paste0(base_path,tidy_expression_path)
   tidy_expression_file = gsub(".gz$","",tidy_expression_file)
 
@@ -78,7 +78,7 @@ get_gene_expression = function(metadata,
   permissions = file.access(tidy_expression_file, 4)
   if(permissions == -1 ){
     message("restricting to non-ICGC data")
-    tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path_gambl)
+    tidy_expression_path = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_path_gambl)
     tidy_expression_file = paste0(base_path, tidy_expression_path)
   }
 

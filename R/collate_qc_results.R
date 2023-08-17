@@ -9,7 +9,7 @@
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import dplyr readr glue
+#' @import dplyr readr glue GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -24,8 +24,8 @@ collate_qc_results = function(sample_table,
   }
 
   #get paths
-  base = check_config_value(config::get("project_base"))
-  qc_template = check_config_value(config::get("qc_met"))
+  base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+  qc_template = GAMBLR.helpers::check_config_value(config::get("qc_met"))
 
   #icgc_dart
   unix_group = "icgc_dart"

@@ -18,7 +18,7 @@
 #'
 #' @return The md5 hash of the ordered set of sample_id.
 #'
-#' @import digest dplyr readr
+#' @import digest dplyr readr GAMBLR.helpers
 #' @export
 #'
 get_samples_md5_hash = function(these_samples_metadata,
@@ -36,7 +36,7 @@ get_samples_md5_hash = function(these_samples_metadata,
     digested = digest::digest(paste(these_samples[order(these_samples)],collapse=","),serialize=FALSE)
   }else if(!missing(sample_set_name)){
     #load the sample set table and pull the samples based on its contents and the name provided
-    sample_sets_file = paste0(check_config_value(config::get("repo_base")), check_config_value(config::get("sample_sets")$default))
+    sample_sets_file = paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), GAMBLR.helpers::check_config_value(config::get("sample_sets")$default))
     if(missing(sample_sets_df)){
       sample_sets = suppressMessages(read_tsv(sample_sets_file))
     }else{

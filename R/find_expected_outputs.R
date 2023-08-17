@@ -13,7 +13,7 @@
 #' @param update_db Set to TRUE to overwrite any existing rows in the table for this tool/unix_group combination.
 #' @param target_path Path to targets.
 #'
-#' @import dplyr readr RMariaDB stringr DBI tidyr
+#' @import dplyr readr RMariaDB stringr DBI tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -29,7 +29,7 @@ find_expected_outputs = function(targ_df,
                                  update_db = FALSE,
                                  target_path){
 
-  repo_base = check_config_value(config::get("repo_base"))
+  repo_base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
   if(missing(target_path)){
     target_path = paste0(repo_base, "targets/", tool_name, "--", unix_group)
   }
@@ -76,9 +76,9 @@ find_expected_outputs = function(targ_df,
     targ_df$output_type = "bedpe"
   }
   if(update_db){
-    database_name = check_config_value(config::get("database_name"))
+    database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
     con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
-    table_name = check_config_value(config::get("tables")$files)
+    table_name = GAMBLR.helpers::check_config_value(config::get("tables")$files)
     message(paste("updating", table_name,"in", database_name))
     #clear all files for this tool/unix_group combination
     update_q = paste0("DELETE from ", table_name, " WHERE tool_name = \"", tool_name, "\" and unix_group = \"", unix_group, "\" ;")

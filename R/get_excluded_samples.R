@@ -8,14 +8,14 @@
 #'
 #' @return A vector of sample IDs.
 #'
-#' @import readr dplyr
+#' @import readr dplyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
 #' excluded_samp = get_excluded_samples()
 #'
 get_excluded_samples = function(tool_name = "slms-3"){
-  base = check_config_value(config::get("repo_base"))
+  base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
 
   #check for missingness
   path = paste0(base,"config/exclude.tsv")

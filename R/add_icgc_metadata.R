@@ -8,7 +8,7 @@
 #'
 #' @return Metadata with layered information (ICGC).
 #'
-#' @import dplyr readr stringr
+#' @import dplyr readr stringr GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -18,7 +18,7 @@
 #'
 #' @export
 add_icgc_metadata = function(incoming_metadata){
-  repo_base = check_config_value(config::get("repo_base"))
+  repo_base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
   icgc_publ_file = paste0(repo_base,"data/metadata/raw_metadata/MALY_DE_tableS1.csv")
   icgc_publ = suppressMessages(suppressWarnings(read_csv(icgc_publ_file)))
   icgc_publ = icgc_publ[,c(1:20)]

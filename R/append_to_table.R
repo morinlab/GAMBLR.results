@@ -9,7 +9,7 @@
 #'
 #' @return A table.
 #'
-#' @import RMariaDB DBI
+#' @import RMariaDB DBI GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -19,7 +19,7 @@
 append_to_table = function(table_name,
                            data_df){
 
-  db = check_config_value(config::get("database_name"))
+  db = GAMBLR.helpers::check_config_value(config::get("database_name"))
   con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
   dbWriteTable(con, table_name, table_data, append = TRUE)
 }

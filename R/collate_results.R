@@ -22,7 +22,7 @@
 #'
 #' @return A table keyed on biopsy_id that contains a bunch of per-sample results from GAMBL
 #'
-#' @import dplyr readr config glue
+#' @import dplyr readr config glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -73,8 +73,8 @@ collate_results = function(sample_table,
   }
 
   #get paths to cached results, for from_cache = TRUE and for writing new cached results.
-  output_file = check_config_value(config::get("results_merged")$collated)
-  output_base = check_config_value(config::get("project_base"))
+  output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
+  output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   output_file = paste0(output_base, output_file)
   output_file = glue::glue(output_file)
   print(output_file)

@@ -36,7 +36,7 @@
 #'
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
-#' @import dplyr readr glue
+#' @import dplyr readr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -89,8 +89,8 @@ get_manta_sv = function(these_sample_ids,
   if(from_flatfile){
     if(from_cache){
       #get paths and check for file permissions
-      output_base = check_config_value(config::get("project_base"))
-      output_file = check_config_value(config::get("results_merged")$manta_sv$icgc_dart)
+      output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+      output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$manta_sv$icgc_dart)
       output_file = paste0(output_base, output_file)
       output_file = glue::glue(output_file)
 
@@ -98,7 +98,7 @@ get_manta_sv = function(these_sample_ids,
 
       if(permissions == -1){
         message("No permission for unix group icgc_dart found, resorting to samples belonging to unix group gambl...")
-        output_file = check_config_value(config::get("results_merged")$manta_sv$gambl)
+        output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$manta_sv$gambl)
         output_file = paste0(output_base, output_file)
         output_file = glue::glue(output_file)
       }
@@ -153,8 +153,8 @@ get_manta_sv = function(these_sample_ids,
 
       if(write_to_file){
         #get paths and check for file permissions
-        output_base = check_config_value(config::get("project_base"))
-        icgc_dart_file = check_config_value(config::get("results_merged")$manta_sv$icgc_dart)
+        output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+        icgc_dart_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$manta_sv$icgc_dart)
         icgc_dart_file = paste0(output_base, icgc_dart_file)
         icgc_dart_file = glue::glue(icgc_dart_file)
         icgc_dart_folder = gsub(paste0("manta.genome--", projection, ".bedpe"), "", icgc_dart_file)
@@ -162,7 +162,7 @@ get_manta_sv = function(these_sample_ids,
         icgc_permissions = file.access(icgc_dart_folder, 2) #get write permission for the icgc_dart merge (all samples).
 
         if(icgc_permissions == 0){ #get path to gambl samples only merge, if user has acces to the icgc_dart merge.
-          gambl_file = check_config_value(config::get("results_merged")$manta_sv$gambl)
+          gambl_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$manta_sv$gambl)
           gambl_file = paste0(output_base, gambl_file)
           gambl_file = glue::glue(gambl_file)
 

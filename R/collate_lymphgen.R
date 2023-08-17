@@ -13,7 +13,7 @@
 #'
 #' @return A df with lymphgen information.
 #'
-#' @import dplyr tidyr readr stringr glue
+#' @import dplyr tidyr readr stringr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -30,14 +30,14 @@ collate_lymphgen = function(these_samples_metadata,
 
   #TODO Update the key in the config to match the version once updated, as discussed on PR.
   if(lymphgen_version == "default"){
-    lymphgen_template = check_config_value(config::get("results_versioned")$lymphgen_template$default)
+    lymphgen_template = GAMBLR.helpers::check_config_value(config::get("results_versioned")$lymphgen_template$default)
   }else{
     stop("Currently, only lymphgen_version = default is accepted")
   }
 
   #repo base
-  repo_base = check_config_value(config::get("repo_base"))
-  flavours = check_config_value(config::get("results_merged_wildcards")$lymphgen_template)
+  repo_base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
+  flavours = GAMBLR.helpers::check_config_value(config::get("results_merged_wildcards")$lymphgen_template)
   flavour = str_split(flavours, pattern = ",")
   flavour = unlist(flavour)
   lymphgen_path = paste0(repo_base, lymphgen_template)

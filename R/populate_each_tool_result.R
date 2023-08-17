@@ -15,7 +15,7 @@
 #'
 #' @return Nothing.
 #'
-#' @import purrr dplyr RMariaDB DBI tidyr
+#' @import purrr dplyr RMariaDB DBI tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -26,7 +26,7 @@ populate_each_tool_result = function(tool,
                                      unix_groups,
                                      include_silent = FALSE){
 
-  database_name = check_config_value(config::get("database_name"))
+  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
   con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
   all_meta = get_gambl_metadata()
   generic_update = function(field_name, sample_id, field_value){

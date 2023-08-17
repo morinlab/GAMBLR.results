@@ -2,8 +2,8 @@ check_times = function(relative_paths,
                        archive_mode = FALSE,
                        force_backup = FALSE){
 
-  local_base = check_config_value(config::get("project_base"))
-  remote_base = check_config_value(config::get("project_base",config="default"))
+  local_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+  remote_base = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
   if(archive_mode){
     if(local_base == remote_base){
       message("checking against local archive")
@@ -11,7 +11,7 @@ check_times = function(relative_paths,
       message("Currently, this mode must be run on the GSC (not remotely)")
       return(NULL)
     }
-    local_base = check_config_value(config::get("archive"))
+    local_base = GAMBLR.helpers::check_config_value(config::get("archive"))
 
   }
   for(rel_f in relative_paths){
