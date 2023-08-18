@@ -68,7 +68,7 @@ calc_mutation_frequency_bin_region <- function(region,
       end_pos
     )
   } else {
-    chunks <- GAMBLR.helpers:::region_to_chunks(region)
+    chunks <- GAMBLR.helpers::region_to_chunks(region)
     chromosome <- chunks$chromosome
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)
