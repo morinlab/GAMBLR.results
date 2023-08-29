@@ -7,7 +7,7 @@
 #' examples and vignettes. Embargoed cases (current options: 'BLGSP-study', 'FL-study', 'DLBCL-study', 'FL-DLBCL-study', 'FL-DLBCL-all', 'DLBCL-unembargoed', 'BL-DLBCL-manuscript', 'MCL','MCL-CLL')
 #'
 #' @param seq_type_filter Filtering criteria (default: all genomes).
-#' @param tissue_status_filter Filtering criteria (default: only tumour genomes, can be "mrna" or "any" for the superset of cases).
+#' @param tissue_status_filter Filtering criteria for tissue status. Possible values are "tumour" (the default) or "normal".
 #' @param case_set Optional short name for a pre-defined set of cases avoiding any embargoed cases (current options: 'BLGSP-study', 'FL-study', 'DLBCL-study', 'FL-DLBCL-study', 'FL-DLBCL-all', 'DLBCL-unembargoed', 'BL-DLBCL-manuscript', 'MCL','MCL-CLL').
 #' @param remove_benchmarking By default the FFPE benchmarking duplicate samples will be dropped.
 #' @param sample_flatfile Optionally provide the full path to a sample table to use instead of the default.
@@ -15,7 +15,7 @@
 #' @param with_outcomes Optionally join to gambl outcome data.
 #' @param only_available If TRUE, will remove samples with FALSE or NA in the bam_available column (default: TRUE).
 #' @param from_flatfile New default is to use the metadata in the flat-files from your clone of the repo. Can be overridden to use the database.
-#' @param seq_type_priority For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others.
+#' @param seq_type_priority For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others. Possible values are "genome" or "capture".
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #'
@@ -46,6 +46,16 @@ get_gambl_metadata = function(seq_type_filter = "genome",
                               biopsy_flatfile,
                               only_available = TRUE,
                               seq_type_priority = "genome"){
+
+  # check arguments
+  stopifnot('`tissue_status_filter` argument should be either "tumour" or "normal".' = {
+    identical(tissue_status_filter, "tumour") | identical(tissue_status_filter, "normal")
+  })
+  
+  stopifnot('`seq_type_priority` argument should be either "genome" or "capture".' = {
+    identical(seq_type_priority, "genome") | identical(seq_type_priority, "capture")
+  })
+  
 
   check_remote_configuration()
   #this needs to be in any function that reads files from the bundled GAMBL outputs synced by Snakemake
@@ -440,20 +450,42 @@ get_gambl_metadata = function(seq_type_filter = "genome",
       mutate(age_group = case_when(cohort == "BL_Adult"~"Adult_BL", cohort == "BL_Pediatric" | cohort == "BL_ICGC" ~ "BL_Pediatric", TRUE ~ "Other"))
 
   }
-  # take one row per sample_id using seq_type_priority
-  if(seq_type_priority=="genome"){
-    all_meta = all_meta %>%
-      arrange(sample_id,seq_type) %>%
-      group_by(sample_id) %>%
-      slice_tail() %>%
-      ungroup()
-  }
-  if(seq_type_priority=="capture"){
-    all_meta = all_meta %>%
-      arrange(sample_id,seq_type) %>%
-      group_by(sample_id) %>%
-      slice_head() %>%
-      ungroup()
-  }
-  return(all_meta)
+  
+  
+  ### For rows that show the same sample_id, always take one that seq_type is "mrna"
+  ### and one between "genome" and "capture", based on seq_type_priority. For each 
+  ### seq_type, take the row that shows lower count of NAs.
+  
+  # count NAs per row
+  all_meta <- apply( all_meta, 1, function(x) sum(is.na(x)) ) %>% 
+    mutate(all_meta, na_count = .)
+  
+  # take `seq_type_priority` lines
+  all_meta_res <- filter(all_meta, seq_type == seq_type_priority) %>% 
+    group_by(sample_id) %>% 
+    slice(which.min(na_count)) %>% 
+    ungroup
+  samples_with_priority_seq_type <- all_meta_res$sample_id
+  
+  # take mrna lines (always)
+  all_meta_res <- filter(all_meta, seq_type == "mrna") %>% 
+    group_by(sample_id) %>% 
+    slice(which.min(na_count)) %>% 
+    ungroup %>% 
+    rbind(all_meta_res, .)
+  
+  # define which seq type is not priority
+  seq_type_non_priotiry <- ifelse(seq_type_priority == "genome", "capture", "genome")
+  # take only those lines that seq_type is not `seq_type_priority` (those were already solved)
+  all_meta <- filter(all_meta, ! sample_id %in% samples_with_priority_seq_type)
+  # take non-`seq_type_priority` lines
+  all_meta_res <- filter(all_meta, seq_type == seq_type_non_priotiry) %>% 
+    group_by(sample_id) %>% 
+    slice(which.min(na_count)) %>% 
+    ungroup %>% 
+    rbind(all_meta_res) %>% 
+    select(-na_count) %>% 
+    arrange(sample_id, seq_type)
+  
+  all_meta_res
 }
