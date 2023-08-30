@@ -458,34 +458,34 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   
   # count NAs per row
   all_meta <- apply( all_meta, 1, function(x) sum(is.na(x)) ) %>% 
-    mutate(all_meta, na_count = .)
+    dplyr::mutate(all_meta, na_count = .)
   
   # take `seq_type_priority` lines
-  all_meta_res <- filter(all_meta, seq_type == seq_type_priority) %>% 
-    group_by(sample_id) %>% 
-    slice(which.min(na_count)) %>% 
-    ungroup
+  all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_priority) %>% 
+    dplyr::group_by(sample_id) %>% 
+    dplyr::slice(which.min(na_count)) %>% 
+    dplyr::ungroup
   samples_with_priority_seq_type <- all_meta_res$sample_id
   
   # take mrna lines (always)
-  all_meta_res <- filter(all_meta, seq_type == "mrna") %>% 
-    group_by(sample_id) %>% 
-    slice(which.min(na_count)) %>% 
-    ungroup %>% 
+  all_meta_res <- dplyr::filter(all_meta, seq_type == "mrna") %>% 
+    dplyr::group_by(sample_id) %>% 
+    dplyr::slice(which.min(na_count)) %>% 
+    dplyr::ungroup %>% 
     rbind(all_meta_res, .)
   
   # define which seq type is not priority
   seq_type_non_priotiry <- ifelse(seq_type_priority == "genome", "capture", "genome")
   # take only those lines that seq_type is not `seq_type_priority` (those were already solved)
-  all_meta <- filter(all_meta, ! sample_id %in% samples_with_priority_seq_type)
+  all_meta <- dplyr::filter(all_meta, ! sample_id %in% samples_with_priority_seq_type)
   # take non-`seq_type_priority` lines
-  all_meta_res <- filter(all_meta, seq_type == seq_type_non_priotiry) %>% 
-    group_by(sample_id) %>% 
-    slice(which.min(na_count)) %>% 
-    ungroup %>% 
+  all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_non_priotiry) %>% 
+    dplyr::group_by(sample_id) %>% 
+    dplyr::slice(which.min(na_count)) %>% 
+    dplyr::ungroup %>% 
     rbind(all_meta_res) %>% 
-    select(-na_count) %>% 
-    arrange(sample_id, seq_type)
+    dplyr::select(-na_count) %>% 
+    dplyr::arrange(sample_id, seq_type)
   
   all_meta_res
 }
