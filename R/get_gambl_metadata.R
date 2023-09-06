@@ -464,14 +464,14 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_priority) %>% 
     dplyr::group_by(sample_id) %>% 
     dplyr::slice(which.min(na_count)) %>% 
-    dplyr::ungroup
+    dplyr::ungroup()
   samples_with_priority_seq_type <- all_meta_res$sample_id
   
   # take mrna lines (always)
   all_meta_res <- dplyr::filter(all_meta, seq_type == "mrna") %>% 
     dplyr::group_by(sample_id) %>% 
     dplyr::slice(which.min(na_count)) %>% 
-    dplyr::ungroup %>% 
+    dplyr::ungroup() %>% 
     rbind(all_meta_res, .)
   
   # define which seq type is not priority
@@ -482,7 +482,7 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_non_priotiry) %>% 
     dplyr::group_by(sample_id) %>% 
     dplyr::slice(which.min(na_count)) %>% 
-    dplyr::ungroup %>% 
+    dplyr::ungroup() %>% 
     rbind(all_meta_res) %>% 
     dplyr::select(-na_count) %>% 
     dplyr::arrange(sample_id, seq_type)
