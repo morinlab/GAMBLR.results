@@ -22,7 +22,7 @@
 #'
 #' @return a data frame containing the Manta outputs from this_sample_id in a bedpe-like format with additional columns extracted from the VCF column.
 #'
-#' @import config dplyr readr stringr tibble
+#' @import config dplyr readr stringr tibble glue GAMBLR.helpers GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -89,10 +89,10 @@ get_manta_sv_by_sample = function(this_sample_id,
   }
 
   #get samples from individual flat files
-  path_template = check_config_value(config::get("results_flatfiles")$sv_manta$template)
+  path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$sv_manta$template)
 
   if(!remote_session){
-    path_template_full = paste0(check_config_value(config::get("project_base")), path_template)
+    path_template_full = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_template)
     bedpe_path = glue::glue(path_template_full)
     if(!file.exists(bedpe_path)){
       print(paste("missing: ", bedpe_path))
@@ -100,12 +100,12 @@ get_manta_sv_by_sample = function(this_sample_id,
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
   }else{
-    local_path_template = paste0(check_config_value(config::get("project_base", config = "remote")), path_template)
+    local_path_template = paste0(GAMBLR.helpers::check_config_value(config::get("project_base", config = "remote")), path_template)
     bedpe_path = glue::glue(local_path_template)
 
     #check if the requested file is on your local machine, if not, get it!
     if(!file.exists(bedpe_path)){
-      remote_path_template = paste0(check_config_value(config::get("project_base", config = "default")), path_template)
+      remote_path_template = paste0(GAMBLR.helpers::check_config_value(config::get("project_base", config = "default")), path_template)
       remote_bedpe_path = glue::glue(remote_path_template)
       cat(paste0("Local file not found.\ntrying to copy requested file: ", remote_bedpe_path, "\n", "To: ", bedpe_path))
       dirN = dirname(bedpe_path)

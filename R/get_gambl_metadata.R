@@ -19,7 +19,7 @@
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #'
-#' @import config dplyr tidyr readr RMariaDB DBI
+#' @import config dplyr tidyr readr RMariaDB DBI GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -75,7 +75,7 @@ get_gambl_metadata = function(seq_type_filter = "genome",
     biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile, guess_max = 100000))
 
   }else{
-    db = check_config_value(config::get("database_name"))
+    db = GAMBLR.helpers::check_config_value(config::get("database_name"))
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
     sample_meta = dplyr::tbl(con, "sample_metadata") %>%
       as.data.frame()
@@ -149,8 +149,8 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   all_meta = unique(all_meta) #something in the ICGC code is causing this. Need to figure out what #should this be posted as an issue on Github?
   if(!missing(case_set)){
     # This functionality is meant to eventually replace the hard-coded case sets
-    case_set_path = check_config_value(config::get("sample_sets")$default)
-    full_case_set_path =  paste0(check_config_value(config::get("repo_base")), case_set_path)
+    case_set_path = GAMBLR.helpers::check_config_value(config::get("sample_sets")$default)
+    full_case_set_path =  paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), case_set_path)
     if (file.exists(full_case_set_path)) {
       full_case_set = suppressMessages(read_tsv(full_case_set_path))
     } else {
@@ -375,12 +375,12 @@ get_gambl_metadata = function(seq_type_filter = "genome",
     }
   }
 
-  all_meta = GAMBLR::tidy_lymphgen(all_meta,
+  all_meta = GAMBLR.utils::tidy_lymphgen(all_meta,
               lymphgen_column_in = "lymphgen_cnv_noA53",
               lymphgen_column_out = "lymphgen",
               relevel=TRUE)
 
-  #all_meta = GAMBLR::collate_lymphgen(all_meta, verbose=FALSE)
+  #all_meta = GAMBLR.results::collate_lymphgen(all_meta, verbose=FALSE)
 
   # "catchall" pathology for those that need review
   all_meta = all_meta %>%

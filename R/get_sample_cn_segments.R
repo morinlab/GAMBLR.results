@@ -5,7 +5,7 @@
 #' @details This function returns CN segments for samples. This works for single sample or multiple samples.
 #' For multiple samples, remember to set the Boolean parameter `multiple_samples = TRUE` and give the `sample_lsit` a vector of characters with one sample ID per row.
 #' For more information on how this function can be run in different ways, refer to the parameter descriptions, examples and vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states],
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states],
 #'
 #' @param this_sample_id Optional argument, single sample_id for the sample to retrieve segments for.
 #' @param multiple_samples Set to TRUE to return cn segments for multiple samples specified in `samples_list` parameter. Default is FALSE.
@@ -18,7 +18,7 @@
 #'
 #' @return A data frame of segments for a specific or multiple sample ID(s).
 #'
-#' @import dplyr readr RMariaDB DBI
+#' @import dplyr readr RMariaDB DBI glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -47,9 +47,9 @@ get_sample_cn_segments = function(this_sample_id,
                                   streamlined = FALSE){
   if(from_flatfile){
     seq_type = this_seq_type
-    cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
+    cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
     cnv_path =  glue::glue(cnv_flatfile_template)
-    full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+    full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     local_full_cnv_path =  paste0(config::get("project_base"), cnv_path)
     if(file.exists(local_full_cnv_path)){
       full_cnv_path = local_full_cnv_path
@@ -59,9 +59,9 @@ get_sample_cn_segments = function(this_sample_id,
     permissions = file.access(full_cnv_path, 4)
     if (permissions == -1) {
       message("restricting to non-ICGC data")
-      cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
+      cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
       cnv_path =  glue::glue(cnv_flatfile_template)
-      full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+      full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     }
 
     #check for missingness
@@ -85,9 +85,9 @@ get_sample_cn_segments = function(this_sample_id,
         dplyr::filter(sample_id == this_sample_id) %>%
         pull(pairing_status)
 
-      db = check_config_value(config::get("database_name"))
-      table_name = check_config_value(config::get("results_tables")$copy_number)
-      table_name_unmatched = check_config_value(config::get("results_tables")$copy_number_unmatched)
+      db = GAMBLR.helpers::check_config_value(config::get("database_name"))
+      table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number)
+      table_name_unmatched = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number_unmatched)
       con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
 
       all_segs_matched = dplyr::tbl(con, table_name) %>%
@@ -107,9 +107,9 @@ get_sample_cn_segments = function(this_sample_id,
         dplyr::filter(sample_id %in% sample_list) %>%
         pull(pairing_status)
 
-      db = check_config_value(config::get("database_name"))
-      table_name = check_config_value(config::get("results_tables")$copy_number)
-      table_name_unmatched = check_config_value(config::get("results_tables")$copy_number_unmatched)
+      db = GAMBLR.helpers::check_config_value(config::get("database_name"))
+      table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number)
+      table_name_unmatched = GAMBLR.helpers::check_config_value(config::get("results_tables")$copy_number_unmatched)
       con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
 
       all_segs_matched = dplyr::tbl(con, table_name) %>%

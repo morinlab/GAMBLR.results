@@ -15,7 +15,7 @@
 #'
 #' @return A data frame.
 #'
-#' @import config dplyr tidyr readr stringr tibble
+#' @import config dplyr tidyr readr stringr tibble glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -41,11 +41,11 @@ get_lymphgen = function(these_samples_metadata,
       lg_path = lymphgen_file
     }else{
       message("please provide a path to your lymphgen output file or one of the following flavours")
-      print(check_config_value(config::get("results_merged_wildcards")$lymphgen_template))
+      print(GAMBLR.helpers::check_config_value(config::get("results_merged_wildcards")$lymphgen_template))
       return(NULL)
     }
   }else{
-    lg_path = paste0(check_config_value(config::get("repo_base")), check_config_value(config::get("results_versioned")$lymphgen_template$default))
+    lg_path = paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), GAMBLR.helpers::check_config_value(config::get("results_versioned")$lymphgen_template$default))
     lg_path = glue::glue(lg_path)
   }
 

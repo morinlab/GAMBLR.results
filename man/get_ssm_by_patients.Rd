@@ -55,7 +55,7 @@ This function returns variants from a set of patients avoiding duplicated mutati
 This is done either by combining the contents of individual MAF files or subset from a merged MAF (wraps \link{get_ssm_by_samples}).
 In most situations, this should never need to be run with \code{subset_from_merge = TRUE}. Instead use one of \link{get_coding_ssm} or \link{get_ssm_by_region}.
 This function expects either a vector of patient IDs (\code{thse_patients_ids}) or an already subset metadata table (\code{these_samples_metadata}).
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status},
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link{get_coding_ssm_status},
 \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
 }
 \examples{

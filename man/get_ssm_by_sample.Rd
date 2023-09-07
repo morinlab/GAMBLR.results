@@ -53,8 +53,8 @@ Get the SSMs (i.e. load MAF) for a single sample.
 \details{
 This was implemented to allow flexibility because there are some samples that we may want to use a different set of variants than those in the main GAMBL merge.
 The current use case is to allow a force_unmatched output to be used to replace the SSMs from the merge for samples with known contamination in the normal.
-This will also be useful to apply a blacklist to individual MAFs when coupled with \link[GAMBLR:annotate_ssm_blacklist]{GAMBLR::annotate_ssm_blacklist}.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status},
+This will also be useful to apply a blacklist to individual MAFs when coupled with \link{annotate_ssm_blacklist}.
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link{get_coding_ssm_status},
 \link{get_ssm_by_patients}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
 }
 \examples{

@@ -41,7 +41,7 @@ Get a copy number matrix for all samples based on segmented data in the database
 \details{
 This function returns CN states for the specified regions.
 For how to specify regions, refer to the parameter descriptions and function examples.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link[GAMBLR.utils:assign_cn_to_ssm]{GAMBLR.utils::assign_cn_to_ssm}, \link{get_cn_segments}, \link{get_sample_cn_segments}
+Is this function not what you are looking for? Try one of the following, similar, functions; \link{assign_cn_to_ssm}, \link{get_cn_segments}, \link{get_sample_cn_segments}
 }
 \examples{
 #basic usage, generic lymphoma gene list

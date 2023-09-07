@@ -4,7 +4,7 @@
 #'
 #' @details This function returns CN states for the specified regions.
 #' For how to specify regions, refer to the parameter descriptions and function examples.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_sample_cn_segments]
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_sample_cn_segments]
 #'
 #' @param regions_list A vector of regions in the format chrom:start-end.
 #' @param regions_bed A bed file with one row for each region you want to determine the CN state from.

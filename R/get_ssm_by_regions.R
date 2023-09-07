@@ -5,7 +5,7 @@
 #' @details This function internally calls [GAMBLR.results::get_ssm_by_region] to retrieve SSM calls for the specified regions.
 #' See parameter descriptions for [GAMBLR.results::get_ssm_by_region] for more information on how the different parameters can be called.
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.utils::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
+#' [GAMBLR.results::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
 #' [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region]
 #'
 #' @param regions_list Either provide a vector of regions in the chr:start-end format OR.

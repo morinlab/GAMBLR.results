@@ -4,7 +4,7 @@
 #'
 #' @details Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.
 #' For more information on how to implement the filtering parameters, refer to the parameter descriptions as well as examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.utils::get_coding_ssm_status],
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param limit_cohort Supply this to restrict mutations to one or more cohorts in a vector.
@@ -26,7 +26,7 @@
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
-#' @import dplyr tidyr RMariaDB DBI
+#' @import dplyr tidyr RMariaDB DBI glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -107,16 +107,16 @@ get_coding_ssm = function(limit_cohort,
 
   #get file path for non-augmented maf
   if(from_flatfile && !augmented){
-    maf_template = check_config_value(config::get("results_flatfiles")$ssm$template$cds$deblacklisted)
+    maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$cds$deblacklisted)
     maf_path = glue::glue(maf_template)
-    full_maf_path =  paste0(check_config_value(config::get("project_base")), maf_path)
+    full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
   }
 
   #get file path for augmented maf
   if(from_flatfile && augmented){
-    maf_template = check_config_value(config::get("results_flatfiles")$ssm$template$cds$augmented)
+    maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$cds$augmented)
     maf_path = glue::glue(maf_template)
-    full_maf_path =  paste0(check_config_value(config::get("project_base")), maf_path)
+    full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
   }
 
   #read file
@@ -148,8 +148,8 @@ get_coding_ssm = function(limit_cohort,
   }else{
     #use db if not using flatfile (mostly deprecated)
 
-    table_name = check_config_value(config::get("results_tables")$ssm)
-    db = check_config_value(config::get("database_name"))
+    table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$ssm)
+    db = GAMBLR.helpers::check_config_value(config::get("database_name"))
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
 
     muts = tbl(con, table_name) %>%

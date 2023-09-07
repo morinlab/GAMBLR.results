@@ -62,7 +62,7 @@ There are multiple ways a region can be specified. For example, the user can pro
 Or, the user can provide chromosome, start and end coordinates individually with \code{chr}, \code{start}, and \code{end} parameters.
 For more usage examples, refer to the parameter descriptions and examples in the vignettes.
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
-\link[GAMBLR.utils:get_coding_ssm_status]{GAMBLR.utils::get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_regions}
+\link{get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_regions}
 }
 \examples{
 #basic usage

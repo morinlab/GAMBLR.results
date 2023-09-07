@@ -4,8 +4,8 @@
 #'
 #' @details This was implemented to allow flexibility because there are some samples that we may want to use a different set of variants than those in the main GAMBL merge.
 #' The current use case is to allow a force_unmatched output to be used to replace the SSMs from the merge for samples with known contamination in the normal.
-#' This will also be useful to apply a blacklist to individual MAFs when coupled with [GAMBLR::annotate_ssm_blacklist].
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.utils::get_coding_ssm_status],
+#' This will also be useful to apply a blacklist to individual MAFs when coupled with [GAMBLR.results::annotate_ssm_blacklist].
+#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param this_sample_id Required. The sample_id you want the data from.
@@ -23,7 +23,7 @@
 #'
 #' @return data frame in MAF format.
 #'
-#' @import dplyr tidyr
+#' @import dplyr tidyr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -96,15 +96,15 @@ get_ssm_by_sample = function(this_sample_id,
     return()
   }else if(flavour == "clustered"){
     vcf_base_name = "slms-3.final"
-    path_template = check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
+    path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
     path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(check_config_value(config::get("project_base",config="default")), path_complete)
-    local_full_maf_path = paste0(check_config_value(config::get("project_base")), path_complete)
+    full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
+    local_full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
     if(augmented){
-      path_template = check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
+      path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
       path_complete = unname(unlist(glue::glue(path_template)))
-      aug_maf_path = paste0(check_config_value(config::get("project_base",config="default")), path_complete)
-      local_aug_maf_path = paste0(check_config_value(config::get("project_base")), path_complete)
+      aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
+      local_aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
     }
   }else{
     warning("Currently the only flavour available to this function is 'clustered'")

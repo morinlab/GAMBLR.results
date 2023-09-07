@@ -9,7 +9,7 @@
 #' Instead use one of [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
 #' See [GAMBLR.results::get_ssm_by_sample] for more information.
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.utils::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' [GAMBLR.results::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_sample_ids A vector of sample_id that you want results for.
 #' @param these_samples_metadata Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.
@@ -27,7 +27,7 @@
 #'
 #' @return A data frame in MAF format.
 #'
-#' @import dplyr readr tidyr
+#' @import dplyr readr tidyr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -103,9 +103,9 @@ get_ssm_by_samples = function(these_sample_ids,
 
   }else if(flavour=="clustered"){
     if(subset_from_merge && !augmented){
-      maf_template = check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
+      maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
       maf_path = glue::glue(maf_template)
-      full_maf_path =  paste0(check_config_value(config::get("project_base")), maf_path)
+      full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
       message(paste("using existing merge:", full_maf_path))
 
       #check for missingness
@@ -145,9 +145,9 @@ get_ssm_by_samples = function(these_sample_ids,
     }
 
     if(subset_from_merge && augmented){
-      maf_template = check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
+      maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
       maf_path = glue::glue(maf_template)
-      full_maf_path =  paste0(check_config_value(config::get("project_base")), maf_path)
+      full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
       message(paste("using existing merge:", full_maf_path))
 
       #check for missingness
