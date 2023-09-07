@@ -20,7 +20,7 @@ get_gambl_metadata(
 \arguments{
 \item{seq_type_filter}{Filtering criteria (default: all genomes).}
 
-\item{tissue_status_filter}{Filtering criteria (default: only tumour genomes, can be "mrna" or "any" for the superset of cases).}
+\item{tissue_status_filter}{Filtering criteria for tissue status. Possible values are "tumour" (the default) or "normal".}
 
 \item{case_set}{Optional short name for a pre-defined set of cases avoiding any embargoed cases (current options: 'BLGSP-study', 'FL-study', 'DLBCL-study', 'FL-DLBCL-study', 'FL-DLBCL-all', 'DLBCL-unembargoed', 'BL-DLBCL-manuscript', 'MCL','MCL-CLL').}
 
@@ -36,7 +36,7 @@ get_gambl_metadata(
 
 \item{only_available}{If TRUE, will remove samples with FALSE or NA in the bam_available column (default: TRUE).}
 
-\item{seq_type_priority}{For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others.}
+\item{seq_type_priority}{For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others. Possible values are "genome" or "capture".}
 }
 \value{
 A data frame with metadata for each biopsy in GAMBL
