@@ -12,7 +12,7 @@ get_ssm_by_region(
   basic_columns = TRUE,
   streamlined = FALSE,
   maf_data,
-  seq_type = "genome",
+  this_seq_type = "genome",
   projection = "grch37",
   from_indexed_flatfile = TRUE,
   augmented = TRUE,
@@ -36,7 +36,7 @@ get_ssm_by_region(
 
 \item{maf_data}{An already loaded MAF like object to subset to regions of interest.}
 
-\item{seq_type}{The seq_type you want back, default is genome.}
+\item{this_seq_type}{The seq_type you want back, default is genome.}
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
 

@@ -6,8 +6,7 @@
 \usage{
 review_hotspots(
   annotated_maf,
-  genes_of_interest = c("FOXO1", "MYD88", "CREBBP", "NOTCH1", "NOTCH2", "CD79B",
-    "EZH2"),
+  genes_of_interest = c("FOXO1", "MYD88", "CREBBP", "NOTCH1", "NOTCH2", "CD79B", "EZH2"),
   genome_build = "grch37"
 )
 }
@@ -31,7 +30,7 @@ Currently only a few sets of genes are supported, see parameter description for 
 The desired genome build can be specified with \code{genome_build} parameter. Should be the same as the incoming MAF.
 }
 \examples{
-hot_ssms = review_hotspots(annotate_hotspots(get_coding_ssm(seq_type = "genome")),
+hot_ssms = review_hotspots(annotate_hotspots(get_coding_ssm(this_seq_type = "genome")),
                            genes_of_interest = c("CREBBP"))
 
 }

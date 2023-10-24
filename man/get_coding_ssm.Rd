@@ -12,7 +12,7 @@ get_coding_ssm(
   these_samples_metadata,
   force_unmatched_samples,
   projection = "grch37",
-  seq_type,
+  this_seq_type,
   basic_columns = TRUE,
   maf_cols = NULL,
   from_flatfile = TRUE,
@@ -38,7 +38,7 @@ get_coding_ssm(
 
 \item{projection}{Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.}
 
-\item{seq_type}{The seq_type you want back, default is genome.}
+\item{this_seq_type}{The seq_type you want back, default is genome.}
 
 \item{basic_columns}{Set to FALSE to override the default behavior of returning only the first 45 columns of MAF data.}
 
@@ -70,8 +70,8 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 #basic usage
-maf_data = get_coding_ssm(seq_type = "genome", limit_cohort = c("BL_ICGC"))
+maf_data = get_coding_ssm(this_seq_type = "genome", limit_cohort = c("BL_ICGC"))
 
-maf_data = get_coding_ssm(seq_type = "genome", limit_samples = "HTMCP-01-06-00485-01A-01D")
+maf_data = get_coding_ssm(this_seq_type = "genome", limit_samples = "HTMCP-01-06-00485-01A-01D")
 
 }

@@ -9,7 +9,7 @@ get_ssm_by_patients(
   these_samples_metadata,
   tool_name = "slms-3",
   projection = "grch37",
-  seq_type = "genome",
+  this_seq_type = "genome",
   flavour = "clustered",
   min_read_support = 3,
   basic_columns = TRUE,
@@ -28,7 +28,7 @@ get_ssm_by_patients(
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
 
-\item{seq_type}{The seq type you want results for. Default is "genome".}
+\item{this_seq_type}{The seq type you want results for. Default is "genome".}
 
 \item{flavour}{Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.}
 
@@ -62,7 +62,7 @@ Is this function not what you are looking for? Try one of the following, similar
 #example 1, using a vector of patient IDs.
 patients = c("00-14595", "00-15201", "01-12047")
 patients_maf = get_ssm_by_patients(these_patient_ids = patients,
-                                   seq_type = "genome",
+                                   this_seq_type = "genome",
                                    subset_from_merge = FALSE)
 
 #example 2, using a metadata table, subset to the patient IDs of interest.

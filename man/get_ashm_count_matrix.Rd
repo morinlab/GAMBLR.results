@@ -8,7 +8,7 @@ get_ashm_count_matrix(
   regions_bed,
   maf_data,
   these_samples_metadata,
-  seq_type,
+  this_seq_type,
   from_indexed_flatfile = TRUE
 )
 }
@@ -19,7 +19,7 @@ get_ashm_count_matrix(
 
 \item{these_samples_metadata}{This is used to complete your matrix. All GAMBL samples will be used by default. Provide a data frame with at least sample_id for all samples if you are using non-GAMBL data.}
 
-\item{seq_type}{The seq type to return results for.}
+\item{this_seq_type}{The seq type to return results for.}
 
 \item{from_indexed_flatfile}{Boolean parameter set to TRUE per default.}
 }
@@ -36,6 +36,6 @@ Values are the number of mutations in that patient in the region.
 regions_bed = dplyr::mutate(GAMBLR.data::somatic_hypermutation_locations_GRCh37_v_latest, name = paste(gene, region, sep = "_"))
 
 matrix = get_ashm_count_matrix(regions_bed = regions_bed,
-                               seq_type = "genome")
+                               this_seq_type = "genome")
 
 }
