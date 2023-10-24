@@ -137,7 +137,7 @@ calc_mutation_frequency_bin_region <- function(region,
         region = region,
         projection = projection,
         streamlined = FALSE,
-        seq_type = st,
+        this_seq_type = st,
         from_indexed_flatfile = TRUE,
         mode = "slms-3"
       ) %>%

@@ -16,13 +16,13 @@
 #' @param tool_name Only supports slms-3 currently.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
-#' @param seq_type  The seq type you want results for. Default is "genome".
+#' @param this_seq_type  The seq type you want results for. Default is "genome".
 #' @param flavour Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.
 #' @param these_genes A vector of genes to subset ssm to.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
 #' @param basic_columns Return first 45 columns of MAF rather than full details. Default is TRUE.
 #' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.
-#' @param subset_from_merge Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified seq_type.
+#' @param subset_from_merge Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified this_seq_type.
 #' @param engine Specify one of readr or fread_maf (default) to change how the large files are loaded prior to subsetting. You may have better performance with one or the other but for me fread_maf is faster and uses a lot less RAM.
 #'
 #' @return A data frame in MAF format.
@@ -62,7 +62,7 @@ get_ssm_by_samples = function(these_sample_ids,
                               these_samples_metadata,
                               tool_name = "slms-3",
                               projection = "grch37",
-                              seq_type = "genome",
+                              this_seq_type = "genome",
                               flavour = "clustered",
                               these_genes,
                               min_read_support = 3,
@@ -79,7 +79,7 @@ get_ssm_by_samples = function(these_sample_ids,
   to_exclude = get_excluded_samples(tool_name)
 
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter = seq_type) %>%
+    these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
       dplyr::filter(sample_id %in% these_sample_ids) %>%
       dplyr::filter(!sample_id %in% to_exclude)
   }else{

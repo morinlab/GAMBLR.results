@@ -14,7 +14,7 @@
 #' @param these_samples_metadata Supply a metadata table to auto-subset the data to samples in that table before returning
 #' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR.results::get_ssm_by_samples].
 #' @param projection Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.
-#' @param seq_type The seq_type you want back, default is genome.
+#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param basic_columns Set to FALSE to override the default behavior of returning only the first 45 columns of MAF data.
 #' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters (matching columns in MAF).
 #' @param from_flatfile Set to TRUE to obtain mutations from a local flatfile instead of the database. This can be more efficient and is currently the only option for users who do not have ICGC data access.
@@ -31,9 +31,9 @@
 #'
 #' @examples
 #' #basic usage
-#' maf_data = get_coding_ssm(seq_type = "genome", limit_cohort = c("BL_ICGC"))
+#' maf_data = get_coding_ssm(this_seq_type = "genome", limit_cohort = c("BL_ICGC"))
 #'
-#' maf_data = get_coding_ssm(seq_type = "genome", limit_samples = "HTMCP-01-06-00485-01A-01D")
+#' maf_data = get_coding_ssm(this_seq_type = "genome", limit_samples = "HTMCP-01-06-00485-01A-01D")
 #'
 get_coding_ssm = function(limit_cohort,
                           exclude_cohort,
@@ -42,7 +42,7 @@ get_coding_ssm = function(limit_cohort,
                           these_samples_metadata,
                           force_unmatched_samples,
                           projection = "grch37",
-                          seq_type,
+                          this_seq_type,
                           basic_columns = TRUE,
                           maf_cols = NULL,
                           from_flatfile = TRUE,
@@ -69,13 +69,13 @@ get_coding_ssm = function(limit_cohort,
       stop("More than one seq_type is in this metadata. You can only run this on one seq_type at a time")
     }
   }else{
-    if(missing(seq_type)){
+    if(missing(this_seq_type)){
       stop("you must provide either seq_type or these_samples_metadata")
     }
-    all_meta = get_gambl_metadata(from_flatfile = from_flatfile, seq_type_filter = seq_type)
+    all_meta = get_gambl_metadata(from_flatfile = from_flatfile, seq_type_filter = this_seq_type)
   }
 
-  all_meta = dplyr::filter(all_meta, seq_type == {{ seq_type }})
+  all_meta = dplyr::filter(all_meta, seq_type == {{ this_seq_type }})
 
   #do all remaining filtering on the metadata then add the remaining sample_id to the query
   #unix groups

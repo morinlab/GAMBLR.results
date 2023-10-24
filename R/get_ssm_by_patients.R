@@ -13,7 +13,7 @@
 #' @param these_samples_metadata A metadata subset to contain the rows corresponding to the patients of interest. If the vector of patient IDs is missing (`these_patient_ids`), this function will default to all patient IDs in the metadata table given to this parameter.
 #' @param tool_name Only supports slms-3 currently.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
-#' @param seq_type The seq type you want results for. Default is "genome".
+#' @param this_seq_type The seq type you want results for. Default is "genome".
 #' @param flavour Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
 #' @param basic_columns Return first 43 columns of MAF rather than full details. Default is TRUE.
@@ -31,7 +31,7 @@
 #' #example 1, using a vector of patient IDs.
 #' patients = c("00-14595", "00-15201", "01-12047")
 #' patients_maf = get_ssm_by_patients(these_patient_ids = patients,
-#'                                    seq_type = "genome",
+#'                                    this_seq_type = "genome",
 #'                                    subset_from_merge = FALSE)
 #'
 #' #example 2, using a metadata table, subset to the patient IDs of interest.
@@ -45,7 +45,7 @@ get_ssm_by_patients = function(these_patient_ids,
                                these_samples_metadata,
                                tool_name = "slms-3",
                                projection = "grch37",
-                               seq_type = "genome",
+                               this_seq_type = "genome",
                                flavour = "clustered",
                                min_read_support = 3,
                                basic_columns = TRUE,
@@ -68,7 +68,7 @@ get_ssm_by_patients = function(these_patient_ids,
   #always requires augmented MAFs to ensure all variants from the patient are included
   to_exclude = get_excluded_samples(tool_name)
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter = seq_type) %>%
+    these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
       dplyr::filter(patient_id %in% these_patient_ids) %>%
       dplyr::filter(!sample_id %in% to_exclude)
   }else{
@@ -87,7 +87,7 @@ get_ssm_by_patients = function(these_patient_ids,
                             these_samples_metadata = these_samples_metadata,
                             tool_name = tool_name,
                             projection = projection,
-                            seq_type = seq_type,
+                            this_seq_type = this_seq_type,
                             flavour = flavour,
                             min_read_support = min_read_support,
                             subset_from_merge = subset_from_merge,

@@ -10,16 +10,20 @@
 #'
 #' @param regions_list Either provide a vector of regions in the chr:start-end format OR.
 #' @param regions_bed Better yet, provide a bed file with the coordinates you want to retrieve.
-#' @param streamlined Return a basic rather than full MAF format, default is TRUE.
+#' @param streamlined If TRUE (default), only 3 columns will be kept in the maf (start, sample_id and region name). 
+#' To return more columns, set this parameter to FALSE, see `basic_column` for more info. 
+#' Note, if this parameter is TRUE, the function will disregard anything specified with `basic_columns`.
 #' @param maf_data Use an already loaded MAF data frame.
 #' @param use_name_column If your bed-format data frame has a name column (must be named "name") these can be used to name your regions.
 #' @param from_indexed_flatfile Set to TRUE to avoid using the database and instead rely on flatfiles (only works for streamlined data, not full MAF details).
 #' @param mode Only works with indexed flatfiles. Accepts 2 options of "slms-3" and "strelka2" to indicate which variant caller to use. Default is "slms-3".
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF
-#' @param seq_type The seq_type you want back, default is genome.
+#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
-#' @param basic_columns Boolean parameter set to FALSE per default. Set to TRUE to return fewer columns.
+#' @param basic_columns Parameter to be used when streamlined is FALSE. 
+#' Set this parameter to TRUE for returning a maf with standard 45 columns, set to FALSE to keep all 116 maf columns in the returned object. 
+#' To return all 116 maf columns, set this parameter to FALSE.
 #'
 #' @return Returns a data frame of variants in MAF-like format.
 #'
@@ -43,11 +47,16 @@ get_ssm_by_regions = function(regions_list,
                               from_indexed_flatfile = TRUE,
                               mode = "slms-3",
                               augmented = TRUE,
-                              seq_type = "genome",
+                              this_seq_type = "genome",
                               projection = "grch37",
                               min_read_support = 4,
                               basic_columns = FALSE){
-
+  
+  if(streamlined){
+    message("Streamlined is set to TRUE, this function will disregard anything specified with basic_columns")
+    message("To return a MAF with standard 45 columns, set streamlioned = FALSE and basic_columns = TRUE")
+    message("To return a maf with all (116) columns, set streamlined = FALSE and basic_columns = FALSE")
+  }
 
   bed2region = function(x){
     paste0(x[1], ":", as.numeric(x[2]), "-", as.numeric(x[3]))
@@ -57,9 +66,12 @@ get_ssm_by_regions = function(regions_list,
     if(!missing(regions_bed)){
       regions = apply(regions_bed, 1, bed2region)
     }else{
-      warning("You must supply either regions_list or regions_df")
+      warning("You must supply either regions_list or regions_bed")
     }
+  }else{
+    regions = regions_list
   }
+  
   if(missing(maf_data)){
     print(regions)
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
@@ -67,7 +79,7 @@ get_ssm_by_regions = function(regions_list,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
                                                                 mode = mode,
                                                                 augmented = augmented,
-                                                                seq_type = seq_type,
+                                                                this_seq_type = this_seq_type,
                                                                 projection = projection,
                                                                 basic_columns=basic_columns)})
   }else{
@@ -84,22 +96,16 @@ get_ssm_by_regions = function(regions_list,
     rn = regions_bed[["name"]]
   }
 
-  if(basic_columns){
-    #this must always force the output to be the standard set.
-    #hence, return everything after binding into one data frame
-    print("bind_rows")
-    return(bind_rows(region_mafs))
-  }
   tibbled_data = tibble(region_mafs, region_name = rn)
   unnested_df = tibbled_data %>%
     unnest_longer(region_mafs)
+  
   if(streamlined){
     unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
-
-  }else{
-    unlisted_df = mutate(unnested_df, Chromosome = region_mafs$Chromosome, End_Position = region_mafs$End_Position, Start_Position = region_mafs$Start_Position, Tumor_Sample_Barcode = region_mafs$Tumor_Sample_Barcode) %>%
-      dplyr::select(Chromosome, Start_Position, End_Position, Tumor_Sample_Barcode, region_name)
-  }
+    }else{
+      print("bind_rows")
+      return(bind_rows(region_mafs))
+      }
   return(unlisted_df)
 }
