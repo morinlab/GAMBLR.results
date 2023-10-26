@@ -103,6 +103,7 @@ get_ssm_by_samples = function(these_sample_ids,
 
   }else if(flavour=="clustered"){
     if(subset_from_merge && !augmented){
+      seq_type = this_seq_type #needed for glue
       maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
@@ -145,6 +146,7 @@ get_ssm_by_samples = function(these_sample_ids,
     }
 
     if(subset_from_merge && augmented){
+      seq_type = this_seq_type #needed for glue
       maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)

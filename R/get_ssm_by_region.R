@@ -57,6 +57,9 @@ get_ssm_by_region = function(chromosome,
                              min_read_support = 3,
                              mode = "slms-3",
                              verbose = FALSE){
+  
+  #duplicate the seq type variable used for glue
+  seq_type = this_seq_type
 
   #check remote connection
   remote_session = check_remote_configuration(auto_connect = TRUE)
