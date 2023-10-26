@@ -9,10 +9,11 @@ get_coding_ssm(
   exclude_cohort,
   limit_pathology,
   limit_samples,
-  these_samples_metadata,
+  these_sample_ids = NULL,
+  these_samples_metadata = NULL,
   force_unmatched_samples,
   projection = "grch37",
-  this_seq_type,
+  this_seq_type = "genome",
   basic_columns = TRUE,
   maf_cols = NULL,
   from_flatfile = TRUE,
@@ -20,7 +21,8 @@ get_coding_ssm(
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
   include_silent = TRUE,
-  engine = "fread_maf"
+  engine = "fread_maf",
+  verbose = TRUE
 )
 }
 \arguments{
@@ -30,9 +32,9 @@ get_coding_ssm(
 
 \item{limit_pathology}{Supply this to restrict mutations to one pathology.}
 
-\item{limit_samples}{Supply this to restrict mutations to a vector of sample_id (instead of subsetting using the provided metadata)}
+\item{limit_samples}{This parameter is deprecated, use \code{these_sample_ids} instead.}
 
-\item{these_samples_metadata}{Supply a metadata table to auto-subset the data to samples in that table before returning}
+\item{these_samples_metadata}{Supply a metadata table to auto-subset the data to samples in that table before returning.}
 
 \item{force_unmatched_samples}{Optional argument for forcing unmatched samples, using \link{get_ssm_by_samples}.}
 
@@ -54,7 +56,11 @@ get_coding_ssm(
 
 \item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.}
 
-\item{engine}{Specify one of readr or fread_maf (default) to change how the large files are loaded prior to subsetting. You may have better performance with one or the other but for me fread_maf is faster and uses a lot less RAM.}
+\item{engine}{Currently, only fread_maf (default) is supported.}
+
+\item{verbose}{Controls the "verboseness" of this function (and internally called helpers).}
+
+\item{these_sample_id}{Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the \code{limit_samples} parameter).}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
@@ -70,8 +76,8 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 #basic usage
-maf_data = get_coding_ssm(this_seq_type = "genome", limit_cohort = c("BL_ICGC"))
+maf_data = get_coding_ssm(limit_cohort = c("BL_ICGC"))
 
-maf_data = get_coding_ssm(this_seq_type = "genome", limit_samples = "HTMCP-01-06-00485-01A-01D")
+maf_data = get_coding_ssm(limit_samples = "HTMCP-01-06-00485-01A-01D")
 
 }
