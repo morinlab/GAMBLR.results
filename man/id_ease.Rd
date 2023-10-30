@@ -22,10 +22,10 @@ If not provided will retrieve GAMBL metadata for all available samples.}
 
 \item{this_seq_type}{The seq type of interest. Default is both genome and exome, with priority for genome when a sample has >1 seq_type.}
 
-\item{verbose}{Set to FALSE to limit the information that gets printed to the console. Default is TRUE.}
+\item{verbose}{Set to FALSE to limit the information that gets printed to the console. Default is FALSE.}
 }
 \value{
-A list with metadata (data frame) as the first element and sample IDs (vector of characters) as the second element.
+Metadata (data frame).
 }
 \description{
 Internal convenience function that standardize the way GAMBLR functions deals with sample IDs (these_sample_ids)
@@ -42,6 +42,9 @@ In addition, the function also notifies the dimensions of the returned object, p
 As with all GAMBLR functions, providing a curated metadata table to any GAMBLR function (as opposed to a vector of IDs) is the safest way to ensure you get the expected result.
 }
 \examples{
+#load packages
+library(dplyr)
+
 #give the function nothing (i.e return all sample IDs in the metadata for the default seq type)
 #return metadata for all samples in the default seq type
 all_meta = id_ease()
@@ -53,6 +56,6 @@ sample_meta = id_ease(these_sample_ids = "94-15772_tumorA")
 this_metadata = get_gambl_metadata(seq_type_filter = "genome") \%>\% 
   head(5)
 
-thes_ids = id_ease(these_samples_metadata = this_metadata)
+these_ids = id_ease(these_samples_metadata = this_metadata)
 
 }

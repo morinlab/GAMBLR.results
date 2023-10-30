@@ -18,11 +18,16 @@
 #' If not provided will retrieve GAMBL metadata for all available samples.
 #' @param these_sample_ids Optional character vector of GAMBL sample IDs.
 #' @param this_seq_type The seq type of interest. Default is both genome and exome, with priority for genome when a sample has >1 seq_type. 
-#' @param verbose Set to FALSE to limit the information that gets printed to the console. Default is TRUE.
+#' @param verbose Set to FALSE to limit the information that gets printed to the console. Default is FALSE.
+#' 
+#' @export
 #'
-#' @return A list with metadata (data frame) as the first element and sample IDs (vector of characters) as the second element.
+#' @return Metadata (data frame).
 #'
 #' @examples
+#' #load packages
+#' library(dplyr)
+#' 
 #' #give the function nothing (i.e return all sample IDs in the metadata for the default seq type)
 #' #return metadata for all samples in the default seq type
 #' all_meta = id_ease()
@@ -34,27 +39,26 @@
 #' this_metadata = get_gambl_metadata(seq_type_filter = "genome") %>% 
 #'   head(5)
 #'
-#' thes_ids = id_ease(these_samples_metadata = this_metadata)
+#' these_ids = id_ease(these_samples_metadata = this_metadata)
 #'
-#' @export
 id_ease = function(these_samples_metadata = NULL,
                    these_sample_ids = NULL,
                    this_seq_type = c("genome", "capture"),
                    verbose = FALSE){
- 
+  
   #check for provided metadata, else use GAMBL metadata
   if(is.null(these_samples_metadata)){
     if(verbose){
       message("id_ease: No metadata provided, the helper function will fetch metadata for all gambl samples in the selected seq type...") 
     }
-    metadata = get_gambl_metadata(seq_type_filter = this_seq_type) #useful to add other get_gambl_metadata parameters?
+    metadata = get_gambl_metadata(seq_type_filter = this_seq_type)
   }else{
     if(verbose){
       message("id_ease: Metadata is provided...") 
     }
     metadata = these_samples_metadata
   }
-
+  
   #ensure metadata is subset to specified sample IDs
   if(!is.null(these_sample_ids)){
     if(verbose){
@@ -62,32 +66,24 @@ id_ease = function(these_samples_metadata = NULL,
     }
     metadata = dplyr::filter(metadata, sample_id %in% these_sample_ids)
     
+    #check if metadata is empty
+    if(nrow(metadata) == 0){
+      stop("No samples in the metadata, try a different sample ID...")
+    }
     #check the existence of provided sample IDs in the metadata
     not_in_meta = setdiff(these_sample_ids, metadata$sample_id)
-    
-    #assign the sample_ids variable
-    sample_ids = these_sample_ids
-    
     if(length(not_in_meta) > 0){
       message("id_ease: WARNING! The following sample IDs were not found in the metadata:")
       print(not_in_meta)
     }
   }else{
     if(verbose){
-      message("id_ease: No sample IDs provided, defaulting to all IDs in the metadata...")
+      message("id_ease: No sample IDs provided, all sample IDs in the metadata will be kept...")
     }
-    sample_ids = metadata$sample_id
   }
-
-  #return a list with metadata (data frame) as the first element and sample IDs (vector of characters) as the second element
   if(verbose){
-    unique_samples = unique(sample_ids)
-    message(paste0("id_ease: Returning ", length(unique_samples), " sample IDs.."))
+    unique_samples = unique(metadata$sample_id)
     message(paste0("id_ease: Returning metadata for ", length(unique_samples), " samples..." ))
   }
-
-  #bind the objects into a list for return
-  IDs = list(this_metadata = metadata, these_samples = sample_ids)
-  
-  return(IDs) 
+  return(metadata) 
 }

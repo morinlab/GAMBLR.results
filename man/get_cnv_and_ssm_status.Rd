@@ -7,7 +7,7 @@
 get_cnv_and_ssm_status(
   genes_and_cn_threshs,
   these_samples_metadata,
-  seq_type = "genome",
+  this_seq_type = "genome",
   only_cnv = "none",
   genome_build = "grch37",
   from_flatfile = TRUE,
@@ -29,7 +29,7 @@ CNV to return status.}
 \item{these_samples_metadata}{The metadata for samples of interest to be included in the returned matrix.
 Can be created with \code{get_gambl_metadata} function.}
 
-\item{seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
+\item{this_seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
 
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
@@ -46,7 +46,7 @@ to use database instead. Default is TRUE.}
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
 \item{subset_from_merge}{Argument to internally pass to \code{get_ssm_by_samples} function. If set to TRUE,
-the data will be subset from a pre-merged MAF of samples with the specified seq_type, Instead of merging
+the data will be subset from a pre-merged MAF of samples with the specified this_seq_type, Instead of merging
 individual MAFs. Default is FALSE.}
 
 \item{augmented}{Argument to internally pass to the functions \code{get_ssm_by_samples} and \code{get_coding_ssm_status}.

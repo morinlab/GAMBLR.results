@@ -22,15 +22,15 @@
 #'
 #' @examples
 #' \dontrun{
-#' samples_not_in_clinical = study_check(out_dir = "GAMBLR/cBioPortal/instance01/")
+#' samples_not_in_clinical = cbio_study_check(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
-study_check = function(data_clinical_samples_path = "data_clinical_samples.txt",
-                       data_fusions_path = "data_fusions.txt",
-                       cases_fusions_path = "case_lists/cases_fusion.txt",
-                       cases_all_path = "case_lists/cases_all.txt",
-                       cases_sequenced_path = "case_lists/cases_sequenced.txt",
-                       project_name = "gambl_genome",
-                       out_dir){
+cbio_study_check = function(data_clinical_samples_path = "data_clinical_samples.txt",
+                            data_fusions_path = "data_fusions.txt",
+                            cases_fusions_path = "case_lists/cases_fusion.txt",
+                            cases_all_path = "case_lists/cases_all.txt",
+                            cases_sequenced_path = "case_lists/cases_sequenced.txt",
+                            project_name = "gambl_genome",
+                            out_dir){
 
   #read clinical file (skip header)
   data_clinical_samples = data.table::fread(file = paste0(out_dir, data_clinical_samples_path), sep = "\t", header = FALSE, skip = 5)

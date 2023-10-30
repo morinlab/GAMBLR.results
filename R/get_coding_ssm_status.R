@@ -20,7 +20,7 @@
 #' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
 #' @param keep_multihit_hotspot Logical parameter indicating whether to keep the gene annotation as mutated when the gene has both hot spot and non-hotspot mutation. Default is FALSE. If set to TRUE, will report the number of non-hotspot mutations instead of tabulating for just mutation presence.
 #' @param recurrence_min Integer value indicating minimal recurrence level.
-#' @param seq_type The seq_type you want back, default is genome.
+#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param projection Specify projection (grch37 or hg38) of mutations. Default is grch37.
 #' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param genes_of_interest A vector of genes for hotspot review. Currently only FOXO1, MYD88, and CREBBP are supported.
@@ -51,7 +51,7 @@ get_coding_ssm_status = function(gene_symbols,
                                  include_hotspots = TRUE,
                                  keep_multihit_hotspot = FALSE,
                                  recurrence_min = 5,
-                                 seq_type = "genome",
+                                 this_seq_type = "genome",
                                  projection = "grch37",
                                  review_hotspots = TRUE,
                                  genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
@@ -79,7 +79,7 @@ get_coding_ssm_status = function(gene_symbols,
   }
 
   if(missing(maf_data) & is.null(maf_path)){
-    coding_ssm = get_coding_ssm(projection = projection, seq_type = seq_type, from_flatfile = from_flatfile, augmented = augmented, min_read_support = 3, basic_columns = FALSE, include_silent = include_silent)
+    coding_ssm = get_coding_ssm(projection = projection, this_seq_type = this_seq_type, from_flatfile = from_flatfile, augmented = augmented, min_read_support = 3, basic_columns = FALSE, include_silent = include_silent)
   }
 
   coding_ssm = coding_ssm %>%

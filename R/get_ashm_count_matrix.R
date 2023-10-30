@@ -7,7 +7,7 @@
 #' @param regions_bed A bed file with one row for each region.
 #' @param maf_data Optionally provide a data frame in the MAF format, otherwise the database will be used.
 #' @param these_samples_metadata This is used to complete your matrix. All GAMBL samples will be used by default. Provide a data frame with at least sample_id for all samples if you are using non-GAMBL data.
-#' @param seq_type The seq type to return results for.
+#' @param this_seq_type The seq type to return results for.
 #' @param from_indexed_flatfile Boolean parameter set to TRUE per default.
 #'
 #' @return A matrix.
@@ -19,25 +19,25 @@
 #' regions_bed = dplyr::mutate(GAMBLR.data::somatic_hypermutation_locations_GRCh37_v_latest, name = paste(gene, region, sep = "_"))
 #'
 #' matrix = get_ashm_count_matrix(regions_bed = regions_bed,
-#'                                seq_type = "genome")
+#'                                this_seq_type = "genome")
 #'
 get_ashm_count_matrix = function(regions_bed,
                                  maf_data,
                                  these_samples_metadata,
-                                 seq_type,
+                                 this_seq_type,
                                  from_indexed_flatfile = TRUE){
-  if(missing(seq_type)){
+  if(missing(this_seq_type)){
     if(missing(these_samples_metadata)){
-      stop("Must supply either the seq_type or a metadata data frame from which it can be retrieved")
+      stop("Must supply either the this_seq_type or a metadata data frame from which it can be retrieved")
     }
-    seq_type = head(these_samples_metadata) %>% pull(seq_type)
+    this_seq_type = head(these_samples_metadata) %>% pull(seq_type)
   }
   if(missing(regions_bed)){
     regions_bed = GAMBLR.data::grch37_ashm_regions
   }
   ashm_maf = get_ssm_by_regions(regions_bed = regions_bed,
                                 streamlined = TRUE,
-                                seq_type=seq_type,
+                                this_seq_type=this_seq_type,
                                 maf_data = maf_data,
                                 use_name_column = TRUE,
                                 from_indexed_flatfile = from_indexed_flatfile)
@@ -47,7 +47,7 @@ get_ashm_count_matrix = function(regions_bed,
     tally()
 
   if(missing(these_samples_metadata)){
-    all_meta = get_gambl_metadata(seq_type_filter=seq_type) %>%
+    all_meta = get_gambl_metadata(seq_type_filter=this_seq_type) %>%
       dplyr::select(sample_id)
   }else{
     all_meta = these_samples_metadata %>%

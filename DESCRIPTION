@@ -11,7 +11,6 @@ Depends:
     R (>= 4.1)
 Imports:
     circlize,
-    ComplexHeatmap,
     config,
     data.table,
     DBI,
@@ -20,10 +19,8 @@ Imports:
     GAMBLR.data,
     GAMBLR.helpers,
     GAMBLR.utils,
-    GAMBLR.viz (>= 0.1.0),
     ggplot2,
     glue,
-    grid,
     lubridate,
     purrr,
     readr,

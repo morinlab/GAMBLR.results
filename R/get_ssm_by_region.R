@@ -16,7 +16,7 @@
 #' @param basic_columns Set to FALSE to return MAF with all columns (116). Default is TRUE, which returns the first 45 columns. Note that if streamlined is set to TRUE, only two columns will be returned, regardless of what's specified in this parameter.
 #' @param streamlined Return Start_Position and Tumor_Smaple_Barcode as the only two MAF columns. Default is FALSE. Setting to TRUE will overwrite anything specified with `basic_columns`.
 #' @param maf_data An already loaded MAF like object to subset to regions of interest.
-#' @param seq_type The seq_type you want back, default is genome.
+#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #' @param from_indexed_flatfile Set to TRUE to avoid using the database and instead rely on flatfiles.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.
@@ -50,13 +50,16 @@ get_ssm_by_region = function(chromosome,
                              basic_columns = TRUE,
                              streamlined = FALSE,
                              maf_data,
-                             seq_type = "genome",
+                             this_seq_type = "genome",
                              projection = "grch37",
                              from_indexed_flatfile = TRUE,
                              augmented = TRUE,
                              min_read_support = 3,
                              mode = "slms-3",
                              verbose = FALSE){
+  
+  #duplicate the seq type variable used for glue
+  seq_type = this_seq_type
 
   #check remote connection
   remote_session = check_remote_configuration(auto_connect = TRUE)
@@ -72,7 +75,7 @@ get_ssm_by_region = function(chromosome,
     if(projection == "hg38"){
       stop("Strelka2 outputs are currently only available in respect to grch37...")
     }
-    if(seq_type == "capture"){
+    if(this_seq_type == "capture"){
       stop("Genome is currently the only available seq_type for strelka2 outputs...")
     }
   }else if(mode == "slms-3"){

@@ -9,7 +9,7 @@ get_ssm_by_samples(
   these_samples_metadata,
   tool_name = "slms-3",
   projection = "grch37",
-  seq_type = "genome",
+  this_seq_type = "genome",
   flavour = "clustered",
   these_genes,
   min_read_support = 3,
@@ -29,7 +29,7 @@ get_ssm_by_samples(
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
 
-\item{seq_type}{The seq type you want results for. Default is "genome".}
+\item{this_seq_type}{The seq type you want results for. Default is "genome".}
 
 \item{flavour}{Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.}
 
@@ -41,7 +41,7 @@ get_ssm_by_samples(
 
 \item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.}
 
-\item{subset_from_merge}{Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified seq_type.}
+\item{subset_from_merge}{Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified this_seq_type.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.}
 

@@ -26,17 +26,17 @@
 #'  pull(sample_id)
 #'
 #' #create case list with selected sample IDs
-#' custom_caselist(these_sample_ids = my_samples,
-#'                 caselist_name = "FL_Canada",
-#'                 caselist_description = "Follicular Lymphoma from the Genome Canada Study",
-#'                 dir = "../path/to/study_directory/")
+#' cbio_custom_caselist(these_sample_ids = my_samples,
+#'                      caselist_name = "FL_Canada",
+#'                      caselist_description = "Follicular Lymphoma from the Genome Canada Study",
+#'                      dir = "../path/to/study_directory/")
 #' }
 #' 
-custom_caselist = function(these_sample_ids,
-                           caselist_name,
-                           caselist_description,
-                           return_missing_samples = FALSE,
-                           dir){
+cbio_custom_caselist = function(these_sample_ids,
+                                caselist_name,
+                                caselist_description,
+                                return_missing_samples = FALSE,
+                                dir){
   
   #get path to the clinical file holding all sample IDs
   clinical_file = data.table::fread(file = paste0(dir, "data_clinical_samples.txt"), sep = "\t", header = FALSE, skip = 5)

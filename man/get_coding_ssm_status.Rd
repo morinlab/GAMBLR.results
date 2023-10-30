@@ -15,7 +15,7 @@ get_coding_ssm_status(
   include_hotspots = TRUE,
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
-  seq_type = "genome",
+  this_seq_type = "genome",
   projection = "grch37",
   review_hotspots = TRUE,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
@@ -44,7 +44,7 @@ get_coding_ssm_status(
 
 \item{recurrence_min}{Integer value indicating minimal recurrence level.}
 
-\item{seq_type}{The seq_type you want back, default is genome.}
+\item{this_seq_type}{The seq_type you want back, default is genome.}
 
 \item{projection}{Specify projection (grch37 or hg38) of mutations. Default is grch37.}
 

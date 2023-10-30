@@ -6,7 +6,7 @@
 \usage{
 annotate_ssm_blacklist(
   mutations_df,
-  seq_type,
+  this_seq_type,
   tool_name = "slms_3",
   tool_version = "1.0",
   annotator_name = "vcf2maf",
@@ -24,7 +24,7 @@ annotate_ssm_blacklist(
 \arguments{
 \item{mutations_df}{A data frame with mutation data.}
 
-\item{seq_type}{The seq_type of your mutations if you prefer to apply only the corresponding blacklist. More than one seq_type can be specified as a vector if desired. This parameter is required.}
+\item{this_seq_type}{The seq_type of your mutations if you prefer to apply only the corresponding blacklist. More than one seq_type can be specified as a vector if desired. This parameter is required.}
 
 \item{tool_name}{The tool or pipeline that generated the files (should be the same for all).}
 
@@ -69,7 +69,7 @@ This function also conveniently lets you know how many variants that were droppe
 
 #annotate MAF
 deblacklisted_maf = annotate_ssm_blacklist(grande_maf,
-                                           seq_type = "genome",
+                                           this_seq_type = "genome",
                                            genome_build = "hg38")
 
 }

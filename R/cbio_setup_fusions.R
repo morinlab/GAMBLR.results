@@ -22,15 +22,15 @@
 #'
 #' @examples
 #' \dontrun{
-#' fusion_ids = setup_fusions(out_dir = "GAMBLR/cBioPortal/instance01/")
+#' fusion_ids = cbio_setup_fusions(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
-setup_fusions = function(short_name = "GAMBL",
-                         human_friendly_name = "GAMBL data",
-                         project_name = "gambl_genome",
-                         description = "GAMBL data from genome",
-                         gambl_maf = "maf_slms3_hg19",
-                         gambl_icgc_maf = "maf_slms3_hg19_icgc",
-                         out_dir){
+cbio_setup_fusions = function(short_name = "GAMBL",
+                              human_friendly_name = "GAMBL data",
+                              project_name = "gambl_genome",
+                              description = "GAMBL data from genome",
+                              gambl_maf = "maf_slms3_hg19",
+                              gambl_icgc_maf = "maf_slms3_hg19_icgc",
+                              out_dir){
 
 
   #create necessary files

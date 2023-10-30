@@ -11,7 +11,7 @@
 #' This function also conveniently lets you know how many variants that were dropped in the annotation process.
 #'
 #' @param mutations_df A data frame with mutation data.
-#' @param seq_type The seq_type of your mutations if you prefer to apply only the corresponding blacklist. More than one seq_type can be specified as a vector if desired. This parameter is required.
+#' @param this_seq_type The seq_type of your mutations if you prefer to apply only the corresponding blacklist. More than one seq_type can be specified as a vector if desired. This parameter is required.
 #' @param tool_name The tool or pipeline that generated the files (should be the same for all).
 #' @param tool_version The version of the tool specified under `tool_name`.
 #' @param annotator_name Name of annotator, default is "vcf2maf".
@@ -35,11 +35,11 @@
 #'
 #' #annotate MAF
 #' deblacklisted_maf = annotate_ssm_blacklist(grande_maf,
-#'                                            seq_type = "genome",
+#'                                            this_seq_type = "genome",
 #'                                            genome_build = "hg38")
 #'
 annotate_ssm_blacklist = function(mutations_df,
-                                  seq_type,
+                                  this_seq_type,
                                   tool_name = "slms_3",
                                   tool_version = "1.0",
                                   annotator_name = "vcf2maf",
@@ -53,8 +53,8 @@ annotate_ssm_blacklist = function(mutations_df,
                                   verbose = FALSE,
                                   invert = FALSE){
 
-  if(missing(seq_type)){
-    message("User must specify seq_type of the mutations to select the right blacklist file. More than one seq_type can be specified as a vector if desired.")
+  if(missing(this_seq_type)){
+    message("User must specify this_seq_type of the mutations to select the right blacklist file. More than one this_seq_type can be specified as a vector if desired.")
     return()
   }
 

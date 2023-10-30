@@ -24,16 +24,17 @@
 #' @examples
 #' #Setup study and save included ids as a vector of characters:
 #' \dontrun{
-#' ids = setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
+#' ids = cbio_setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
 #'
-setup_study = function(seq_type_filter = "genome",
-                       short_name = "GAMBL",
-                       human_friendly_name = "GAMBL data",
-                       project_name = "gambl_genome",
-                       description = "GAMBL data from genome",
-                       overwrite = TRUE,
-                       out_dir){
+cbio_setup_study = function(seq_type_filter = "genome",
+                            short_name = "GAMBL",
+                            human_friendly_name = "GAMBL data",
+                            project_name = "gambl_genome",
+                            description = "GAMBL data from genome",
+                            overwrite = TRUE,
+                            out_dir){
+  
   cancer_type="mixed"
 
   #set up the new directory
@@ -96,7 +97,7 @@ setup_study = function(seq_type_filter = "genome",
 
   if(overwrite){
     #create the actual MAF file by querying the database using the API
-    coding_ssms = get_coding_ssm(seq_type = seq_type_filter)
+    coding_ssms = get_coding_ssm(this_seq_type = seq_type_filter)
     data_mutations_full = paste0(out_dir, "data_mutations_extended.maf")
     write_tsv(coding_ssms, data_mutations_full, na = "")
   }else{
