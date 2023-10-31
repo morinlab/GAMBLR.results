@@ -34,6 +34,8 @@ get_coding_ssm(
 
 \item{limit_samples}{This parameter is deprecated, use \code{these_sample_ids} instead.}
 
+\item{these_sample_ids}{Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the \code{limit_samples} parameter).}
+
 \item{these_samples_metadata}{Supply a metadata table to auto-subset the data to samples in that table before returning.}
 
 \item{force_unmatched_samples}{Optional argument for forcing unmatched samples, using \link{get_ssm_by_samples}.}
@@ -59,8 +61,6 @@ get_coding_ssm(
 \item{engine}{Currently, only fread_maf (default) is supported.}
 
 \item{verbose}{Controls the "verboseness" of this function (and internally called helpers).}
-
-\item{these_sample_id}{Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the \code{limit_samples} parameter).}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).

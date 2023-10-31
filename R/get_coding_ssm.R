@@ -12,7 +12,7 @@
 #' @param limit_pathology Supply this to restrict mutations to one pathology.
 #' @param limit_samples This parameter is deprecated, use `these_sample_ids` instead.
 #' @param these_samples_metadata Supply a metadata table to auto-subset the data to samples in that table before returning.
-#' @param these_sample_id Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the `limit_samples` parameter).
+#' @param these_sample_ids Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the `limit_samples` parameter).
 #' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR.results::get_ssm_by_samples].
 #' @param projection Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.
 #' @param this_seq_type The seq_type you want back, default is genome.
