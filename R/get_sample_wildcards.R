@@ -21,14 +21,20 @@ get_sample_wildcards = function(this_sample_id,
 
   sample_meta = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
     dplyr::filter(sample_id==this_sample_id)
+  
   this_patient_id = sample_meta$patient_id
+  
   if(sample_meta$pairing_status=="matched"){
-    normal_meta = get_gambl_metadata(seq_type_filter = this_seq_type,tissue_status_filter = c("normal","tumour")) %>%
-      dplyr::filter(patient_id==this_patient_id) %>% dplyr::filter(tissue_status=="normal")
+    normal_meta = get_gambl_metadata(seq_type_filter = this_seq_type,
+                                     tissue_status_filter = c("normal","tumour")) %>%
+      dplyr::filter(patient_id==this_patient_id) %>% 
+      dplyr::filter(tissue_status=="normal")
+    
       normal_id = normal_meta$sample_id
+      
       return(list(tumour_sample_id=this_sample_id,
                normal_sample_id=normal_id,
-               seq_type = seq_type,
+               seq_type = this_seq_type,
                pairing_status=sample_meta$pairing_status,
                genome_build=sample_meta$genome_build,
                unix_group=sample_meta$unix_group))
