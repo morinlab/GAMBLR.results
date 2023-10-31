@@ -21,7 +21,6 @@ Imports:
     GAMBLR.utils,
     ggplot2,
     glue,
-    lubridate,
     purrr,
     readr,
     RMariaDB,
@@ -32,7 +31,6 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils,
     vroom
 Remotes: 
     morinlab/GAMBLR.data,
