@@ -36,7 +36,6 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils,
     vroom
 Remotes: 
     morinlab/GAMBLR.data,
