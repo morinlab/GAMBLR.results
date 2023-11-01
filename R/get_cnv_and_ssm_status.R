@@ -127,9 +127,9 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   }
   
   # get gene regions
-  my_regions = gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
-                              genome_build = genome_build,
-                              sort_regions = FALSE)
+  my_regions = GAMBLR.utils::gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
+                                            genome_build = genome_build,
+                                            sort_regions = FALSE)
   
   if(length(my_regions) < nrow(genes_and_cn_threshs)){
     genes_and_cn_threshs = dplyr::filter(genes_and_cn_threshs, gene_id %in% names(my_regions))
