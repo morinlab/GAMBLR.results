@@ -25,7 +25,7 @@ build_browser_lymphomagene = function(browser_base_path="/Users/rmorin/git/LLMPP
     
     # step 2: obtain all mutations in these regions 
     ashm_regions_bed = suppressMessages(read_tsv(ashm_file))
-    genome_ssm = get_ssm_by_regions(regions_bed = ashm_regions_bed,streamlined = F,seq_type = "genome",projection = projection)
+    genome_ssm = get_ssm_by_regions(regions_bed = ashm_regions_bed,streamlined = F,this_seq_type = "genome",projection = projection)
     ashm_full_bed = paste0(browser_base_path,hub_path,"ashm_",genome_build,".bb")
     maf_to_custom_track(genome_ssm,
                         these_samples_metadata = get_gambl_metadata(seq_type_filter = "genome"),
@@ -41,7 +41,7 @@ build_browser_lymphomagene = function(browser_base_path="/Users/rmorin/git/LLMPP
     
     # step 3: annotate recurrent mutations for lollipop
     
-    coding_genome_variants = get_coding_ssm(seq_type = "genome")
+    coding_genome_variants = get_coding_ssm(this_seq_type = "genome")
     
   }  
 }
