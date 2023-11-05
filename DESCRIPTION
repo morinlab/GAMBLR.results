@@ -11,7 +11,6 @@ Depends:
     R (>= 4.1)
 Imports:
     circlize,
-    ComplexHeatmap,
     config,
     data.table,
     DBI,
@@ -20,14 +19,16 @@ Imports:
     GAMBLR.data,
     GAMBLR.helpers,
     GAMBLR.utils,
-    GAMBLR.viz (>= 0.1.0),
+    GAMBLR.viz,
+    GenomicRanges,
     ggplot2,
     glue,
-    grid,
+    IRanges,
     lubridate,
     purrr,
     readr,
     RMariaDB,
+    Rsamtools,
     rtracklayer,
     S4Vectors,
     ssh,
@@ -35,7 +36,6 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils,
     vroom
 Remotes: 
     morinlab/GAMBLR.data,

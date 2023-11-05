@@ -22,7 +22,7 @@
 #'   CNV to return status.
 #' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix.
 #'   Can be created with `get_gambl_metadata` function.
-#' @param seq_type The seq type to get results for. Possible values are "genome" (default) or "capture".
+#' @param this_seq_type The seq type to get results for. Possible values are "genome" (default) or "capture".
 #' @param only_cnv A vector of gene names indicating the genes for which only CNV status should be considered, 
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
@@ -33,7 +33,7 @@
 #' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include 
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param subset_from_merge Argument to internally pass to `get_ssm_by_samples` function. If set to TRUE, 
-#'   the data will be subset from a pre-merged MAF of samples with the specified seq_type, Instead of merging 
+#'   the data will be subset from a pre-merged MAF of samples with the specified this_seq_type, Instead of merging 
 #'   individual MAFs. Default is FALSE.
 #' @param augmented Argument to internally pass to the functions `get_ssm_by_samples` and `get_coding_ssm_status`. 
 #'   A logical parameter (default: TRUE). Set to FALSE to use multi-sample patients, instead of the original MAF 
@@ -86,7 +86,7 @@
 #' 
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   these_samples_metadata,
-                                  seq_type = "genome",
+                                  this_seq_type = "genome",
                                   only_cnv = "none",
                                   genome_build = "grch37",
                                   from_flatfile = TRUE,
@@ -111,7 +111,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   stopifnot('`genome_build` argument must be "grch37" or "hg38."' = genome_build %in% c("grch37", "hg38"))
   
-  stopifnot('`seq_type` argument must be "genome" or "capture."' = seq_type %in% c("genome", "capture"))
+  stopifnot('`this_seq_type` argument must be "genome" or "capture."' = this_seq_type %in% c("genome", "capture"))
   
   stopifnot('`only_cnv` argument must be "none", "all", or a subset of `genes_and_cn_threshs$gene_id`' = {
     only_cnv == "none" |
@@ -121,15 +121,15 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   # define variables
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter=seq_type)
+    these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
   }else{
-    these_samples_metadata = dplyr::filter(these_samples_metadata, seq_type==seq_type)
+    these_samples_metadata = dplyr::filter(these_samples_metadata, seq_type==this_seq_type)
   }
   
   # get gene regions
-  my_regions = gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
-                              genome_build = genome_build,
-                              sort_regions = FALSE)
+  my_regions = GAMBLR.utils::gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
+                                            genome_build = genome_build,
+                                            sort_regions = FALSE)
   
   if(length(my_regions) < nrow(genes_and_cn_threshs)){
     genes_and_cn_threshs = dplyr::filter(genes_and_cn_threshs, gene_id %in% names(my_regions))
@@ -146,7 +146,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
       regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
       region_names = genes_and_cn_threshs_non_neutral$gene_id,
       these_samples_metadata = these_samples_metadata,
-      this_seq_type = seq_type
+      this_seq_type = this_seq_type
     )
     cn_matrix = cn_matrix[these_samples_metadata$sample_id,, drop=FALSE]
     
@@ -190,7 +190,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   my_maf = get_ssm_by_samples(
     these_samples_metadata = these_samples_metadata,
     projection = genome_build,
-    seq_type = seq_type,
+    this_seq_type = this_seq_type,
     min_read_support = min_read_support_ssm,
     these_genes = genes_to_check_ssm,
     subset_from_merge = subset_from_merge,

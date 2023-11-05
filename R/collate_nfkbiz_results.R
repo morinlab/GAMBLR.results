@@ -25,7 +25,7 @@ collate_nfkbiz_results = function(sample_table,
       dplyr::select(sample_id, patient_id, biopsy_id)
   }
   this_region = "chr3:101578214-101578365"
-  nfkbiz_ssm = get_ssm_by_region(region = this_region,seq_type = seq_type_filter) %>%
+  nfkbiz_ssm = get_ssm_by_region(region = this_region,this_seq_type = seq_type_filter) %>%
     pull(Tumor_Sample_Barcode) %>%
     unique
   if(seq_type_filter=="genome"){

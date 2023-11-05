@@ -9,7 +9,7 @@ fetch_output_files(
   unix_group,
   base_path,
   results_dir = "99-outputs",
-  seq_type = "genome",
+  this_seq_type = "genome",
   build = "hg38",
   search_pattern = "cellularity_ploidy.txt"
 )
@@ -23,7 +23,7 @@ fetch_output_files(
 
 \item{results_dir}{Directory with results.}
 
-\item{seq_type}{Either genome or capture.}
+\item{this_seq_type}{Either genome or capture.}
 
 \item{build}{Default is hg38.}
 
@@ -37,14 +37,14 @@ Get output files from a set of conditions.
 }
 \details{
 This function lets the user specify multiple conditions for returning result subsets.
-First, specify the name of the tool with \code{tool}, then set the seq type (\code{seq_type}) to either genome or capture,
+First, specify the name of the tool with \code{tool}, then set the seq type (\code{this_seq_type}) to either genome or capture,
 together with the genome build (\code{genome_build}). A data frame will be returned with one row per file and sample IDs together with GAMBL wildcards.
 }
 \examples{
 
 ex_outs = fetch_output_files(tool = "manta",
                              base_path = "gambl/sequenza_current",
-                             seq_type = "capture",
+                             this_seq_type = "capture",
                              build = "hg38")
 
 }

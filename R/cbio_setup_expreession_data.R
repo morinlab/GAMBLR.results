@@ -20,13 +20,13 @@
 #' @examples
 #' \dontrun{
 #' #return expression data for lymphoma genes (all samples)
-#' expression_ids = setup_expression_data(out_dir = "../../")
+#' expression_ids = cbio_setup_expression_data(out_dir = "../../")
 #' }
-setup_expreession_data = function(project_name = "gambl_genome",
-                                  clinical_file_path = "data_clinical_samples.txt",
-                                  these_genes,
-                                  expression_df,
-                                  out_dir){
+cbio_setup_expreession_data = function(project_name = "gambl_genome",
+                                       clinical_file_path = "data_clinical_samples.txt",
+                                       these_genes,
+                                       expression_df,
+                                       out_dir){
 
   #get path to the clinical file holding all sample IDs
   clinical_file = data.table::fread(file = paste0(out_dir, clinical_file_path), sep = "\t", header = FALSE, skip = 5)

@@ -3,14 +3,14 @@
 #' @description Get output files from a set of conditions.
 #'
 #' @details This function lets the user specify multiple conditions for returning result subsets.
-#' First, specify the name of the tool with `tool`, then set the seq type (`seq_type`) to either genome or capture,
+#' First, specify the name of the tool with `tool`, then set the seq type (`this_seq_type`) to either genome or capture,
 #' together with the genome build (`genome_build`). A data frame will be returned with one row per file and sample IDs together with GAMBL wildcards.
 #'
 #' @param tool Name of tool.
 #' @param unix_group The unix group of the sample set.
 #' @param base_path Either the full or relative path to where all the results directories are for the tool e.g. "gambl/sequenza_current".
 #' @param results_dir Directory with results.
-#' @param seq_type Either genome or capture.
+#' @param this_seq_type Either genome or capture.
 #' @param build Default is hg38.
 #' @param search_pattern File-extensions search pattern.
 #'
@@ -23,14 +23,14 @@
 #'
 #' ex_outs = fetch_output_files(tool = "manta",
 #'                              base_path = "gambl/sequenza_current",
-#'                              seq_type = "capture",
+#'                              this_seq_type = "capture",
 #'                              build = "hg38")
 #'
 fetch_output_files = function(tool,
                               unix_group,
                               base_path,
                               results_dir = "99-outputs",
-                              seq_type = "genome",
+                              this_seq_type = "genome",
                               build = "hg38",
                               search_pattern = "cellularity_ploidy.txt"){
 
@@ -43,11 +43,11 @@ fetch_output_files = function(tool,
 
   }
   if(tool == "battenberg"){
-    results_path = paste0(base_path, "/", results_dir, "/seg/", seq_type, "--projection/")
-    local_results_path = paste0(local_base_path, "/", results_dir, "/seg/", seq_type, "--projection/")
+    results_path = paste0(base_path, "/", results_dir, "/seg/", this_seq_type, "--projection/")
+    local_results_path = paste0(local_base_path, "/", results_dir, "/seg/", this_seq_type, "--projection/")
   }else{
-    results_path = paste0(base_path, "/", results_dir, "/", seq_type, "--projection/")
-    local_results_path = paste0(local_base_path, "/", results_dir, "/", seq_type, "--projection/")
+    results_path = paste0(base_path, "/", results_dir, "/", this_seq_type, "--projection/")
+    local_results_path = paste0(local_base_path, "/", results_dir, "/", this_seq_type, "--projection/")
   }
 
   #This still fails when a matching file isn't found. No clue why this doesn't work
@@ -69,7 +69,7 @@ fetch_output_files = function(tool,
 
     print(head(new_df))
   }else if(tool == "battenberg"){
-    results_path = paste0(base_path, "/", results_dir, "/seg/", seq_type, "--", build,"/")
+    results_path = paste0(base_path, "/", results_dir, "/seg/", this_seq_type, "--", build,"/")
     all_files = dir(results_path, pattern = search_pattern)
     print(results_path)
     print(search_pattern)
@@ -80,7 +80,7 @@ fetch_output_files = function(tool,
     new_df = data.frame(tumour_sample_id = all_tumours, normal_sample_id = all_normals, full_path = all_files)
     new_df = mutate(new_df, normal_sample_id = gsub(normal_sample_id, pattern = "_subclones.igv.seg", replacement = ""))
   }else if(tool == "battenberg_ploidy"){
-    #results_path = paste0(base_path, "/", results_dir, "/", seq_type, "--", build, "/")
+    #results_path = paste0(base_path, "/", results_dir, "/", this_seq_type, "--", build, "/")
     search_pattern = "_cellularity_ploidy.txt"
     print("THIS CAN BE SLOW!")
     unnested_df = unnested_df %>%

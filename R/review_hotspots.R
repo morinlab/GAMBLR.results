@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @examples
-#' hot_ssms = review_hotspots(annotate_hotspots(get_coding_ssm(seq_type = "genome")),
+#' hot_ssms = review_hotspots(annotate_hotspots(get_coding_ssm(this_seq_type = "genome")),
 #'                            genes_of_interest = c("CREBBP"))
 #'
 review_hotspots = function(annotated_maf,

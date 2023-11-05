@@ -13,7 +13,7 @@ get_ssm_by_regions(
   from_indexed_flatfile = TRUE,
   mode = "slms-3",
   augmented = TRUE,
-  seq_type = "genome",
+  this_seq_type = "genome",
   projection = "grch37",
   min_read_support = 4,
   basic_columns = FALSE
@@ -24,7 +24,9 @@ get_ssm_by_regions(
 
 \item{regions_bed}{Better yet, provide a bed file with the coordinates you want to retrieve.}
 
-\item{streamlined}{Return a basic rather than full MAF format, default is TRUE.}
+\item{streamlined}{If TRUE (default), only 3 columns will be kept in the maf (start, sample_id and region name).
+To return more columns, set this parameter to FALSE, see \code{basic_column} for more info.
+Note, if this parameter is TRUE, the function will disregard anything specified with \code{basic_columns}.}
 
 \item{maf_data}{Use an already loaded MAF data frame.}
 
@@ -36,13 +38,15 @@ get_ssm_by_regions(
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF}
 
-\item{seq_type}{The seq_type you want back, default is genome.}
+\item{this_seq_type}{The seq_type you want back, default is genome.}
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
 
 \item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).}
 
-\item{basic_columns}{Boolean parameter set to FALSE per default. Set to TRUE to return fewer columns.}
+\item{basic_columns}{Parameter to be used when streamlined is FALSE.
+Set this parameter to TRUE for returning a maf with standard 45 columns, set to FALSE to keep all 116 maf columns in the returned object.
+To return all 116 maf columns, set this parameter to FALSE.}
 }
 \value{
 Returns a data frame of variants in MAF-like format.

@@ -49,8 +49,8 @@
 #' #get the SVs in a region around MYC
 #' myc_locus_sv = get_manta_sv(region = "8:128723128-128774067")
 #'
-get_manta_sv = function(these_sample_ids,
-                        these_samples_metadata,
+get_manta_sv = function(these_sample_ids = NULL,
+                        these_samples_metadata = NULL,
                         projection = "grch37",
                         chromosome,
                         qstart,
@@ -75,12 +75,10 @@ get_manta_sv = function(these_sample_ids,
   }
 
   #get samples with the dedicated helper function
-  meta_ids = id_ease(these_samples_metadata = these_samples_metadata,
-                these_sample_ids = these_sample_ids,
-                verbose = verbose,
-                this_seq_type = "genome") #only genome samples have manta results
-
-  this_meta = meta_ids$this_metadata
+  this_meta = id_ease(these_samples_metadata = these_samples_metadata,
+                      these_sample_ids = these_sample_ids,
+                      verbose = verbose,
+                      this_seq_type = "genome") #only genome samples have manta results
 
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options

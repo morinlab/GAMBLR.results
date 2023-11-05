@@ -47,7 +47,7 @@ Is this function not what you are looking for? Try one of the following, similar
 #basic usage, generic lymphoma gene list
 cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 
-myc_region <- gene_to_region(
+myc_region <- GAMBLR.utils::gene_to_region(
  gene_symbol = "MYC",
  genome_build = "grch37",
  return_as = "region"

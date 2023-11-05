@@ -4,12 +4,12 @@
 \alias{get_sample_wildcards}
 \title{Get Sample Wildcards}
 \usage{
-get_sample_wildcards(this_sample_id, seq_type)
+get_sample_wildcards(this_sample_id, this_seq_type)
 }
 \arguments{
 \item{this_sample_id}{The sample ID of interest.}
 
-\item{seq_type}{The desired seq type, e.g genome/capture.}
+\item{this_seq_type}{The desired seq type, e.g genome/capture.}
 }
 \value{
 Nothing.
@@ -22,6 +22,6 @@ Return sample wildcards, useful for getting wildcard information necessary for r
 }
 \examples{
 get_sample_wildcards(this_sample_id = "00-15201_tumorA",
-                     seq_type = "genome")
+                     this_seq_type = "genome")
 
 }

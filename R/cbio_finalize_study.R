@@ -31,7 +31,7 @@
 #' @examples
 #' \dontrun{
 #' #basic usage
-#' finalize_study(these_sample_ids = c(ids, fusion_ids), out_dir = "GAMBLR/cBioPortal/instance01/")
+#' cbio_finalize_study(these_sample_ids = c(ids, fusion_ids), out_dir = "GAMBLR/cBioPortal/instance01/")
 #'
 #' #advanced usage
 #' #get some samples
@@ -40,27 +40,27 @@
 #' my_samples = pull(meta_sub, sample_id)
 #'
 #' #create a clinical file with additional collated metadata fields
-#' finalize_study(these_sample_ids = my_samples,
-#'                out_dir = "../",
-#'                metacols = c("MeanCorrectedCoverage", "total_ssm"),
-#'                metacol_names = c("Mean Corrected Coverage", "Total SSM"),
-#'                metacol_types = c("NUMBER", "NUMBER"),
-#'                metacol_prior = c("2", "1"))
+#' cbio_finalize_study(these_sample_ids = my_samples,
+#'                     out_dir = "../",
+#'                     metacols = c("MeanCorrectedCoverage", "total_ssm"),
+#'                     metacol_names = c("Mean Corrected Coverage", "Total SSM"),
+#'                     metacol_types = c("NUMBER", "NUMBER"),
+#'                     metacol_prior = c("2", "1"))
 #' }
 #'
-finalize_study = function(seq_type_filter = "genome",
-                          short_name = "GAMBL",
-                          human_friendly_name = "GAMBL data",
-                          project_name = "gambl_genome",
-                          description = "GAMBL data from genome",
-                          cancer_type = "mixed",
-                          these_sample_ids,
-                          overwrite = TRUE,
-                          metacols,
-                          metacol_names,
-                          metacol_types,
-                          metacol_prior,
-                          out_dir){
+cbio_finalize_study = function(seq_type_filter = "genome",
+                               short_name = "GAMBL",
+                               human_friendly_name = "GAMBL data",
+                               project_name = "gambl_genome",
+                               description = "GAMBL data from genome",
+                               cancer_type = "mixed",
+                               these_sample_ids,
+                               overwrite = TRUE,
+                               metacols,
+                               metacol_names,
+                               metacol_types,
+                               metacol_prior,
+                               out_dir){
 
   #define standard columns
   these_columns = c("patient_id", "sample_id", "pathology",
