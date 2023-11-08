@@ -36,7 +36,7 @@ Lastly, \code{p_thresh} sets the p value threshold, default is 0.05.
 my_metadata = get_gambl_metadata()
 all_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
                                 projection = "grch37",
-                                seq_type = "genome")
+                                this_seq_type = "genome")
 
 hot_ssms = annotate_hotspots(all_coding_ssm)
 
