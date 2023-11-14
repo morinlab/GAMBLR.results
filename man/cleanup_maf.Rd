@@ -22,7 +22,7 @@ This function expects a set number of columns to exist in the incoming maf in or
 To view the columns, see bundled data in GAMBLR.data.
 }
 \examples{
-
-clean_maf = cleanup_maf(maf_df = GAMBLR.data::sample_data$grch37$maf)
+maf <- get_coding_ssm(basic_columns = FALSE)
+clean_maf = cleanup_maf(maf_df = maf)
 
 }

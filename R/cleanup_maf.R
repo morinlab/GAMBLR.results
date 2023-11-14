@@ -15,8 +15,8 @@
 #' @export
 #'
 #' @examples
-#'
-#' clean_maf = cleanup_maf(maf_df = GAMBLR.data::sample_data$grch37$maf)
+#' maf <- get_coding_ssm(basic_columns = FALSE)
+#' clean_maf = cleanup_maf(maf_df = maf)
 #'
 cleanup_maf = function(maf_df){
 
