@@ -11,8 +11,8 @@
 #'   Therefore, many of its arguments are assigned to these functions. If needed, see the documentation of these 
 #'   functions for more information. 
 #'   
-#'   In the case of returning NA values, this is because the `get_cn_segments` function can not internally return 
-#'   any copy number segments from a given chromosome region. 
+#'   In the case of returning NA values, this is due to the `get_cn_segments` function not being able to internally 
+#'   return any copy number segments from the specified chromosome region.
 #' 
 #' @param genes_and_cn_threshs A data frame with columns "gene_id" and "cn_thresh". The "gene_id" column stores 
 #'   gene symbols (characters) which determine the regions to return CNV and/or coding SSM status. The "cn_thresh" 

@@ -72,8 +72,8 @@ This function internally calls the \code{get_cn_states}, \code{get_ssm_by_sample
 Therefore, many of its arguments are assigned to these functions. If needed, see the documentation of these
 functions for more information.
 
-In the case of returning NA values, this is because the \code{get_cn_segments} function can not internally return
-any copy number segments from a given chromosome region.
+In the case of returning NA values, this is due to the \code{get_cn_segments} function not being able to internally
+return any copy number segments from the specified chromosome region.
 }
 \examples{
 # Define samples
