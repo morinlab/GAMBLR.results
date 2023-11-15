@@ -65,9 +65,9 @@ get_sample_cn_segments = function(these_sample_ids = NULL,
   
   if(from_flatfile){
     seq_type = this_seq_type
-    cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
+    cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
     cnv_path =  glue::glue(cnv_flatfile_template)
-    full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+    full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     local_full_cnv_path =  paste0(config::get("project_base"), cnv_path)
     
     if(file.exists(local_full_cnv_path)){
@@ -79,9 +79,9 @@ get_sample_cn_segments = function(these_sample_ids = NULL,
     permissions = file.access(full_cnv_path, 4)
     if(permissions == -1){
       message("restricting to non-ICGC data")
-      cnv_flatfile_template = check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
+      cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
       cnv_path =  glue::glue(cnv_flatfile_template)
-      full_cnv_path =  paste0(check_config_value(config::get("project_base")), cnv_path)
+      full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     }
     
     #check for missingness
