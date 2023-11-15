@@ -15,14 +15,13 @@
 #'
 #' @return A data frame with an extra column for triple sequence
 #'
-#' @rawNamespace import(IRanges, except = c("start", "end", "merge", "shift", "collapse", "union", "slice", "intersect", "setdiff", "desc", "reduce"))
+#' @rawNamespace import(IRanges, except = c("start", "end", "merge", "shift", "collapse", "union", "slice", "intersect", "setdiff", "desc", "reduce", "trim"))
 #' @import Rsamtools dplyr
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
-#' }
+#' maf <- get_coding_ssm(basic_columns = FALSE)
+#' maf_triplet <- annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
 #' 
 #This function gives triple sequence of provided mutated base
 annotate_maf_triplet = function(maf,
