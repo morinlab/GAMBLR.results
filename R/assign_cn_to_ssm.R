@@ -161,7 +161,7 @@ assign_cn_to_ssm = function(this_sample_id,
     data.table::setkey(seg_sample, Chromosome, Start_Position, End_Position)
     a = data.table::as.data.table(maf_sample)
   }else{
-    seg_sample = get_sample_cn_segments(this_sample_id = this_sample_id, this_seq_type = this_seq_type) %>%
+    seg_sample = get_sample_cn_segments(these_sample_ids = this_sample_id, this_seq_type = this_seq_type) %>%
       dplyr::mutate(size = end - start) %>%
       dplyr::filter(size > 100) %>%
       dplyr::mutate(chrom = gsub("chr", "", chrom)) %>%

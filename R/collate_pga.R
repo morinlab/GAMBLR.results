@@ -43,8 +43,7 @@ collate_pga <- function(
 
     # Get the CN segments
     multi_sample_seg <- get_sample_cn_segments(
-        sample_list = these_samples_metadata$sample_id,
-        multiple_samples = TRUE,
+        these_samples_metadata = these_samples_metadata,
         this_seq_type = this_seq_type
     ) %>%
     dplyr::rename("sample" = "ID")
