@@ -35,7 +35,7 @@ Can be created with \code{get_gambl_metadata} function.}
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
 of the genes, respectively.}
 
-\item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "grch38".}
+\item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
 
 \item{from_flatfile}{Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE
 to use database instead. Default is TRUE.}

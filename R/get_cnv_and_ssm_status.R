@@ -26,7 +26,7 @@
 #' @param only_cnv A vector of gene names indicating the genes for which only CNV status should be considered, 
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
-#' @param genome_build Reference genome build. Possible values are "grch37" (default) or "grch38".
+#' @param genome_build Reference genome build. Possible values are "grch37" (default) or "hg38".
 #' @param from_flatfile Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE 
 #' to use database instead. Default is TRUE.
 #' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
