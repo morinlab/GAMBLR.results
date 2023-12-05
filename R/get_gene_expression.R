@@ -11,8 +11,8 @@
 #' Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 #' systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
 #'
-#' @param metadata GAMBL metadata.
-#' @param hugo_symbols One or more gene symbols. Should match the values in a maf file.
+#' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
+#' @param hugo_symbols One or more gene symbols.
 #' @param ensembl_gene_ids One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.
 #' @param engine Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".
 #' @param join_with How to restrict cases for the join. Can be one of genome, mrna or "any".
@@ -41,7 +41,7 @@
 #'                                                from_flatfile = FALSE,
 #'                                                expression_data = full_expression_df)
 #'
-get_gene_expression = function(metadata,
+get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,
                                engine = "read_tsv",
@@ -56,20 +56,20 @@ get_gene_expression = function(metadata,
   }
 
   database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
-  if(missing(metadata)){
+  if(missing(these_samples_metadata)){
     if(join_with == "mrna"){
-      metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
-      metadata = metadata %>%
+      these_samples_metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
+      these_samples_metadata = these_samples_metadata %>%
         dplyr::select(sample_id)
 
       }else if(join_with == "genome"){
-      metadata = get_gambl_metadata(only_available = FALSE)
-      metadata = metadata %>%
+      these_samples_metadata = get_gambl_metadata(only_available = FALSE)
+      these_samples_metadata = these_samples_metadata %>%
         dplyr::select(sample_id)
 
       }else{
-      metadata = get_gambl_metadata(seq_type_filter = c("genome","mrna"), only_available = FALSE)
-      metadata = metadata %>%
+      these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","mrna"), only_available = FALSE)
+      these_samples_metadata = these_samples_metadata %>%
         dplyr::select(sample_id, biopsy_id)
     }
   }
@@ -177,15 +177,15 @@ get_gene_expression = function(metadata,
 
   if(join_with == "mrna" & missing(expression_data)){
     expression_wider = dplyr::select(wide_expression_data, -biopsy_id, -genome_sample_id)
-    expression_wider = left_join(metadata, expression_wider, by = c("sample_id" = "mrna_sample_id"))
+    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("sample_id" = "mrna_sample_id"))
 
     }else if(join_with == "genome" & missing(expression_data)){
     expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -biopsy_id) %>% dplyr::filter(genome_sample_id != "NA")
-    expression_wider = left_join(metadata, expression_wider, by = c("sample_id" = "genome_sample_id"))
+    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("sample_id" = "genome_sample_id"))
 
     }else if(join_with == "any" & missing(expression_data)){
     expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -genome_sample_id)
-    expression_wider = left_join(metadata, expression_wider, by = c("biopsy_id" = "biopsy_id"))
+    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("biopsy_id" = "biopsy_id"))
 
     }else if(join_with == "mrna" & !missing(expression_data)){
       expression_wider = wide_expression_data

@@ -5,7 +5,7 @@
 \title{Get Gene Expression.}
 \usage{
 get_gene_expression(
-  metadata,
+  these_samples_metadata,
   hugo_symbols,
   ensembl_gene_ids,
   engine = "read_tsv",
@@ -16,9 +16,9 @@ get_gene_expression(
 )
 }
 \arguments{
-\item{metadata}{GAMBL metadata.}
+\item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
 
-\item{hugo_symbols}{One or more gene symbols. Should match the values in a maf file.}
+\item{hugo_symbols}{One or more gene symbols.}
 
 \item{ensembl_gene_ids}{One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.}
 
