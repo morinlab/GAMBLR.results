@@ -10,6 +10,7 @@ License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
 Imports:
+    BSgenome,
     circlize,
     config,
     data.table,
@@ -37,7 +38,7 @@ Imports:
     tibble,
     tidyr,
     vroom
-Remotes: 
+Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,
     morinlab/GAMBLR.utils,
