@@ -3,8 +3,8 @@
 #' @description Finish setting up a new cBioPortal instance or updating an existing portal data set.
 #'
 #' @details This function should be run as the last (or third step) in setting up a new cBioPortal instance.
-#' The functions that should be run prior to these functions are; [GAMBLR.results::setup_study] and [GAMBLR.results::setup_fusions].
-#' [GAMBLR.results::finalize_study] creates all the necessary tables and metadata files and case lists that are required to import a new study into cBioPortal.
+#' The functions that should be run prior to these functions are; [GAMBLR.results::cbio_setup_study] and [GAMBLR.results::cbio_setup_fusions].
+#' [GAMBLR.results::cbio_finalize_study] creates all the necessary tables and metadata files and case lists that are required to import a new study into cBioPortal.
 #' Note, that all parameter arguments used in this function have to match the same parameter arguments for the previously run functions (`setup_study` and `setup_fusions`).
 #' This function allows the user to specify additional fields from the collated metadata file (besides the "standard" fields).
 #' For more information on how to use, see `metacols` and related parameters (`metacol_names`, `metacol_types`, and `meta_prior`).
