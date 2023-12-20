@@ -60,6 +60,10 @@ the MAF data frame and provide triple sequences for them (reverse complement
 sequence for the - strand).
 }
 \examples{
+maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
+
+annotate_maf_triplet(maf)
 annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
 
 }

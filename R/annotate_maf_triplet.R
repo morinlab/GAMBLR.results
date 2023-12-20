@@ -37,7 +37,11 @@
 #' @export
 #'
 #' @examples
+#' maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
+#'
+#' annotate_maf_triplet(maf)
 #' annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+#' annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
 #'
 #This function gives triple sequence of provided mutated base
 annotate_maf_triplet = function(maf,
