@@ -28,7 +28,9 @@ specifying any specific ref and alt alleles (default is TRUE)}
 \item{projection}{The genome build projection for the variants you are
 working with (default is grch37)}
 
-\item{fastaPath}{Can be a path to a FASTA file}
+\item{fastaPath}{Can be a path to a FASTA file on a disk. When on GSC,
+this is first attempted to be inferred from the gambl reference through
+path specified in config. Local files are also accepted as value here.}
 
 \item{bsgenome_name}{Name of a BSgenome data package (It has 4 or 5 parts,
 separated by dot: 1st(BSgenome) . 2nd:name of organism(Hsapiens) .
