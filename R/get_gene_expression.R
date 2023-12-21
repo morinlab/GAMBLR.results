@@ -59,18 +59,12 @@ get_gene_expression = function(these_samples_metadata,
   if(missing(these_samples_metadata)){
     if(join_with == "mrna"){
       these_samples_metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
-      these_samples_metadata = these_samples_metadata %>%
-        dplyr::select(sample_id)
       
     }else if(join_with == "genome"){
       these_samples_metadata = get_gambl_metadata(only_available = FALSE)
-      these_samples_metadata = these_samples_metadata %>%
-        dplyr::select(sample_id)
       
     }else{
       these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","mrna"), only_available = FALSE)
-      these_samples_metadata = these_samples_metadata %>%
-        dplyr::select(sample_id, biopsy_id)
     }
   }
   
@@ -174,24 +168,18 @@ get_gene_expression = function(these_samples_metadata,
   }
 
   if(join_with == "mrna" & missing(expression_data)){
-    expression_wider = dplyr::select(wide_expression_data, -biopsy_id, -genome_sample_id)
-    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("sample_id" = "mrna_sample_id"))
+    these_samples_metadata = dplyr::select(these_samples_metadata, sample_id)
+    expression_wider = dplyr::select(wide_expression_data, -biopsy_id, -genome_sample_id) %>% 
+      left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
     
-  }else if(join_with == "genome" & missing(expression_data)){
-    expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -biopsy_id) %>% dplyr::filter(genome_sample_id != "NA")
-    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("sample_id" = "genome_sample_id"))
-    
-  }else if(join_with == "any" & missing(expression_data)){
-    expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -genome_sample_id)
-    expression_wider = left_join(these_samples_metadata, expression_wider, by = c("biopsy_id" = "biopsy_id"))
-    
-  }else if(join_with == "mrna" & !missing(expression_data)){
-    expression_wider = wide_expression_data
-    
-  }else if(join_with == "genome" & !missing(expression_data)){
-    expression_wider = wide_expression_data
-    
-  }else if(join_with == "any" & !missing(expression_data)){
+  }else if( (join_with == "genome" | join_with == "any") & missing(expression_data) ){
+    these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, biopsy_id)
+    expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -genome_sample_id) %>% 
+      left_join(these_samples_metadata, ., by = "biopsy_id")
+    if(join_with == "genome"){
+      expression_wider = dplyr::select(expression_wider, -biopsy_id)
+    }
+  }else if(!missing(expression_data)){
     expression_wider = wide_expression_data
   }
   return(expression_wider)
