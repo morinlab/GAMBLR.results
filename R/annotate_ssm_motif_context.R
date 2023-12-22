@@ -154,6 +154,7 @@ annotate_ssm_motif_context <- function(maf,
                     stringr::str_detect(
                         map_chr(strsplit(sequences$seq, ""), ~paste(.[(index) : (index + splitWordLen -1)], collapse = "")), strRevComp
                     ) ~ "SITE",
+                Reference_Allele == "-" | Tumor_Seq_Allele2 == "-" ~ "NA",
                 (stringr::str_detect(
                     sequences$seq, strForMotif
                 ) |
