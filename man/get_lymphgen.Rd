@@ -7,11 +7,11 @@
 get_lymphgen(
   these_samples_metadata,
   flavour,
-  return_feature_matrix = FALSE,
-  return_feature_annotation = FALSE,
   lymphgen_file,
   keep_all_rows = FALSE,
-  keep_original_columns = FALSE
+  keep_original_columns = FALSE,
+  streamlined = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -19,18 +19,23 @@ get_lymphgen(
 
 \item{flavour}{Lymphgen flavour.}
 
-\item{return_feature_matrix}{Boolean parameter, default is FALSE.}
-
-\item{return_feature_annotation}{Boolean parameter, default is FALSE.}
-
 \item{lymphgen_file}{Path to lymphgen file.}
 
 \item{keep_all_rows}{Boolean parameter, default is FALSE.}
 
 \item{keep_original_columns}{Boolean parameter, default is FALSE.}
+
+\item{streamlined}{Boolean, set to true to get just a data frame with one column for sample_id and one for LymphGen class}
+
+\item{verbose}{Boolean, set to TRUE to print informational messages. Useful for debugging. Default is FALSE}
 }
 \value{
-A data frame.
+If run with A list of data frames with the following names:
+lymphgen (a data frame containing the tidy LymphGen output),
+features (a binary matrix indicating which patients had each feature),
+feature_annotation (a data frame with one row per LymphGen feature reduced to gene or arm, for arm-level events and summary statistics for the feature across the cohort),
+features_long (a data frame with one row per LymphGen feature/patient event),
+sample_annotation (a data frame with one row per sample and columns indicating the number of features for each LymphGen class in that sample)
 }
 \description{
 Get a specific flavour of LymphGen from the main GAMBL outputs.
@@ -42,6 +47,7 @@ Optionally return a matrix of features instead
 \examples{
 \dontrun{
 lymphgens = get_lymphgen(flavour = "no_cnvs.no_sv.with_A53")
+lymphgen_simple = get_lymphgen(flavour = "no_cnvs.no_sv.no_A53")
 }
 
 }

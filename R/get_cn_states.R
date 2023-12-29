@@ -26,7 +26,7 @@
 #'
 #' myc_region <- GAMBLR.utils::gene_to_region(
 #'  gene_symbol = "MYC",
-#'  genome_build = "grch37",
+#'  projection = "grch37",
 #'  return_as = "region"
 #' )
 #'
