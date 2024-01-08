@@ -1,16 +1,15 @@
-#' @title Annotate mutations target AID motif
+#' @title Annotate mutations target motif
 #'
-#' @description Checks for the presence of mutations at a given AID motif
+#' @description Checks for the presence of mutations at a given motif
 #'
-#' @details In positions that reference allele  "C" has been mutated, two nucleotides before and one nucleotide after it 
-#' will be captured. In positions that reference allele  "G" has been mutated, one nucleotide before and two nucleotides after it 
-#' will be captured. The other mutations will have "NO" for the sequence. 
-#' Then, the forward orientation and reverse compliment of the motif will be generated and their presence in aquired reference
-#' allele "C" and reference allele "G" sequence will be checked, respectively. ("NO" for the rows that have different reference
-#' alleles) 
+#' @details In positions that reference allele has been mutated, it will capture (motif length - 1) before and (motif length + 1) alleles after the mutated position.
+#' Then, it looks for the presence of motif in the captured sequence and check if the mutation has occurred in the indexed position, it will return 
+#' SITE and if the the motif is present, but the mutation is not in the indexed position, it will return MOTIF. In other cases, it will return FALSE.
+#' NA will be shown if the mutation is an indel mutation.
 #'
 #' @param maf MAF data frame (required columns: Reference_Allele, Chromosome, Start_Position, End_Position)
 #' @param motif The motif sequence (default is WRCY)
+#' @param index Position of the mutated allele in the motif
 #' @param projection The genome build projection for the variants you are working with (default is grch37)
 #' @param fastaPath Can be a path to a FASTA file
 #'
@@ -23,13 +22,14 @@
 #'
 #' @examples
 #' my_maf <- get_coding_ssm()
-#' annotate_ssm_motif_context(maf = my_maf, motif = "WRCY")
+#' annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
 #'
 annotate_ssm_motif_context <- function(maf,
-                     motif = "WRCY",
-                     projection = "grch37",
-                     fastaPath
-                     ){
+                                       motif = "WRCY",
+                                       index = 3,
+                                       projection = "grch37",
+                                       fastaPath
+){
     if (projection == "grch37") {
         maf$Chromosome <- gsub("chr", "", maf$Chromosome)
     } else {
@@ -52,51 +52,27 @@ annotate_ssm_motif_context <- function(maf,
     if (!file.exists(fastaPath)) {
         stop("Failed to find the fasta file")
     }
-    # It checks that if the user considers "WRCY" as the motif
-    if (!motif == "WRCY"){
-        stop("It is only currently available for WRCY. ",
-             "To use it for another motif, comment \"if\" code for the motif"
-        )
-    }
+    word <- motif
+    splitWord <- strsplit(word,"")[[1]] # Split the word into its letters
+    splitWordLen <- length(splitWord)
     # Create a reference to an indexed fasta file.
     fasta <- Rsamtools::FaFile(file = fastaPath)
     # This section provides the sequence
-    # If the reference allele is C, it will return the one nucleotide after it
-    # and 2 nucleotides before it
+    # It will return one allele less than the length of motif before and after the indexed allele
     sequences <- maf %>%
         dplyr::mutate(
-            seq = ifelse(
-                Reference_Allele == "C",
-                    Rsamtools::getSeq(
-                        fasta,
-                        GenomicRanges::GRanges(
-                            maf$Chromosome,
-                            IRanges(
-                                start = maf$Start_Position - 2,
-                                end = maf$End_Position + 1
-                            )
+            seq = as.character(
+                Rsamtools::getSeq(
+                    fasta,
+                    GenomicRanges::GRanges(
+                        maf$Chromosome,
+                        IRanges(
+                            start = maf$Start_Position - (splitWordLen - 1),
+                            end = maf$End_Position + (splitWordLen - 1)
                         )
-                    ),
-                     # If the reference allele is G, it will return 
-                     # 2 nucleotides after it and the one nucleotide before it
-                     ifelse(
-                         Reference_Allele == "G",
-                         Rsamtools::getSeq(
-                             fasta,
-                             GenomicRanges::GRanges(
-                                 maf$Chromosome,
-                                 IRanges(
-                                     start = maf$Start_Position - 1,
-                                     end = maf$End_Position + 2
-                                 )
-                             )
-                          ),
-                           # In other cases it returns "NO" for that mutation
-                           "NO"
-                     )
-            )
+                    )
+                ))
         )
-  
     # This section provides motif and its reverse complement 
     compliment <- c(
         'A'= 'T',
@@ -133,9 +109,6 @@ annotate_ssm_motif_context <- function(maf,
         'V'= '[ACG]',  # A or C or G
         'N'= '[ACGT]'  # any base
     )
-    word <- motif
-    splitWord <- strsplit(word,"")[[1]] # Split the word into its letters
-    splitWordLen <- length(splitWord)
     forMotif <- character(splitWordLen) # forMotif, the same length as splitWord
     for (i in seq_along(splitWord)){
         # Convert incomplete nuc specification into their different nucleotides
@@ -164,28 +137,51 @@ annotate_ssm_motif_context <- function(maf,
     # Collapsing all the letters of reverse complement orientation and make it 
     # into a single string
     strRevComp <- paste(IUPACRevCompMotif, collapse = "")
-
-    #This section checks for the presence of the motif in the sequence
-    # If the reference allele is C, it will check the forward orientation with
-    # its sequence
+    # This section checks for the presence of the motif in the sequence
+    # Check if the desired mutation in the indexed postion is available in the sequence (If TRUE, it will return "SITE")
     finder <- sequences %>%
         dplyr::mutate(
-            !!motif := ifelse(
-              Reference_Allele == "C",
-              stringr::str_detect(
-                  sequences$seq, strForMotif
-              ),
-              # If the reference allele is G, it will check the reverse-
-              # compliment orientation with its sequence
-              ifelse(
-                  Reference_Allele == "G",
-                  stringr::str_detect(
-                      sequences$seq, strRevComp
-                  ),
-                   # For the rest of mutations it will return "NO"
-                   "NO"
-              )
+            !!motif := case_when(
+                Reference_Allele %in% unlist(
+                    strsplit(
+                        IUPACCodeDict[splitWord[[index]]], ""
+                    )
+                ) &
+                    stringr::str_detect(
+                        map_chr(
+                            strsplit(
+                                sequences$seq, ""
+                            ), 
+                            ~paste(.[((splitWordLen - index) + 1) : ((2 * splitWordLen)-index)], collapse = "")
+                        ), strForMotif
+                    )~ "SITE",
+                Reference_Allele %in% unlist(
+                    strsplit(
+                        IUPACCodeDict[compliment[splitWord[[index]]]], ""
+                    )
+                ) &
+                    stringr::str_detect(
+                        map_chr(
+                            strsplit(
+                                sequences$seq, ""
+                            ),
+                            ~paste(.[(index) : (index + splitWordLen -1)], collapse = "")
+                        ), strRevComp
+                    ) ~ "SITE",
+                # For indel mutations it will return "NA"
+                Reference_Allele == "-" | Tumor_Seq_Allele2 == "-" ~ "NA",
+                # If mutation is in the motif, but it is not in the indexed position, it will return "MOTIF"
+                (stringr::str_detect(
+                    sequences$seq, strForMotif
+                ) |
+                    stringr::str_detect(
+                        sequences$seq, strRevComp
+                    )
+                ) ~ "MOTIF",
+                # For the rest of mutations it will return "FALSE"
+                TRUE ~ "FALSE"
             )
         )
+    
     return(finder)
 }
