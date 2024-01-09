@@ -8,6 +8,8 @@
 #' Optionally the user can also run [GAMBLR.results::cbio_study_check] to ensure all samples described by the "clinical" file are included in the study.
 #' Also, note that the parameters chosen for this function have to match the same parameters called for any subsequent study function calls.
 #'
+#' @param these_samples_metadata Metadata for the samples to be included in the study.
+#' @param maf_data Data frame with maf data for the samples in the study.
 #' @param seq_type_filter the seq type you are setting up a study for, default is "genome".
 #' @param short_name A concise name for your portal project.
 #' @param human_friendly_name A slightly more verbose name for your project.
@@ -27,13 +29,17 @@
 #' ids = cbio_setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
 #'
-cbio_setup_study = function(seq_type_filter = "genome",
-                            short_name = "GAMBL",
-                            human_friendly_name = "GAMBL data",
-                            project_name = "gambl_genome",
-                            description = "GAMBL data from genome",
-                            overwrite = TRUE,
-                            out_dir){
+cbio_setup_study = function(
+    these_samples_metadata = NULL,
+    maf_data = NULL,
+    seq_type_filter = "genome",
+    short_name = "GAMBL",
+    human_friendly_name = "GAMBL data",
+    project_name = "gambl_genome",
+    description = "GAMBL data from genome",
+    overwrite = TRUE,
+    out_dir
+){
 
   cancer_type="mixed"
 
@@ -97,7 +103,17 @@ cbio_setup_study = function(seq_type_filter = "genome",
 
   if(overwrite){
     #create the actual MAF file by querying the database using the API
-    coding_ssms = get_coding_ssm(this_seq_type = seq_type_filter)
+    if (is.null(maf_data)){
+        coding_ssms <- get_coding_ssm(
+            these_samples_metadata = these_samples_metadata,
+            this_seq_type = seq_type_filter
+        )
+    } else {
+        coding_ssms <- maf_data %>%
+            dplyr::filter(
+                Variant_Classification %in% GAMBLR.helpers:::coding_class
+            )
+    }
     data_mutations_full = paste0(out_dir, "data_mutations_extended.maf")
     write_tsv(coding_ssms, data_mutations_full, na = "")
   }else{
