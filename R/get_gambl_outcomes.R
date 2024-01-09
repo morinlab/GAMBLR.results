@@ -14,8 +14,6 @@
 #'
 #' @import tidyr dplyr readr RMariaDB DBI GAMBLR.helpers
 #'
-#' @noRd
-#'
 #' @examples
 #' outcome_df = get_gambl_outcomes()
 #'

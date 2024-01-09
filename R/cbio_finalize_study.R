@@ -63,19 +63,19 @@ cbio_finalize_study = function(seq_type_filter = "genome",
                                out_dir){
 
   #define standard columns
-  these_columns = c("patient_id", "sample_id", "pathology",
+  these_columns = c("patient_id", "sample_id", "pathology", "pathology_other",
                     "EBV_status_inf", "cohort", "time_point",
                     "ffpe_or_frozen", "myc_ba", "bcl6_ba",
                     "bcl2_ba", "COO_consensus", "DHITsig_consensus", "lymphgen")
 
-  these_names = c("Patient Identifier", "Sample Identifier", "Subtype",
+  these_names = c("Patient Identifier", "Sample Identifier", "Subtype", "Pathology",
                   "EBV status", "Cohort", "Time point",
                   "FFPE", "MYC_BA", "BCL6_BA",
                   "BCL2_BA", "COO", "DHITsig", "LymphGen")
 
-  these_types = c(rep("STRING", 13))
+  these_types = c(rep("STRING", 14))
 
-  these_priorities = c("1", "1", "3",
+  these_priorities = c("1", "1", "3", "3",
                        "2", "4", "2",
                        "2", "2", "2",
                        "2", "2", "2", "4")
@@ -129,8 +129,11 @@ cbio_finalize_study = function(seq_type_filter = "genome",
   #meta samples
   #prepare and write out the relevant metadata
   clinsamp = paste0(out_dir, "data_clinical_samples.txt")
-  meta_samples = collate_results(seq_type_filter = seq_type_filter, join_with_full_metadata = TRUE) %>%
+  meta_samples = get_gambl_metadata(
+        seq_type_filter = seq_type_filter
+    ) %>%
     dplyr::filter(sample_id %in% these_sample_ids) %>%
+    dplyr::mutate(pathology_other = pathology) %>%
     dplyr::select(all_of(metacols))
 
   colnames(meta_samples) = toupper(colnames(meta_samples))

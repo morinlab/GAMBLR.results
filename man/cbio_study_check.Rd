@@ -8,6 +8,7 @@ cbio_study_check(
   data_clinical_samples_path = "data_clinical_samples.txt",
   data_fusions_path = "data_fusions.txt",
   cases_fusions_path = "case_lists/cases_fusion.txt",
+  this_seq_type = "genome",
   cases_all_path = "case_lists/cases_all.txt",
   cases_sequenced_path = "case_lists/cases_sequenced.txt",
   project_name = "gambl_genome",
@@ -20,6 +21,8 @@ cbio_study_check(
 \item{data_fusions_path}{Path to data_fusion file from setup_fusions.}
 
 \item{cases_fusions_path}{Path to cases_fusion from setup_fusions.}
+
+\item{this_seq_type}{The seq type of the data.}
 
 \item{cases_all_path}{Path to cases_all from setup_study.}
 

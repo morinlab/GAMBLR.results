@@ -5,6 +5,8 @@
 \title{Create cBioPortal Study.}
 \usage{
 cbio_create(
+  these_samples_metadata = NULL,
+  maf_data = NULL,
   this_seq_type = "genome",
   short_name = "GAMBL",
   human_friendly_name = "GAMBL data",
@@ -19,6 +21,10 @@ cbio_create(
 )
 }
 \arguments{
+\item{these_samples_metadata}{Metadata for the samples to be included in the study.}
+
+\item{maf_data}{Data frame with maf data for the samples in the study.}
+
 \item{this_seq_type}{The seq type you want to generate a study for. Default is "genome".}
 
 \item{short_name}{A concise name for your portal project. Default is "GAMBL".}
