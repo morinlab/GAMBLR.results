@@ -1,22 +1,34 @@
 #' @title Setup Study (cBioPortal).
 #'
-#' @description Initialize a new cBioPortal instance or update existing portal data set, can also be used to retrieve sample ids included in study.
+#' @description Initialize a new cBioPortal instance or update existing portal
+#'      data set, can also be used to retrieve sample ids included in study.
 #'
-#' @details This function internally calls [GAMBLR.results::cbio_get_coding_ssm] to retrieve coding mutations to be included in the study (if `overwrite = TRUE`).
-#' In addition, this function also creates and sets up the proper folder hierarchy and writes the files necessary to import a new cBioPortal study.
-#' Before a study is ready to be imported to cBioPortal, the user also needs to run [GAMBLR.results::cbio_setup_fusions] and [GAMBLR.results::cbio_finalize_study].
-#' Optionally the user can also run [GAMBLR.results::cbio_study_check] to ensure all samples described by the "clinical" file are included in the study.
-#' Also, note that the parameters chosen for this function have to match the same parameters called for any subsequent study function calls.
+#' @details This function internally calls [GAMBLR.results::get_coding_ssm] to
+#' retrieve coding mutations to be included in the study (if `overwrite =
+#' TRUE`). Optionally, provide the data frame with somatic mutations with the
+#' maf_data argument. In addition, this function also creates and sets up the
+#' proper folder hierarchy and writes the files necessary to import a new
+#' cBioPortal study. Before a study is ready to be imported to cBioPortal, the
+#' user also needs to run [GAMBLR.results::cbio_setup_fusions] and
+#' [GAMBLR.results::cbio_finalize_study].
+#' Optionally the user can also run [GAMBLR.results::cbio_study_check] to ensure
+#' all samples described by the "clinical" file are included in the study. Also,
+#' note that the parameters chosen for this function have to match the same
+#' parameters called for any subsequent study function calls.
 #'
-#' @param these_samples_metadata Metadata for the samples to be included in the study.
+#' @param these_samples_metadata Metadata for the samples to be included in the
+#'      study.
 #' @param maf_data Data frame with maf data for the samples in the study.
-#' @param seq_type_filter the seq type you are setting up a study for, default is "genome".
+#' @param seq_type_filter the seq type you are setting up a study for, default
+#'      is "genome".
 #' @param short_name A concise name for your portal project.
 #' @param human_friendly_name A slightly more verbose name for your project.
 #' @param project_name Unique ID for your project.
 #' @param description A verbose description of your data set.
-#' @param overwrite Flag to specify that files should be overwritten if they exist. Default is TRUE.
-#' @param out_dir The full path to the base directory where the files are being created.
+#' @param overwrite Flag to specify that files should be overwritten if they
+#'      exist. Default is TRUE.
+#' @param out_dir The full path to the base directory where the files are being
+#'      created.
 #'
 #' @return A vector of sample_id for the patients that have been included.
 #'
