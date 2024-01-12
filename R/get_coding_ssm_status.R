@@ -29,7 +29,7 @@
 #'
 #' @return A data frame with tabulated mutation status.
 #'
-#' @import dplyr tidyr
+#' @import dplyr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -104,7 +104,7 @@ get_coding_ssm_status = function(gene_symbols,
     annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
     # review for the supported genes
     if(review_hotspots){
-      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+      annotated = GAMBLR.helpers::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
     }
     message("annotating hotspots")
     hotspots = annotated %>%
