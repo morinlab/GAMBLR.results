@@ -2,19 +2,14 @@
 #'
 #' @description Tabulate mutation status (SSM) for a set of genes.
 #'
-#' @details This function takes a vector of gene symbols and subsets the
-#' incoming MAF to specified genes. If no genes are provided, the function will
-#' default to all lymphoma genes.
-#' The function can accept a wide range of incoming MAFs. For example, the user
-#' can call this function with `these_samples_metadata` (preferably a metadata
-#' table that has been subset to the sample IDs of interest).
-#' If this parameter is not called, the function will default to all samples
-#' available with [GAMBLR.results::get_gambl_metadata]. The user can also
-#' provide a path to a MAF, or MAF-like file with `maf_path`,
-#' or an already loaded MAF can be used with the `maf_data` parameter. If both
-#' `maf_path` and `maf_data` is missing, the function will default to run
-#' `get_coding_ssm`.
-#' This function also has a lot of filtering and convenience parameters giving
+#' @details This function takes a data frame (in MAF-like format) and converts
+#' it to a binary one-hot encoded matrix of mutation status for either a set of
+#' user-specified genes (via gene_symbols) or, if no genes are provided, default
+#' to all lymphoma genes. The default behaviour is to assign each gene/sample_id
+#' combination as mutated only if there is a protein coding mutation for that
+#' sample in the MAF but this can be configured to use synonymous variants in
+#' some (via include_silent_genes) or all (via include_silent) genes.
+#' This function also has other filtering and convenience parameters giving
 #' the user full control of the return. For more information, refer to the
 #' parameter descriptions and examples.
 #' Is this function not what you are looking for? Try one of the following,
@@ -111,7 +106,12 @@ get_coding_ssm_status = function(
 
   if(!missing(include_silent_genes)){
     message(
-        "Combining genes specified with gene_symbols and include_silent_genes"
+        strwrap(
+            prefix = " ",
+            initial = "", 
+            "Output will include all genes specified in gene_symbols
+            and include_silent_genes parameters."
+        )
     )
     gene_symbols <- c(
         gene_symbols,
@@ -124,17 +124,11 @@ get_coding_ssm_status = function(
     these_samples_metadata = get_gambl_metadata()
   }
 
-
-  coding_class <- c(
-    "Frame_Shift_Del", "Frame_Shift_Ins", "In_Frame_Del",
-    "In_Frame_Ins", "Missense_Mutation", "Nonsense_Mutation",
-    "Nonstop_Mutation", "Splice_Region", "Splice_Site",
-    "Targeted_Region", "Translation_Start_Site"
-  )
-
   if(include_silent){
-    message("Including Silent variants")
-    coding_class <- c(coding_class, "Silent")
+    message("Including Synonymous variants for all genes...")
+    coding_class <- coding_class
+  }else{
+    coding_class <- coding_class[!grepl("Silent", coding_class)]
   }
 
   # call it once so the object can be reused if user wants to annotate hotspots

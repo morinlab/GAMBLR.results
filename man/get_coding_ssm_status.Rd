@@ -91,19 +91,14 @@ A data frame with tabulated mutation status.
 Tabulate mutation status (SSM) for a set of genes.
 }
 \details{
-This function takes a vector of gene symbols and subsets the
-incoming MAF to specified genes. If no genes are provided, the function will
-default to all lymphoma genes.
-The function can accept a wide range of incoming MAFs. For example, the user
-can call this function with \code{these_samples_metadata} (preferably a metadata
-table that has been subset to the sample IDs of interest).
-If this parameter is not called, the function will default to all samples
-available with \link{get_gambl_metadata}. The user can also
-provide a path to a MAF, or MAF-like file with \code{maf_path},
-or an already loaded MAF can be used with the \code{maf_data} parameter. If both
-\code{maf_path} and \code{maf_data} is missing, the function will default to run
-\code{get_coding_ssm}.
-This function also has a lot of filtering and convenience parameters giving
+This function takes a data frame (in MAF-like format) and converts
+it to a binary one-hot encoded matrix of mutation status for either a set of
+user-specified genes (via gene_symbols) or, if no genes are provided, default
+to all lymphoma genes. The default behaviour is to assign each gene/sample_id
+combination as mutated only if there is a protein coding mutation for that
+sample in the MAF but this can be configured to use synonymous variants in
+some (via include_silent_genes) or all (via include_silent) genes.
+This function also has other filtering and convenience parameters giving
 the user full control of the return. For more information, refer to the
 parameter descriptions and examples.
 Is this function not what you are looking for? Try one of the following,
