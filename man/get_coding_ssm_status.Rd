@@ -20,41 +20,69 @@ get_coding_ssm_status(
   review_hotspots = TRUE,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
   genome_build = "hg19",
-  include_silent = TRUE
+  include_silent = FALSE,
+  include_silent_genes
 )
 }
 \arguments{
-\item{gene_symbols}{A vector of gene symbols for which the mutation status will be tabulated. If not provided, lymphoma genes will be returned by default.}
+\item{gene_symbols}{A vector of gene symbols for which the mutation status
+will be tabulated. If not provided, lymphoma genes will be returned by
+default.}
 
-\item{these_samples_metadata}{The metadata for samples of interest to be included in the returned matrix. Only the column "sample_id" is required. If not provided, the matrix is tabulated for all available samples as default.}
+\item{these_samples_metadata}{The metadata for samples of interest to be
+included in the returned matrix. Only the column "sample_id" is
+required. If not provided, the matrix is tabulated for all available
+samples as default.}
 
-\item{from_flatfile}{Optional argument whether to use database or flat file to retrieve mutations. Default is TRUE.}
+\item{from_flatfile}{Optional argument whether to use database or flat file
+to retrieve mutations. Default is TRUE.}
 
-\item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.}
+\item{augmented}{default: TRUE. Set to FALSE if you instead want the original
+MAF from each sample for multi-sample patients instead of the augmented
+MAF.}
 
-\item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).}
+\item{min_read_support}{Only returns variants with at least this many reads
+in t_alt_count (for cleaning up augmented MAFs).}
 
-\item{maf_path}{If the status of coding SSM should be tabulated from a custom maf file, provide path to the maf in this argument. The default is set to NULL.}
+\item{maf_path}{If the status of coding SSM should be tabulated from a custom
+maf file, provide path to the maf in this argument. The default is set
+to NULL.}
 
-\item{maf_data}{Either a maf loaded from disk or from the database using a get_ssm function.}
+\item{maf_data}{Either a maf loaded from disk or from the database using a
+get_ssm function.}
 
-\item{include_hotspots}{Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.}
+\item{include_hotspots}{Logical parameter indicating whether hotspots object
+should also be tabulated. Default is TRUE.}
 
-\item{keep_multihit_hotspot}{Logical parameter indicating whether to keep the gene annotation as mutated when the gene has both hot spot and non-hotspot mutation. Default is FALSE. If set to TRUE, will report the number of non-hotspot mutations instead of tabulating for just mutation presence.}
+\item{keep_multihit_hotspot}{Logical parameter indicating whether to keep the
+gene annotation as mutated when the gene has both hot spot and
+non-hotspot mutation. Default is FALSE. If set to TRUE, will report the
+number of non-hotspot mutations instead of tabulating for just mutation
+presence.}
 
 \item{recurrence_min}{Integer value indicating minimal recurrence level.}
 
 \item{this_seq_type}{The seq_type you want back, default is genome.}
 
-\item{projection}{Specify projection (grch37 or hg38) of mutations. Default is grch37.}
+\item{projection}{Specify projection (grch37 or hg38) of mutations. Default
+is grch37.}
 
-\item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
+\item{review_hotspots}{Logical parameter indicating whether hotspots object
+should be reviewed to include functionally relevant mutations or rare
+lymphoma-related genes. Default is TRUE.}
 
-\item{genes_of_interest}{A vector of genes for hotspot review. Currently only FOXO1, MYD88, and CREBBP are supported.}
+\item{genes_of_interest}{A vector of genes for hotspot review. Currently only
+FOXO1, MYD88, and CREBBP are supported.}
 
-\item{genome_build}{Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.}
+\item{genome_build}{Reference genome build for the coordinates in the MAF
+file. The default is hg19 genome build.}
 
-\item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.}
+\item{include_silent}{Logical parameter indicating whether to include silent
+mutations into coding mutations. Default is FALSE.}
+
+\item{include_silent_genes}{Optionally, provide a list of genes for which the
+Silent variants to be considered. If provided, the Silent variants for
+these genes will be included regardless of the include_silent argument.}
 }
 \value{
 A data frame with tabulated mutation status.
@@ -63,13 +91,21 @@ A data frame with tabulated mutation status.
 Tabulate mutation status (SSM) for a set of genes.
 }
 \details{
-This function takes a vector of gene symbols and subsets the incoming MAF to specified genes. If no genes are provided, the function will default to all lymphoma genes.
-The function can accept a wide range of incoming MAFs. For example, the user can call this function with \code{these_samples_metadata} (preferably a metadata table that has been subset to the sample IDs of interest).
-If this parameter is not called, the function will default to all samples available with \link{get_gambl_metadata}. The user can also provide a path to a MAF, or MAF-like file with \code{maf_path},
-or an already loaded MAF can be used with the \code{maf_data} parameter. If both \code{maf_path} and \code{maf_data} is missing, the function will default to run \code{get_coding_ssm}.
-This function also has a lot of filtering and convenience parameters giving the user full control of the return. For more information, refer to the parameter descriptions and examples.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample},
-\link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
+This function takes a data frame (in MAF-like format) and converts
+it to a binary one-hot encoded matrix of mutation status for either a set of
+user-specified genes (via gene_symbols) or, if no genes are provided, default
+to all lymphoma genes. The default behaviour is to assign each gene/sample_id
+combination as mutated only if there is a protein coding mutation for that
+sample in the MAF but this can be configured to use synonymous variants in
+some (via include_silent_genes) or all (via include_silent) genes.
+This function also has other filtering and convenience parameters giving
+the user full control of the return. For more information, refer to the
+parameter descriptions and examples.
+Is this function not what you are looking for? Try one of the following,
+similar, functions; \link{get_coding_ssm},
+\link{get_ssm_by_patients}, \link{get_ssm_by_sample},
+\link{get_ssm_by_samples}, \link{get_ssm_by_region},
+\link{get_ssm_by_regions}.
 }
 \examples{
 coding_tabulated_df = get_coding_ssm_status(
