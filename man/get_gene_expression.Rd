@@ -24,7 +24,7 @@ get_gene_expression(
 
 \item{engine}{Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".}
 
-\item{join_with}{How to restrict cases for the join. Can be one of genome, mrna or "any".}
+\item{join_with}{How to restrict cases for the join. Can be one of "mrna" (default), "genome", or "capture".}
 
 \item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
 
@@ -49,17 +49,17 @@ Other engines produced similar run times (~ 7 min) on GSC, with vroom engine bei
 systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
 }
 \examples{
-MYC_expr = get_gene_expression(hugo_symbols = c("MYC"), join_with = "mrna")
+MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
 
 #Read full expression values df (no subsetting on genes)
 full_expression_df = get_gene_expression(all_genes = TRUE,
-                                             join_with = "genome")
+                                         join_with = "genome")
 
 #Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
 irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-                                               all_genes = FALSE,
-                                               join_with = "genome",
-                                               from_flatfile = FALSE,
-                                               expression_data = full_expression_df)
+                                           all_genes = FALSE,
+                                           join_with = "genome",
+                                           from_flatfile = FALSE,
+                                           expression_data = full_expression_df)
 
 }

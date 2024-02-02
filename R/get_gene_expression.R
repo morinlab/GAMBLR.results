@@ -15,7 +15,7 @@
 #' @param hugo_symbols One or more gene symbols.
 #' @param ensembl_gene_ids One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.
 #' @param engine Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".
-#' @param join_with How to restrict cases for the join. Can be one of "genome", "mrna" or "any".
+#' @param join_with How to restrict cases for the join. Can be one of "mrna" (default), "genome", or "capture".
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.
 #' @param expression_data Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).
 #' @param from_flatfile Deprecated but left here for backwards compatibility.
@@ -61,10 +61,13 @@ get_gene_expression = function(these_samples_metadata,
       these_samples_metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
       
     }else if(join_with == "genome"){
-      these_samples_metadata = get_gambl_metadata(only_available = FALSE)
+      these_samples_metadata = get_gambl_metadata(seq_type_filter = "genome", only_available = FALSE)
+      
+    }else if(join_with == "capture"){
+      these_samples_metadata = get_gambl_metadata(seq_type_filter = "capture", only_available = FALSE)
       
     }else{
-      these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","mrna"), only_available = FALSE)
+      stop("join_with must be one of \"mrna\", \"genome\", or \"capture\".")
     }
   }
   
@@ -169,16 +172,14 @@ get_gene_expression = function(these_samples_metadata,
 
   if(join_with == "mrna" & missing(expression_data)){
     these_samples_metadata = dplyr::select(these_samples_metadata, sample_id)
-    expression_wider = dplyr::select(wide_expression_data, -biopsy_id, -genome_sample_id) %>% 
+    expression_wider = dplyr::select(wide_expression_data, -biopsy_id) %>% 
       left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
     
-  }else if( (join_with == "genome" | join_with == "any") & missing(expression_data) ){
+  }else if( (join_with == "genome" | join_with == "capture") & missing(expression_data) ){
     these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, biopsy_id)
-    expression_wider = dplyr::select(wide_expression_data, -mrna_sample_id, -genome_sample_id) %>% 
-      left_join(these_samples_metadata, ., by = "biopsy_id")
-    if(join_with == "genome"){
-      expression_wider = dplyr::select(expression_wider, -biopsy_id)
-    }
+    expression_wider = left_join(these_samples_metadata, wide_expression_data, by = "biopsy_id") %>% 
+      dplyr::select(-mrna_sample_id, -biopsy_id)
+    
   }else if(!missing(expression_data)){
     expression_wider = wide_expression_data
   }
