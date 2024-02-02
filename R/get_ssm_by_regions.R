@@ -73,7 +73,7 @@ get_ssm_by_regions = function(regions_list,
   }
   
   if(missing(maf_data)){
-    print(regions)
+    
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
                                                                 streamlined = streamlined,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
