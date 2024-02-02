@@ -10,7 +10,9 @@ License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
 Imports:
+    BSgenome,
     circlize,
+    ComplexHeatmap,
     config,
     data.table,
     DBI,
@@ -22,7 +24,9 @@ Imports:
     GAMBLR.viz,
     GenomicRanges,
     ggplot2,
+    ggsci,
     glue,
+    grid,
     IRanges,
     lubridate,
     purrr,
@@ -37,11 +41,12 @@ Imports:
     tibble,
     tidyr,
     vroom
-Remotes: 
+Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,
     morinlab/GAMBLR.utils,
-    morinlab/GAMBLR.viz
+    morinlab/GAMBLR.viz,
+    morinlab/ggsci
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

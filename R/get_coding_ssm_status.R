@@ -2,34 +2,68 @@
 #'
 #' @description Tabulate mutation status (SSM) for a set of genes.
 #'
-#' @details This function takes a vector of gene symbols and subsets the incoming MAF to specified genes. If no genes are provided, the function will default to all lymphoma genes.
-#' The function can accept a wide range of incoming MAFs. For example, the user can call this function with `these_samples_metadata` (preferably a metadata table that has been subset to the sample IDs of interest).
-#' If this parameter is not called, the function will default to all samples available with [GAMBLR.results::get_gambl_metadata]. The user can also provide a path to a MAF, or MAF-like file with `maf_path`,
-#' or an already loaded MAF can be used with the `maf_data` parameter. If both `maf_path` and `maf_data` is missing, the function will default to run `get_coding_ssm`.
-#' This function also has a lot of filtering and convenience parameters giving the user full control of the return. For more information, refer to the parameter descriptions and examples.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
-#' [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' @details This function takes a data frame (in MAF-like format) and converts
+#' it to a binary one-hot encoded matrix of mutation status for either a set of
+#' user-specified genes (via gene_symbols) or, if no genes are provided, default
+#' to all lymphoma genes. The default behaviour is to assign each gene/sample_id
+#' combination as mutated only if there is a protein coding mutation for that
+#' sample in the MAF but this can be configured to use synonymous variants in
+#' some (via include_silent_genes) or all (via include_silent) genes.
+#' This function also has other filtering and convenience parameters giving
+#' the user full control of the return. For more information, refer to the
+#' parameter descriptions and examples.
+#' Is this function not what you are looking for? Try one of the following,
+#' similar, functions; [GAMBLR.results::get_coding_ssm],
+#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
+#' [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region],
+#' [GAMBLR.results::get_ssm_by_regions].
 #'
-#' @param gene_symbols A vector of gene symbols for which the mutation status will be tabulated. If not provided, lymphoma genes will be returned by default.
-#' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix. Only the column "sample_id" is required. If not provided, the matrix is tabulated for all available samples as default.
-#' @param from_flatfile Optional argument whether to use database or flat file to retrieve mutations. Default is TRUE.
-#' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.
-#' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
-#' @param maf_path If the status of coding SSM should be tabulated from a custom maf file, provide path to the maf in this argument. The default is set to NULL.
-#' @param maf_data Either a maf loaded from disk or from the database using a get_ssm function.
-#' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
-#' @param keep_multihit_hotspot Logical parameter indicating whether to keep the gene annotation as mutated when the gene has both hot spot and non-hotspot mutation. Default is FALSE. If set to TRUE, will report the number of non-hotspot mutations instead of tabulating for just mutation presence.
+#' @param gene_symbols A vector of gene symbols for which the mutation status
+#'      will be tabulated. If not provided, lymphoma genes will be returned by
+#'      default.
+#' @param these_samples_metadata The metadata for samples of interest to be
+#'      included in the returned matrix. Only the column "sample_id" is
+#'      required. If not provided, the matrix is tabulated for all available
+#'      samples as default.
+#' @param from_flatfile Optional argument whether to use database or flat file
+#'      to retrieve mutations. Default is TRUE.
+#' @param augmented default: TRUE. Set to FALSE if you instead want the original
+#'      MAF from each sample for multi-sample patients instead of the augmented
+#'      MAF.
+#' @param min_read_support Only returns variants with at least this many reads
+#'      in t_alt_count (for cleaning up augmented MAFs).
+#' @param maf_path If the status of coding SSM should be tabulated from a custom
+#'      maf file, provide path to the maf in this argument. The default is set
+#'      to NULL.
+#' @param maf_data Either a maf loaded from disk or from the database using a
+#'      get_ssm function.
+#' @param include_hotspots Logical parameter indicating whether hotspots object
+#'      should also be tabulated. Default is TRUE.
+#' @param keep_multihit_hotspot Logical parameter indicating whether to keep the
+#'      gene annotation as mutated when the gene has both hot spot and
+#'      non-hotspot mutation. Default is FALSE. If set to TRUE, will report the
+#'      number of non-hotspot mutations instead of tabulating for just mutation
+#'      presence.
 #' @param recurrence_min Integer value indicating minimal recurrence level.
 #' @param this_seq_type The seq_type you want back, default is genome.
-#' @param projection Specify projection (grch37 or hg38) of mutations. Default is grch37.
-#' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
-#' @param genes_of_interest A vector of genes for hotspot review. Currently only FOXO1, MYD88, and CREBBP are supported.
-#' @param genome_build Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.
-#' @param include_silent Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.
+#' @param projection Specify projection (grch37 or hg38) of mutations. Default
+#'      is grch37.
+#' @param review_hotspots Logical parameter indicating whether hotspots object
+#'      should be reviewed to include functionally relevant mutations or rare
+#'      lymphoma-related genes. Default is TRUE.
+#' @param genes_of_interest A vector of genes for hotspot review. Currently only
+#'      FOXO1, MYD88, and CREBBP are supported.
+#' @param genome_build Reference genome build for the coordinates in the MAF
+#'      file. The default is hg19 genome build.
+#' @param include_silent Logical parameter indicating whether to include silent
+#'      mutations into coding mutations. Default is FALSE.
+#' @param include_silent_genes Optionally, provide a list of genes for which the
+#'      Silent variants to be considered. If provided, the Silent variants for
+#'      these genes will be included regardless of the include_silent argument.
 #'
 #' @return A data frame with tabulated mutation status.
 #'
-#' @import dplyr tidyr
+#' @import dplyr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -41,49 +75,107 @@
 #' #all lymphoma genes from bundled NHL gene list
 #' coding_tabulated_df = get_coding_ssm_status()
 #'
-get_coding_ssm_status = function(gene_symbols,
-                                 these_samples_metadata,
-                                 from_flatfile = TRUE,
-                                 augmented = TRUE,
-                                 min_read_support = 3,
-                                 maf_path = NULL,
-                                 maf_data,
-                                 include_hotspots = TRUE,
-                                 keep_multihit_hotspot = FALSE,
-                                 recurrence_min = 5,
-                                 this_seq_type = "genome",
-                                 projection = "grch37",
-                                 review_hotspots = TRUE,
-                                 genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
-                                 genome_build = "hg19",
-                                 include_silent = TRUE){
+get_coding_ssm_status = function(
+    gene_symbols,
+    these_samples_metadata,
+    from_flatfile = TRUE,
+    augmented = TRUE,
+    min_read_support = 3,
+    maf_path = NULL,
+    maf_data,
+    include_hotspots = TRUE,
+    keep_multihit_hotspot = FALSE,
+    recurrence_min = 5,
+    this_seq_type = "genome",
+    projection = "grch37",
+    review_hotspots = TRUE,
+    genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
+    genome_build = "hg19",
+    include_silent = FALSE,
+    include_silent_genes
+){
+  
+  message(
+    "Using the GAMBLR.results version of this function."
+  )
 
   if(missing(gene_symbols)){
     message("defaulting to all lymphoma genes")
     gene_symbols = pull(GAMBLR.data::lymphoma_genes, Gene)
   }
 
+  if(!missing(include_silent_genes)){
+    message(
+        strwrap(
+            prefix = " ",
+            initial = "", 
+            "Output will include all genes specified in gene_symbols
+            and include_silent_genes parameters."
+        )
+    )
+    gene_symbols <- c(
+        gene_symbols,
+        include_silent_genes
+    ) %>%
+    unique()
+  }
+
   if(missing(these_samples_metadata)){
     these_samples_metadata = get_gambl_metadata()
   }
 
+  if(include_silent){
+    message("Including Synonymous variants for all genes...")
+    coding_class <- coding_class
+  }else{
+    coding_class <- coding_class[!grepl("Silent", coding_class)]
+  }
+
   # call it once so the object can be reused if user wants to annotate hotspots
   if(!missing(maf_data)){
-    coding_ssm = maf_data %>%
-      dplyr::filter(Variant_Classification %in% coding_class)
+    coding_ssm = maf_data
 
   }else if (!is.null(maf_path)){
     coding_ssm = fread_maf(maf_path)
-    coding_ssm = coding_ssm %>%
-      dplyr::filter(Variant_Classification %in% coding_class)
   }
 
   if(missing(maf_data) & is.null(maf_path)){
-    coding_ssm = get_coding_ssm(projection = projection, this_seq_type = this_seq_type, from_flatfile = from_flatfile, augmented = augmented, min_read_support = 3, basic_columns = FALSE, include_silent = include_silent)
+    coding_ssm = get_coding_ssm(
+        projection = projection,
+        this_seq_type = this_seq_type,
+        from_flatfile = from_flatfile,
+        augmented = augmented,
+        min_read_support = 3,
+        basic_columns = FALSE,
+        include_silent = include_silent
+    )
   }
 
-  coding_ssm = coding_ssm %>%
-    dplyr::filter(Variant_Classification %in% coding_class)
+  if(missing(include_silent_genes)){
+    coding_ssm <- coding_ssm %>%
+        dplyr::filter(
+            Variant_Classification %in% coding_class
+        )
+  } else {
+    message(
+        strwrap(
+            prefix = " ",
+            initial = "", 
+            "You have provided gene list with argument include_silent_genes.
+            The Silent variants will be included even if the include_silent
+            argument is set to FALSE.
+            "
+        )
+    )
+    coding_ssm <- coding_ssm %>%
+        dplyr::filter(
+            Variant_Classification %in% coding_class |
+            (
+                Hugo_Symbol %in% include_silent_genes &
+                Variant_Classification == "Silent"
+            )
+        )
+  }
 
   coding = coding_ssm %>%
     dplyr::filter(Hugo_Symbol %in% gene_symbols & Variant_Classification != "Synonymous") %>%
@@ -104,7 +196,7 @@ get_coding_ssm_status = function(gene_symbols,
     annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
     # review for the supported genes
     if(review_hotspots){
-      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+      annotated = GAMBLR.helpers::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
     }
     message("annotating hotspots")
     hotspots = annotated %>%

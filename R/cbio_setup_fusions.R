@@ -1,11 +1,15 @@
 #' @title Setup Fusions (cBioPortal).
 #'
-#' @description Annotate SVs and create the input for fusions to be displayed in cBioPortal instance.
+#' @description Annotate SVs and create the input for fusions to be displayed in
+#'      cBioPortal instance.
 #'
-#' @details This function calls [GAMBLR.results::get_combined_sv] and runs [GAMBLR.utils::annotate_sv] on the returned data frame.
-#' Should be run as the next step after running [GAMBLR.results::setup_study]. Note that the parameters called with this function
-#' has to match the parameter arguments of [GAMBLR.results::setup_study], i.e if `short_name` is for [GAMBLR.results::setup_study] is "GAMBL",
-#' then the `short_name` in [GAMBLR.results::setup_fusions] also has to be "GAMBL", etc.
+#' @details This function calls [GAMBLR.results::get_combined_sv] and runs
+#' annotation on the returned data frame. Should be run as the next step after
+#' running [GAMBLR.results::cbio_setup_study]. Note that the parameters called
+#' with this function has to match the parameter arguments of
+#' [GAMBLR.results::cbio_setup_study], i.e if `short_name` is for
+#' [GAMBLR.results::cbio_setup_study] is "GAMBL", then the `short_name` in
+#' [GAMBLR.results::cbio_setup_fusions] also has to be "GAMBL", etc.
 #'
 #' @param short_name A concise name for your portal project.
 #' @param human_friendly_name A slightly more verbose name for your project.
@@ -13,7 +17,8 @@
 #' @param gambl_maf maf origin.
 #' @param gambl_icgc_maf ICGC maf origin.
 #' @param description A verbose description of your data set.
-#' @param out_dir The full path to the base directory where the files are being created.
+#' @param out_dir The full path to the base directory where the files are being
+#'      created.
 #'
 #' @return A vector of sample_id for the patients that have been included.
 #'

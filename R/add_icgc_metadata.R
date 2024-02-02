@@ -10,8 +10,6 @@
 #'
 #' @import dplyr readr stringr GAMBLR.helpers
 #'
-#' @noRd
-#'
 #' @examples
 #' my_meta = get_gambl_metadata()
 #' icgc_metadata = add_icgc_metadata(incoming_metadata = my_meta)

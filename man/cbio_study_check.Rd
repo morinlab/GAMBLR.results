@@ -8,6 +8,7 @@ cbio_study_check(
   data_clinical_samples_path = "data_clinical_samples.txt",
   data_fusions_path = "data_fusions.txt",
   cases_fusions_path = "case_lists/cases_fusion.txt",
+  this_seq_type = "genome",
   cases_all_path = "case_lists/cases_all.txt",
   cases_sequenced_path = "case_lists/cases_sequenced.txt",
   project_name = "gambl_genome",
@@ -20,6 +21,8 @@ cbio_study_check(
 \item{data_fusions_path}{Path to data_fusion file from setup_fusions.}
 
 \item{cases_fusions_path}{Path to cases_fusion from setup_fusions.}
+
+\item{this_seq_type}{The seq type of the data.}
 
 \item{cases_all_path}{Path to cases_all from setup_study.}
 
@@ -39,7 +42,7 @@ Helper function for checking integrity of study files.
 This function was designed to ensure that all the sample IDs described in the maf are actually present in the clinical files.
 If this is not the case, the function will notify the user what samples are found in the case list that are not described in the clinical file.
 The function then sub-sets the case list to only include samples from the clinical file.
-Note that the \code{project_name} has to match what is specified for the previously run functions (i.e \link{setup_study}, \link{setup_fusions} and \link{finalize_study}).
+Note that the \code{project_name} has to match what is specified for the previously run functions (i.e \link{cbio_setup_study}, \link{cbio_setup_fusions} and \link{cbio_finalize_study}).
 }
 \examples{
 \dontrun{

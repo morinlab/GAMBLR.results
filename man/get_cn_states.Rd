@@ -49,7 +49,7 @@ cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 
 myc_region <- GAMBLR.utils::gene_to_region(
  gene_symbol = "MYC",
- genome_build = "grch37",
+ projection = "grch37",
  return_as = "region"
 )
 

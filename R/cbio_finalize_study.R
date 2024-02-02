@@ -3,8 +3,8 @@
 #' @description Finish setting up a new cBioPortal instance or updating an existing portal data set.
 #'
 #' @details This function should be run as the last (or third step) in setting up a new cBioPortal instance.
-#' The functions that should be run prior to these functions are; [GAMBLR.results::setup_study] and [GAMBLR.results::setup_fusions].
-#' [GAMBLR.results::finalize_study] creates all the necessary tables and metadata files and case lists that are required to import a new study into cBioPortal.
+#' The functions that should be run prior to these functions are; [GAMBLR.results::cbio_setup_study] and [GAMBLR.results::cbio_setup_fusions].
+#' [GAMBLR.results::cbio_finalize_study] creates all the necessary tables and metadata files and case lists that are required to import a new study into cBioPortal.
 #' Note, that all parameter arguments used in this function have to match the same parameter arguments for the previously run functions (`setup_study` and `setup_fusions`).
 #' This function allows the user to specify additional fields from the collated metadata file (besides the "standard" fields).
 #' For more information on how to use, see `metacols` and related parameters (`metacol_names`, `metacol_types`, and `meta_prior`).
@@ -63,19 +63,19 @@ cbio_finalize_study = function(seq_type_filter = "genome",
                                out_dir){
 
   #define standard columns
-  these_columns = c("patient_id", "sample_id", "pathology",
+  these_columns = c("patient_id", "sample_id", "pathology", "pathology_other",
                     "EBV_status_inf", "cohort", "time_point",
                     "ffpe_or_frozen", "myc_ba", "bcl6_ba",
                     "bcl2_ba", "COO_consensus", "DHITsig_consensus", "lymphgen")
 
-  these_names = c("Patient Identifier", "Sample Identifier", "Subtype",
+  these_names = c("Patient Identifier", "Sample Identifier", "Subtype", "Pathology",
                   "EBV status", "Cohort", "Time point",
                   "FFPE", "MYC_BA", "BCL6_BA",
                   "BCL2_BA", "COO", "DHITsig", "LymphGen")
 
-  these_types = c(rep("STRING", 13))
+  these_types = c(rep("STRING", 14))
 
-  these_priorities = c("1", "1", "3",
+  these_priorities = c("1", "1", "3", "3",
                        "2", "4", "2",
                        "2", "2", "2",
                        "2", "2", "2", "4")
@@ -129,8 +129,11 @@ cbio_finalize_study = function(seq_type_filter = "genome",
   #meta samples
   #prepare and write out the relevant metadata
   clinsamp = paste0(out_dir, "data_clinical_samples.txt")
-  meta_samples = collate_results(seq_type_filter = seq_type_filter, join_with_full_metadata = TRUE) %>%
+  meta_samples = get_gambl_metadata(
+        seq_type_filter = seq_type_filter
+    ) %>%
     dplyr::filter(sample_id %in% these_sample_ids) %>%
+    dplyr::mutate(pathology_other = pathology) %>%
     dplyr::select(all_of(metacols))
 
   colnames(meta_samples) = toupper(colnames(meta_samples))

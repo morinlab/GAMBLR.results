@@ -2,10 +2,15 @@
 #'
 #' @description Expand a metadata table horizontally with PGA metrics.
 #'
-#' @details Helper function called by `collate_results`, not meant for out-of-package usage.
+#' @details Helper function called by `collate_results`,
+#'      not meant for out-of-package usage.
 #'
-#' @param these_samples_metadata The metadata to be expanded with sample_id column.
-#' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
+#' @param these_samples_metadata The metadata to be expanded with sample_id
+#'      column.
+#' @param this_seq_type Seq type for returned CN segments. One of "genome"
+#'      (default) or "capture".
+#' @param per_chromosome Optionally collate PGA per total genome (default) or
+#'      per individual chromosome.
 #'
 #' @noRd
 #'
@@ -22,7 +27,8 @@
 #'
 collate_pga <- function(
     these_samples_metadata,
-    this_seq_type = "genome"
+    this_seq_type = "genome",
+    per_chromosome = FALSE
 ) {
 
     message(
@@ -49,7 +55,8 @@ collate_pga <- function(
     dplyr::rename("sample" = "ID")
 
     these_samples_pga <- calculate_pga(
-        this_seg = multi_sample_seg
+        this_seg = multi_sample_seg,
+        per_chromosome = per_chromosome
     )
 
     these_samples_metadata <- left_join(
