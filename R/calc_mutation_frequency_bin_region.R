@@ -80,8 +80,8 @@ calc_mutation_frequency_bin_region <- function(region,
     these_sample_ids,
     this_seq_type
   )
-  metadata <- get_meta$this_metadata
-  these_sample_ids <- get_meta$these_samples
+  metadata <- get_meta
+  these_sample_ids <- get_meta$sample_id %>% unique
 
 
   if (
