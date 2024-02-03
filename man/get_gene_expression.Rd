@@ -47,6 +47,10 @@ The function has argument \code{engine}, which accepts string "read_tsv", "grep"
 the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
 Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
+
+If \code{join_with} is "genome"  or "capture", \code{get_gene_expression} will retrieve gene expression by internally calling \code{get_gambl_metadata}
+and using biopsy IDs as an intermediate to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
+refers to the seq type specified in this parameter.
 }
 \examples{
 MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")

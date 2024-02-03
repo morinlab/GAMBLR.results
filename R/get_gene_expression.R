@@ -10,6 +10,10 @@
 #' the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
 #' Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 #' systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
+#' 
+#' If `join_with` is "genome"  or "capture", `get_gene_expression` will retrieve gene expression by internally calling `get_gambl_metadata` 
+#' and using biopsy IDs as an intermediate to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table 
+#' refers to the seq type specified in this parameter. 
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
 #' @param hugo_symbols One or more gene symbols.
@@ -177,8 +181,14 @@ get_gene_expression = function(these_samples_metadata,
     
   }else if( (join_with == "genome" | join_with == "capture") & missing(expression_data) ){
     these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, biopsy_id)
-    expression_wider = left_join(these_samples_metadata, wide_expression_data, by = "biopsy_id") %>% 
-      dplyr::select(-mrna_sample_id, -biopsy_id)
+    expression_wider = left_join(these_samples_metadata, wide_expression_data, 
+                                 by = "biopsy_id", relationship = "many-to-many")
+    
+    # add column to inform if there are more than one mrna sample id for a genome sample id
+    expression_wider = split(expression_wider$mrna_sample_id, expression_wider$sample_id) %>% 
+      .[lengths(.) > 1] %>% 
+      names %>% 
+      { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
     
   }else if(!missing(expression_data)){
     expression_wider = wide_expression_data
