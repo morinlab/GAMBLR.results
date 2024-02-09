@@ -56,7 +56,7 @@ Other engines produced similar run times (~ 7 min) on GSC, with vroom engine bei
 systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
 
 If \code{join_with} is "genome"  or "capture", \code{get_gene_expression} will retrieve gene expression by internally calling \code{get_gambl_metadata}
-and using biopsy IDs as an intermediate to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
+and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
 refers to the seq type specified in this parameter.
 
 Duplicated gene expression rows might happen. This because, when using \code{join_with = "genome"} or \code{join_with = "capture"}, more than one
