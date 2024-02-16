@@ -48,6 +48,7 @@ default:
 
     dependencies:
         tabix: "/home/rmorin/miniconda3/bin/tabix"
+        bedToBigBed: "/projects/rmorin_scratch/conda_environments/ucsc_utils/bin/bedToBigBed"
 #results from every combination of each of these will be included in the database
     unix_groups: "gambl,icgc_dart"
     genome_builds: "grch37,hg38,hs37d5"
