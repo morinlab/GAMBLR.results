@@ -123,7 +123,7 @@ cbio_setup_study = function(
     } else {
         coding_ssms <- maf_data %>%
             dplyr::filter(
-                Variant_Classification %in% GAMBLR.helpers:::coding_class
+                Variant_Classification %in% GAMBLR.helpers::coding_class
             )
     }
     data_mutations_full = paste0(out_dir, "data_mutations_extended.maf")
