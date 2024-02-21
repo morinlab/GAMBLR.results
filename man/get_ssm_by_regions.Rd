@@ -7,6 +7,8 @@
 get_ssm_by_regions(
   regions_list,
   regions_bed,
+  these_sample_ids = NULL,
+  these_samples_metadata = NULL,
   streamlined = TRUE,
   maf_data = maf_data,
   use_name_column = FALSE,
@@ -16,13 +18,18 @@ get_ssm_by_regions(
   this_seq_type = "genome",
   projection = "grch37",
   min_read_support = 4,
-  basic_columns = FALSE
+  basic_columns = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{regions_list}{Either provide a vector of regions in the chr:start-end format OR.}
 
 \item{regions_bed}{Better yet, provide a bed file with the coordinates you want to retrieve.}
+
+\item{these_sample_ids}{Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.}
+
+\item{these_samples_metadata}{Optional, a metadata table (with sample IDs in a column) to subset the return to.}
 
 \item{streamlined}{If TRUE (default), only 3 columns will be kept in the maf (start, sample_id and region name).
 To return more columns, set this parameter to FALSE, see \code{basic_column} for more info.
@@ -47,6 +54,8 @@ Note, if this parameter is TRUE, the function will disregard anything specified 
 \item{basic_columns}{Parameter to be used when streamlined is FALSE.
 Set this parameter to TRUE for returning a maf with standard 45 columns, set to FALSE to keep all 116 maf columns in the returned object.
 To return all 116 maf columns, set this parameter to FALSE.}
+
+\item{verbose}{Boolean parameter set to FALSE per default.}
 }
 \value{
 Returns a data frame of variants in MAF-like format.
@@ -62,12 +71,11 @@ Is this function not what you are looking for? Try one of the following, similar
 \link{get_ssm_by_samples}, \link{get_ssm_by_region}
 }
 \examples{
-#basic usage, adding custom names from bundled ashm data frame
-regions_bed = dplyr::mutate(GAMBLR.data::grch37_ashm_regions, name = paste(gene, region, sep = "_"))
+regions_bed = GAMBLR.data::grch37_ashm_regions
 
 ashm_basic_details = get_ssm_by_regions(regions_bed = regions_bed)
 
-full_details_maf = get_ssm_by_regions(regions_bed = regions_bed,
-                                      basic_columns=T)
+full_details_maf = get_ssm_by_regions(regions_bed = regions_bed, 
+                                      streamlined = FALSE, basic_columns=TRUE)
 
 }

@@ -9,6 +9,8 @@ get_ssm_by_region(
   qstart,
   qend,
   region = "",
+  these_sample_ids = NULL,
+  these_samples_metadata = NULL,
   basic_columns = TRUE,
   streamlined = FALSE,
   maf_data,
@@ -29,6 +31,10 @@ get_ssm_by_region(
 \item{qend}{Query end coordinate of the range you are restricting to.}
 
 \item{region}{Region formatted like chrX:1234-5678 instead of specifying chromosome, start and end separately.}
+
+\item{these_sample_ids}{Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.}
+
+\item{these_samples_metadata}{Optional, a metadata table (with sample IDs in a column) to subset the return to.}
 
 \item{basic_columns}{Set to FALSE to return MAF with all columns (116). Default is TRUE, which returns the first 45 columns. Note that if streamlined is set to TRUE, only two columns will be returned, regardless of what's specified in this parameter.}
 

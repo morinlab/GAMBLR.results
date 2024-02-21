@@ -10,6 +10,8 @@
 #'
 #' @param regions_list Either provide a vector of regions in the chr:start-end format OR.
 #' @param regions_bed Better yet, provide a bed file with the coordinates you want to retrieve.
+#' @param these_sample_ids Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.
+#' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param streamlined If TRUE (default), only 3 columns will be kept in the maf (start, sample_id and region name). 
 #' To return more columns, set this parameter to FALSE, see `basic_column` for more info. 
 #' Note, if this parameter is TRUE, the function will disregard anything specified with `basic_columns`.
@@ -24,6 +26,7 @@
 #' @param basic_columns Parameter to be used when streamlined is FALSE. 
 #' Set this parameter to TRUE for returning a maf with standard 45 columns, set to FALSE to keep all 116 maf columns in the returned object. 
 #' To return all 116 maf columns, set this parameter to FALSE.
+#' @param verbose Boolean parameter set to FALSE per default.
 #'
 #' @return Returns a data frame of variants in MAF-like format.
 #'
@@ -31,16 +34,17 @@
 #' @export
 #'
 #' @examples
-#' #basic usage, adding custom names from bundled ashm data frame
-#' regions_bed = dplyr::mutate(GAMBLR.data::grch37_ashm_regions, name = paste(gene, region, sep = "_"))
+#' regions_bed = GAMBLR.data::grch37_ashm_regions
 #'
 #' ashm_basic_details = get_ssm_by_regions(regions_bed = regions_bed)
 #'
-#' full_details_maf = get_ssm_by_regions(regions_bed = regions_bed,
-#'                                       basic_columns=T)
+#' full_details_maf = get_ssm_by_regions(regions_bed = regions_bed, 
+#'                                       streamlined = FALSE, basic_columns=TRUE)
 #'
 get_ssm_by_regions = function(regions_list,
                               regions_bed,
+                              these_sample_ids = NULL,
+                              these_samples_metadata = NULL,
                               streamlined = TRUE,
                               maf_data = maf_data,
                               use_name_column = FALSE,
@@ -50,7 +54,8 @@ get_ssm_by_regions = function(regions_list,
                               this_seq_type = "genome",
                               projection = "grch37",
                               min_read_support = 4,
-                              basic_columns = FALSE){
+                              basic_columns = FALSE,
+                              verbose = FALSE){
   
   if(streamlined){
     message("Streamlined is set to TRUE, this function will disregard anything specified with basic_columns")
@@ -75,20 +80,22 @@ get_ssm_by_regions = function(regions_list,
   if(missing(maf_data)){
     
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
+                                                                these_sample_ids = these_sample_ids,
+                                                                these_samples_metadata = these_samples_metadata,
                                                                 streamlined = streamlined,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
                                                                 mode = mode,
                                                                 augmented = augmented,
                                                                 this_seq_type = this_seq_type,
                                                                 projection = projection,
-                                                                basic_columns=basic_columns)})
+                                                                basic_columns = basic_columns)})
   }else{
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
                                                                 streamlined = streamlined,
                                                                 maf_data = maf_data,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
                                                                 mode = mode,
-                                                                basic_columns=basic_columns)})
+                                                                basic_columns = basic_columns)})
   }
   if(!use_name_column){
     rn = regions
