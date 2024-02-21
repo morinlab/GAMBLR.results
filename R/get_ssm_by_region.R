@@ -13,6 +13,8 @@
 #' @param qstart Query start coordinate of the range you are restricting to.
 #' @param qend Query end coordinate of the range you are restricting to.
 #' @param region Region formatted like chrX:1234-5678 instead of specifying chromosome, start and end separately.
+#' @param these_sample_ids Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.
+#' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param basic_columns Set to FALSE to return MAF with all columns (116). Default is TRUE, which returns the first 45 columns. Note that if streamlined is set to TRUE, only two columns will be returned, regardless of what's specified in this parameter.
 #' @param streamlined Return Start_Position and Tumor_Smaple_Barcode as the only two MAF columns. Default is FALSE. Setting to TRUE will overwrite anything specified with `basic_columns`.
 #' @param maf_data An already loaded MAF like object to subset to regions of interest.
@@ -47,6 +49,8 @@ get_ssm_by_region = function(chromosome,
                              qstart,
                              qend,
                              region = "",
+                             these_sample_ids = NULL,
+                             these_samples_metadata = NULL,
                              basic_columns = TRUE,
                              streamlined = FALSE,
                              maf_data,
@@ -57,6 +61,13 @@ get_ssm_by_region = function(chromosome,
                              min_read_support = 3,
                              mode = "slms-3",
                              verbose = FALSE){
+  
+  # get sample ids according with the metadata
+  sample_ids = id_ease(these_samples_metadata = these_samples_metadata,
+                       these_sample_ids = these_sample_ids,
+                       verbose = verbose,
+                       this_seq_type = this_seq_type) %>% 
+    pull(sample_id)
   
   #duplicate the seq type variable used for glue
   seq_type = this_seq_type
@@ -262,6 +273,9 @@ get_ssm_by_region = function(chromosome,
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
   }
+  
+  # subset sample ids
+  muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% sample_ids)
 
   if(streamlined){
     muts_region = muts_region %>%
