@@ -24,7 +24,6 @@
 #' @return data frame in MAF format.
 #'
 #' @import dplyr tidyr glue GAMBLR.helpers
-#' @export
 #'
 #' @examples
 #' this_sample_df = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00485-01A-01D",
