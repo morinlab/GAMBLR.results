@@ -58,7 +58,7 @@ get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,
                                engine = "read_tsv",
-                               join_with = "mrna",
+                               join_with = NULL,
                                all_genes = FALSE,
                                expression_data,
                                from_flatfile = TRUE,
@@ -71,7 +71,11 @@ get_gene_expression = function(these_samples_metadata,
   
   database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
   if(missing(these_samples_metadata)){
-    if(join_with == "mrna"){
+    if(is.null(join_with)){
+      these_samples_metadata = get_gambl_metadata(seq_type_filter =c("genome", "capture", "mrna"), 
+                                                  only_available = FALSE)
+      
+    }else if(join_with == "mrna"){
       these_samples_metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
       
     }else if(join_with == "genome"){
@@ -81,7 +85,7 @@ get_gene_expression = function(these_samples_metadata,
       these_samples_metadata = get_gambl_metadata(seq_type_filter = "capture", only_available = FALSE)
       
     }else{
-      stop("join_with must be one of \"mrna\", \"genome\", or \"capture\".")
+      stop("join_with must be one of NULL, \"mrna\", \"genome\", or \"capture\".")
     }
   }
   
@@ -183,65 +187,75 @@ get_gene_expression = function(these_samples_metadata,
       }
     }
   }
-
-  if(join_with == "mrna" & missing(expression_data)){
-    these_samples_metadata = dplyr::select(these_samples_metadata, sample_id)
-    expression_wider = dplyr::select(wide_expression_data, -biopsy_id) %>% 
-      left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
+  
+  if(missing(expression_data)){
+    join_with = ifelse(is.null(join_with), "NULL", join_with)
     
-  }else if( (join_with == "genome" | join_with == "capture") & missing(expression_data) ){
-    
-    these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, 
-                                           patient_id, biopsy_id)
-    expression_wider = left_join(these_samples_metadata, wide_expression_data,
-                                 by = c("patient_id", "biopsy_id"))
-
-    # add column to inform if there are more than one mrna sample id for a genome sample id
-    expression_wider = split(expression_wider$mrna_sample_id, expression_wider$sample_id) %>% 
-      .[lengths(.) > 1] %>% 
-      names %>% 
-      { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
-    
-    ### filter out duplicated expressions based on prioritize_rows_by
-    if( !missing(prioritize_rows_by) & any(expression_wider$multi_exp == 1) ){
+    if(join_with == "NULL" | join_with == "genome" | join_with == "capture"){
+      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, 
+                                             patient_id, biopsy_id, seq_type)
+      expression_wider = left_join(these_samples_metadata, wide_expression_data,
+                                   by = c("patient_id", "biopsy_id"))
       
-      prioritization_colNames = names(prioritize_rows_by)
-      prioritization_values = unname(prioritize_rows_by)
+      # add column `multi_exp` to inform whether there are more than one 
+      # `mrna_sample_id` associated to a `sample_id`
+      expression_wider = filter(expression_wider, !is.na(mrna_sample_id)) %>% 
+        { split(.$mrna_sample_id, .$sample_id) } %>% 
+        .[lengths(.) > 1] %>% 
+        lapply(unique) %>% 
+        .[lengths(.) > 1] %>% 
+        names %>% 
+        { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
       
-      # take only duplicated gene expression rows and split them by sample_id
-      multi_exp_only_split = dplyr::filter(expression_wider, multi_exp == 1) %>% 
-        split(.$sample_id)
-      
-      # use the first column specified in prioritize_rows_by for the filtering. 
-      # if any duplication remains, use the next column, and so on.
-      for(i in seq_along(prioritize_rows_by)){
-        multi_exp_only_split = lapply(multi_exp_only_split, function(x){
-          k = x[,prioritization_colNames[i]] == prioritization_values[i]
-          if( !any(k) ) k[] = TRUE  # if there is no row with a high priority value, 
-                                    # keep expressions with lower priority
-          x[k,]
-        })
+      ### filter out duplicated expressions based on prioritize_rows_by
+      if( !missing(prioritize_rows_by) & any(expression_wider$multi_exp == 1) ){
+        
+        prioritization_colNames = names(prioritize_rows_by)
+        prioritization_values = unname(prioritize_rows_by)
+        
+        # take only duplicated gene expression rows and split them by sample_id
+        multi_exp_only_split = dplyr::filter(expression_wider, multi_exp == 1) %>% 
+          split(.$sample_id)
+        
+        # use the first column specified in prioritize_rows_by for the filtering. 
+        # if any duplication remains, use the next column, and so on.
+        for(i in seq_along(prioritize_rows_by)){
+          multi_exp_only_split = lapply(multi_exp_only_split, function(x){
+            k = x[,prioritization_colNames[i]] == prioritization_values[i]
+            if( !any(k) ) k[] = TRUE  # if there is no row with a high priority value, 
+            # keep expressions with lower priority
+            x[k,]
+          })
+        }
+        
+        # update values in multi_exp column
+        row_num = sapply(multi_exp_only_split, nrow)
+        no_dup = row_num == 1
+        no_multi_exp = mapply(function(nd, rn){
+          rep(nd, rn)
+        }, no_dup, row_num, SIMPLIFY = FALSE, USE.NAMES = FALSE) %>% 
+          unlist
+        multi_exp_only = bind_rows(multi_exp_only_split) ; rm(multi_exp_only_split)
+        multi_exp_only$multi_exp[no_multi_exp] = 0
+        
+        # update expression_wider. this time duplicated rows fixed (for those sample 
+        # ids that was possible)
+        expression_wider = dplyr::filter(expression_wider, multi_exp == 0) %>% 
+          bind_rows(multi_exp_only) %>% 
+          arrange(Hugo_Symbol, ensembl_gene_id, biopsy_id, sample_id)
       }
       
-      # update values in multi_exp column
-      row_num = sapply(multi_exp_only_split, nrow)
-      no_dup = row_num == 1
-      no_multi_exp = mapply(function(nd, rn){
-        rep(nd, rn)
-      }, no_dup, row_num, SIMPLIFY = FALSE, USE.NAMES = FALSE) %>% 
-        unlist
-      multi_exp_only = bind_rows(multi_exp_only_split) ; rm(multi_exp_only_split)
-      multi_exp_only$multi_exp[no_multi_exp] = 0
+    }else if(join_with == "mrna"){
+      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id)
+      expression_wider = dplyr::select(wide_expression_data, -biopsy_id) %>% 
+        left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
       
-      # update expression_wider. this time duplicated rows fixed (for those sample 
-      # ids that was possible)
-      expression_wider = dplyr::filter(expression_wider, multi_exp == 0) %>% 
-        bind_rows(multi_exp_only) %>% 
-        arrange(Hugo_Symbol, ensembl_gene_id, biopsy_id, sample_id)
     }
-    
-  }else if(!missing(expression_data)){
+  }else{ # expression_data is not missing
     expression_wider = wide_expression_data
   }
+  
+  
+  
   return(expression_wider)
 }
