@@ -22,7 +22,7 @@
 #'
 #' @return a data frame containing the Manta outputs from this_sample_id in a bedpe-like format with additional columns extracted from the VCF column.
 #'
-#' @import config dplyr readr stringr tibble glue GAMBLR.helpers GAMBLR.helpers
+#' @import config dplyr readr stringr tibble glue GAMBLR.helpers
 #' @export
 #'
 #' @examples

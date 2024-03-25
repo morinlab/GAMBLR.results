@@ -12,7 +12,8 @@ get_gene_expression(
   join_with = "mrna",
   all_genes = FALSE,
   expression_data,
-  from_flatfile = TRUE
+  from_flatfile = TRUE,
+  prioritize_rows_by
 )
 }
 \arguments{
@@ -24,13 +25,19 @@ get_gene_expression(
 
 \item{engine}{Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".}
 
-\item{join_with}{How to restrict cases for the join. Can be one of genome, mrna or "any".}
+\item{join_with}{How to restrict cases for the join. Can be one of "mrna" (default), "genome", or "capture".}
 
 \item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
 
 \item{expression_data}{Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).}
 
 \item{from_flatfile}{Deprecated but left here for backwards compatibility.}
+
+\item{prioritize_rows_by}{A named vector with one or more elements. Provide this parameter if you want to filter out
+duplicated gene expression rows by prioritizing rows that contain the values given by this parameter, in their
+respective columns, which are specified by the element names. First, filtering is applied using the column specified
+by the first element. If any duplication remains, the next element is used, and so on. This parameter is optional
+and may not be provided. In this case, the filtering is not applied. See \code{Details} for more information.}
 }
 \value{
 A data frame with gene expression.
@@ -47,19 +54,27 @@ The function has argument \code{engine}, which accepts string "read_tsv", "grep"
 the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
 Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
+
+If \code{join_with} is "genome"  or "capture", \code{get_gene_expression} will retrieve gene expression by internally calling \code{get_gambl_metadata}
+and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
+refers to the seq type specified in this parameter.
+
+Duplicated gene expression rows might happen. This because, when using \code{join_with = "genome"} or \code{join_with = "capture"}, more than one
+\code{mrna_sample_id} may be associated with the same \code{biopsy_id}. To avoid duplication, the \code{prioritize_rows_by} parameter might be used.
+If any duplication remains, their rows will be marked as \code{1} in the \code{multi_exp} column.
 }
 \examples{
-MYC_expr = get_gene_expression(hugo_symbols = c("MYC"), join_with = "mrna")
+MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
 
 #Read full expression values df (no subsetting on genes)
 full_expression_df = get_gene_expression(all_genes = TRUE,
-                                             join_with = "genome")
+                                         join_with = "genome")
 
 #Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
 irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-                                               all_genes = FALSE,
-                                               join_with = "genome",
-                                               from_flatfile = FALSE,
-                                               expression_data = full_expression_df)
+                                           all_genes = FALSE,
+                                           join_with = "genome",
+                                           from_flatfile = FALSE,
+                                           expression_data = full_expression_df)
 
 }
