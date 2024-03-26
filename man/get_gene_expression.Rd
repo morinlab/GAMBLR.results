@@ -9,7 +9,7 @@ get_gene_expression(
   hugo_symbols,
   ensembl_gene_ids,
   engine = "read_tsv",
-  join_with = "mrna",
+  join_with = NULL,
   all_genes = FALSE,
   expression_data,
   from_flatfile = TRUE,
@@ -33,11 +33,9 @@ get_gene_expression(
 
 \item{from_flatfile}{Deprecated but left here for backwards compatibility.}
 
-\item{prioritize_rows_by}{A named vector with one or more elements. Provide this parameter if you want to filter out
-duplicated gene expression rows by prioritizing rows that contain the values given by this parameter, in their
-respective columns, which are specified by the element names. First, filtering is applied using the column specified
-by the first element. If any duplication remains, the next element is used, and so on. This parameter is optional
-and may not be provided. In this case, the filtering is not applied. See \code{Details} for more information.}
+\item{prioritize_rows_by}{A named list with one or more vectors. Provide this parameter if you want to filter out
+duplications (as indicated by the \code{multi_exp} column of the output table) by prioritizing rows based on the values
+of columns specified by this parameter. See the \code{Details} section for more information.}
 }
 \value{
 A data frame with gene expression.
@@ -46,7 +44,7 @@ A data frame with gene expression.
 Get the expression for one or more genes for all GAMBL samples.
 }
 \details{
-Effectively get gene expression for one or multiple genes for al GAMBL samples.
+Effectively get gene expression for one or multiple genes for all GAMBL samples.
 This function can also take an already loaded expression matrix (\code{expression_data})
 to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
@@ -59,9 +57,24 @@ If \code{join_with} is "genome"  or "capture", \code{get_gene_expression} will r
 and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
 refers to the seq type specified in this parameter.
 
-Duplicated gene expression rows might happen. This because, when using \code{join_with = "genome"} or \code{join_with = "capture"}, more than one
-\code{mrna_sample_id} may be associated with the same \code{biopsy_id}. To avoid duplication, the \code{prioritize_rows_by} parameter might be used.
-If any duplication remains, their rows will be marked as \code{1} in the \code{multi_exp} column.
+Duplicated rows of gene expression may occur. This is because when using \code{join_with} other than "mrna", instead of
+directly matching mRNA sample IDs from the metadata to mRNA sample IDs from the internal gene expression file,
+\code{get_gene_expression} uses both patient IDs and biopsy IDs for the match. A duplication is due when a sample ID from
+the metadata is linked to more than one mRNA sample ID from the expression file. To filter out duplications, the
+\code{prioritize_rows_by} parameter may be used to prioritise rows. Provide to this parameter a named list of vectors,
+where the names specify a column (contained in the output) and its respective vector elements refer to possible values
+of the column to be prioritized. The first values of the vector have higher prioritization. First, filtering is applied
+using the column specified by the first element of list \code{prioritize_rows_by}. If any duplication remains, the next
+element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. If a duplication
+can not be solved, their rows will be marked as \code{1} in the output \code{multi_exp} column. Below is an example of how to set
+up this parameter:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{prioritize_rows_by = list(
+  protocol = c("Strand_Specific_Transcriptome_2",
+               "Strand_Specific_Transcriptome_3"),
+  ffpe_or_frozen = "frozen"
+)
+}\if{html}{\out{</div>}}
 }
 \examples{
 MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")

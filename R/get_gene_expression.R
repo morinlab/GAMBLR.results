@@ -2,7 +2,7 @@
 #'
 #' @description Get the expression for one or more genes for all GAMBL samples.
 #'
-#' @details Effectively get gene expression for one or multiple genes for al GAMBL samples.
+#' @details Effectively get gene expression for one or multiple genes for all GAMBL samples.
 #' This function can also take an already loaded expression matrix (`expression_data`)
 #' to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
 #' For examples and more info, refer to the parameter descriptions as well as vignette examples.
@@ -15,9 +15,25 @@
 #' and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table 
 #' refers to the seq type specified in this parameter. 
 #' 
-#' Duplicated gene expression rows might happen. This because, when using `join_with = "genome"` or `join_with = "capture"`, more than one 
-#' `mrna_sample_id` may be associated with the same `biopsy_id`. To avoid duplication, the `prioritize_rows_by` parameter might be used.
-#' If any duplication remains, their rows will be marked as `1` in the `multi_exp` column.
+#' Duplicated rows of gene expression may occur. This is because when using `join_with` other than "mrna", instead of 
+#' directly matching mRNA sample IDs from the metadata to mRNA sample IDs from the internal gene expression file, 
+#' `get_gene_expression` uses both patient IDs and biopsy IDs for the match. A duplication is due when a sample ID from 
+#' the metadata is linked to more than one mRNA sample ID from the expression file. To filter out duplications, the 
+#' `prioritize_rows_by` parameter may be used to prioritise rows. Provide to this parameter a named list of vectors, 
+#' where the names specify a column (contained in the output) and its respective vector elements refer to possible values 
+#' of the column to be prioritized. The first values of the vector have higher prioritization. First, filtering is applied 
+#' using the column specified by the first element of list `prioritize_rows_by`. If any duplication remains, the next 
+#' element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. If a duplication 
+#' can not be solved, their rows will be marked as `1` in the output `multi_exp` column. Below is an example of how to set 
+#' up this parameter:
+#' 
+#' ```
+#' prioritize_rows_by = list(
+#'   protocol = c("Strand_Specific_Transcriptome_2",
+#'                "Strand_Specific_Transcriptome_3"),
+#'   ffpe_or_frozen = "frozen"
+#' )
+#' ```
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
 #' @param hugo_symbols One or more gene symbols.
@@ -27,11 +43,9 @@
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.
 #' @param expression_data Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).
 #' @param from_flatfile Deprecated but left here for backwards compatibility.
-#' @param prioritize_rows_by A named vector with one or more elements. Provide this parameter if you want to filter out 
-#'   duplicated gene expression rows by prioritizing rows that contain the values given by this parameter, in their 
-#'   respective columns, which are specified by the element names. First, filtering is applied using the column specified 
-#'   by the first element. If any duplication remains, the next element is used, and so on. This parameter is optional 
-#'   and may not be provided. In this case, the filtering is not applied. See `Details` for more information.
+#' @param prioritize_rows_by A named list with one or more vectors. Provide this parameter if you want to filter out 
+#'   duplications (as indicated by the `multi_exp` column of the output table) by prioritizing rows based on the values 
+#'   of columns specified by this parameter. See the `Details` section for more information. 
 #'
 #' @return A data frame with gene expression.
 #'
@@ -188,6 +202,7 @@ get_gene_expression = function(these_samples_metadata,
     }
   }
   
+  # join the expression data to the sample ids of the metadata
   if(missing(expression_data)){
     join_with = ifelse(is.null(join_with), "NULL", join_with)
     
@@ -210,39 +225,41 @@ get_gene_expression = function(these_samples_metadata,
       ### filter out duplicated expressions based on prioritize_rows_by
       if( !missing(prioritize_rows_by) & any(expression_wider$multi_exp == 1) ){
         
-        prioritization_colNames = names(prioritize_rows_by)
-        prioritization_values = unname(prioritize_rows_by)
-        
         # take only duplicated gene expression rows and split them by sample_id
-        multi_exp_only_split = dplyr::filter(expression_wider, multi_exp == 1) %>% 
+        multi_exp_split = dplyr::filter(expression_wider, multi_exp == 1) %>% 
           split(.$sample_id)
         
-        # use the first column specified in prioritize_rows_by for the filtering. 
-        # if any duplication remains, use the next column, and so on.
-        for(i in seq_along(prioritize_rows_by)){
-          multi_exp_only_split = lapply(multi_exp_only_split, function(x){
-            k = x[,prioritization_colNames[i]] == prioritization_values[i]
-            if( !any(k) ) k[] = TRUE  # if there is no row with a high priority value, 
-            # keep expressions with lower priority
-            x[k,]
-          })
-        }
-        
-        # update values in multi_exp column
-        row_num = sapply(multi_exp_only_split, nrow)
-        no_dup = row_num == 1
-        no_multi_exp = mapply(function(nd, rn){
-          rep(nd, rn)
-        }, no_dup, row_num, SIMPLIFY = FALSE, USE.NAMES = FALSE) %>% 
-          unlist
-        multi_exp_only = bind_rows(multi_exp_only_split) ; rm(multi_exp_only_split)
-        multi_exp_only$multi_exp[no_multi_exp] = 0
+        # use the first vector of the `prioritize_rows_by` list for the filtering. 
+        # if any duplication remains, use the next vector, and so on.
+        multi_exp_split = lapply(multi_exp_split, function(multi_exp_split_i){
+          for(based_column in names(prioritize_rows_by)){
+            for( prioritize_this_value in prioritize_rows_by[[based_column]] ){
+              k = multi_exp_split_i[,based_column] == prioritize_this_value
+              if( any(k) ){
+                multi_exp_split_i = multi_exp_split_i[k,]
+                break
+              } # else:
+              # if there is no row with this value to prioritize, keep the rows
+              # and try the lower-priority value of the next loop.
+            }
+          }
+          # update multi_exp column
+          not_duplicated = unique(multi_exp_split_i$mrna_sample_id) %>% 
+            length %>% 
+            {. == 1}
+          if(not_duplicated){
+            multi_exp_split_i$multi_exp = 0
+          }
+          multi_exp_split_i
+        })
         
         # update expression_wider. this time duplicated rows fixed (for those sample 
         # ids that was possible)
         expression_wider = dplyr::filter(expression_wider, multi_exp == 0) %>% 
-          bind_rows(multi_exp_only) %>% 
-          arrange(Hugo_Symbol, ensembl_gene_id, biopsy_id, sample_id)
+          list %>% 
+          c(multi_exp_split) %>% 
+          bind_rows %>% 
+          arrange(sample_id, biopsy_id, patient_id, seq_type)
       }
       
     }else if(join_with == "mrna"){
@@ -254,8 +271,6 @@ get_gene_expression = function(these_samples_metadata,
   }else{ # expression_data is not missing
     expression_wider = wide_expression_data
   }
-  
-  
   
   return(expression_wider)
 }
