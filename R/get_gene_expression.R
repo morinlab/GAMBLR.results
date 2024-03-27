@@ -84,6 +84,13 @@ get_gene_expression = function(these_samples_metadata,
                                expression_data,
                                from_flatfile = TRUE,
                                prioritize_rows_by){
+  
+  # check parameters
+  if(!is.null(join_with)){
+    stopifnot("`join_with` must be one of NULL, \"mrna\", \"genome\", or \"capture\"." = 
+                join_with %in% c("mrna", "genome", "capture"))
+  }
+  
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
   }else if(!missing(ensembl_gene_ids)){
@@ -104,9 +111,6 @@ get_gene_expression = function(these_samples_metadata,
       
     }else if(join_with == "capture"){
       these_samples_metadata = get_gambl_metadata(seq_type_filter = "capture", only_available = FALSE)
-      
-    }else{
-      stop("join_with must be one of NULL, \"mrna\", \"genome\", or \"capture\".")
     }
   }
   
