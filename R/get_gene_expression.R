@@ -11,21 +11,27 @@
 #' Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 #' systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
 #' 
-#' If `join_with` is "genome"  or "capture", `get_gene_expression` will retrieve gene expression by internally calling `get_gambl_metadata` 
-#' and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table 
-#' refers to the seq type specified in this parameter. 
+#' If `these_metadata_samples` is not provided, and `join_with` is one of `"mrna"`, `"genome"` or `"capture"`, 
+#' `get_gambl_metadata` is called internally to retrieve all samples IDs of the respective seq type. If similar 
+#' scenario but `join_with = NULL`, `get_gambl_metadata` is called to retrieve all sample IDs of all seq types.
+#' For each metadata sample, `get_gene_expression` tries to return the expression of the genes provided by the 
+#' `hugo_symbols` parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
 #' 
-#' Duplicated rows of gene expression may occur. This is because when using `join_with` other than "mrna", instead of 
-#' directly matching mRNA sample IDs from the metadata to mRNA sample IDs from the internal gene expression file, 
-#' `get_gene_expression` uses both patient IDs and biopsy IDs for the match. A duplication is due when a sample ID from 
-#' the metadata is linked to more than one mRNA sample ID from the expression file. To filter out duplications, the 
-#' `prioritize_rows_by` parameter may be used to prioritise rows. Provide to this parameter a named list of vectors, 
-#' where the names specify a column (contained in the output) and its respective vector elements refer to possible values 
-#' of the column to be prioritized. The first values of the vector have higher prioritization. First, filtering is applied 
-#' using the column specified by the first element of list `prioritize_rows_by`. If any duplication remains, the next 
-#' element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. If a duplication 
-#' can not be solved, their rows will be marked as `1` in the output `multi_exp` column. Below is an example of how to set 
-#' up this parameter:
+#' If `join_with = "mrna"`, `get_gene_expression` retrieves the gene expression of sample IDs from the metadata 
+#' by directly matching them to mRNA sample IDs from the internal gene expression file. If `join_with` is other 
+#' than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and 
+#' biopsy IDs from the metadata and from the expression files.
+#' 
+#' The `prioritize_rows_by` parameter may be used to prioritize rows and avoid duplications in the output table. 
+#' A duplication is when a same sample ID from the metadata is linked to more than one mRNA sample ID from the 
+#' internal gene expression file, hence the metadata sample ID is associated to more than one different expression 
+#' level. To filter out duplications, provide to `prioritize_rows_by` a named list of vectors, where a name 
+#' specifies a column (contained in the output) and its respective vector elements refer to possible values of 
+#' this column to be prioritized. The first values of the vector have higher prioritization. First, filtering is 
+#' applied using the column specified by the first element of list `prioritize_rows_by`. If any duplication remains, 
+#' the next element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. 
+#' If a duplication can not be solved, their rows will be marked as `1` in the output `multi_exp` column. Below is 
+#' an example of how to set up the `prioritize_rows_by` parameter:
 #' 
 #' ```
 #' prioritize_rows_by = list(
@@ -39,13 +45,14 @@
 #' @param hugo_symbols One or more gene symbols.
 #' @param ensembl_gene_ids One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.
 #' @param engine Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".
-#' @param join_with How to restrict cases for the join. Can be one of "mrna" (default), "genome", or "capture".
+#' @param join_with The seq type used to join the expression data to the metadata table. Can be one of NULL (default), 
+#'   "mrna", "genome", or "capture". See the **Details** section for more information. 
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.
 #' @param expression_data Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).
 #' @param from_flatfile Deprecated but left here for backwards compatibility.
 #' @param prioritize_rows_by A named list with one or more vectors. Provide this parameter if you want to filter out 
 #'   duplications (as indicated by the `multi_exp` column of the output table) by prioritizing rows based on the values 
-#'   of columns specified by this parameter. See the `Details` section for more information. 
+#'   of columns specified by this parameter. See the **Details** section for more information. 
 #'
 #' @return A data frame with gene expression.
 #'
@@ -86,7 +93,7 @@ get_gene_expression = function(these_samples_metadata,
   database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
   if(missing(these_samples_metadata)){
     if(is.null(join_with)){
-      these_samples_metadata = get_gambl_metadata(seq_type_filter =c("genome", "capture", "mrna"), 
+      these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome", "capture", "mrna"), 
                                                   only_available = FALSE)
       
     }else if(join_with == "mrna"){

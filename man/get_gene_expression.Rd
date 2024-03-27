@@ -25,7 +25,8 @@ get_gene_expression(
 
 \item{engine}{Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".}
 
-\item{join_with}{How to restrict cases for the join. Can be one of "mrna" (default), "genome", or "capture".}
+\item{join_with}{The seq type used to join the expression data to the metadata table. Can be one of NULL (default),
+"mrna", "genome", or "capture". See the \strong{Details} section for more information.}
 
 \item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
 
@@ -35,7 +36,7 @@ get_gene_expression(
 
 \item{prioritize_rows_by}{A named list with one or more vectors. Provide this parameter if you want to filter out
 duplications (as indicated by the \code{multi_exp} column of the output table) by prioritizing rows based on the values
-of columns specified by this parameter. See the \code{Details} section for more information.}
+of columns specified by this parameter. See the \strong{Details} section for more information.}
 }
 \value{
 A data frame with gene expression.
@@ -53,21 +54,27 @@ the data is imported into R. When testing on GSC, the grep was the fastest but w
 Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
 systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
 
-If \code{join_with} is "genome"  or "capture", \code{get_gene_expression} will retrieve gene expression by internally calling \code{get_gambl_metadata}
-and using biopsy IDs as an intermediary to link genome/capture sample IDs with mRNA sample IDs. The sample_id column in the output table
-refers to the seq type specified in this parameter.
+If \code{these_metadata_samples} is not provided, and \code{join_with} is one of \code{"mrna"}, \code{"genome"} or \code{"capture"},
+\code{get_gambl_metadata} is called internally to retrieve all samples IDs of the respective seq type. If similar
+scenario but \code{join_with = NULL}, \code{get_gambl_metadata} is called to retrieve all sample IDs of all seq types.
+For each metadata sample, \code{get_gene_expression} tries to return the expression of the genes provided by the
+\code{hugo_symbols} parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
 
-Duplicated rows of gene expression may occur. This is because when using \code{join_with} other than "mrna", instead of
-directly matching mRNA sample IDs from the metadata to mRNA sample IDs from the internal gene expression file,
-\code{get_gene_expression} uses both patient IDs and biopsy IDs for the match. A duplication is due when a sample ID from
-the metadata is linked to more than one mRNA sample ID from the expression file. To filter out duplications, the
-\code{prioritize_rows_by} parameter may be used to prioritise rows. Provide to this parameter a named list of vectors,
-where the names specify a column (contained in the output) and its respective vector elements refer to possible values
-of the column to be prioritized. The first values of the vector have higher prioritization. First, filtering is applied
-using the column specified by the first element of list \code{prioritize_rows_by}. If any duplication remains, the next
-element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. If a duplication
-can not be solved, their rows will be marked as \code{1} in the output \code{multi_exp} column. Below is an example of how to set
-up this parameter:
+If \code{join_with = "mrna"}, \code{get_gene_expression} retrieves the gene expression of sample IDs from the metadata
+by directly matching them to mRNA sample IDs from the internal gene expression file. If \code{join_with} is other
+than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and
+biopsy IDs from the metadata and from the expression files.
+
+The \code{prioritize_rows_by} parameter may be used to prioritize rows and avoid duplications in the output table.
+A duplication is when a same sample ID from the metadata is linked to more than one mRNA sample ID from the
+internal gene expression file, hence the metadata sample ID is associated to more than one different expression
+level. To filter out duplications, provide to \code{prioritize_rows_by} a named list of vectors, where a name
+specifies a column (contained in the output) and its respective vector elements refer to possible values of
+this column to be prioritized. The first values of the vector have higher prioritization. First, filtering is
+applied using the column specified by the first element of list \code{prioritize_rows_by}. If any duplication remains,
+the next element is used, and so on. This parameter is optional and if not provided, the filtering is not applied.
+If a duplication can not be solved, their rows will be marked as \code{1} in the output \code{multi_exp} column. Below is
+an example of how to set up the \code{prioritize_rows_by} parameter:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{prioritize_rows_by = list(
   protocol = c("Strand_Specific_Transcriptome_2",
