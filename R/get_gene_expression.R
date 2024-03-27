@@ -270,8 +270,9 @@ get_gene_expression = function(these_samples_metadata,
       }
       
     }else if(join_with == "mrna"){
-      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id)
-      expression_wider = dplyr::select(wide_expression_data, -biopsy_id) %>% 
+      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, 
+                                             patient_id, biopsy_id, seq_type)
+      expression_wider = dplyr::select(wide_expression_data, -patient_id, -biopsy_id) %>% 
         left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
       
     }
