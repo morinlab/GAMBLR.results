@@ -90,6 +90,10 @@ get_gene_expression = function(these_samples_metadata,
                 join_with %in% c("mrna", "genome", "capture"))
   }
   
+  stopifnot("You must provide one of `hugo_symbols` and `ensembl_gene_ids` while `all_genes` is FALSE. Instead, you can just set `all_genes` to TRUE." = 
+              sum(!missing(hugo_symbols), !missing(ensembl_gene_ids), all_genes) == 1 )
+  
+  
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
   }else if(!missing(ensembl_gene_ids)){
@@ -113,11 +117,6 @@ get_gene_expression = function(these_samples_metadata,
     }
   }
   
-  if(missing(hugo_symbols) & missing(ensembl_gene_ids) & !all_genes){
-    stop("ERROR: supply at least one gene symbol or Ensembl gene ID")
-  }else if(!missing(hugo_symbols) & !missing(ensembl_gene_ids)){
-    stop("ERROR: Both hugo_symbols and ensembl_gene_ids were provided. Please provide only one type of ID.")
-  }
   #tidy_expression_file = config::get("results_merged")$tidy_expression_file
   #use combination of base path and relative path instead of full path for flexibility accross sites
   tidy_expression_path = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_path)
