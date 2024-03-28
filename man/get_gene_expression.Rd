@@ -8,7 +8,7 @@ get_gene_expression(
   these_samples_metadata,
   hugo_symbols,
   ensembl_gene_ids,
-  engine = "read_tsv",
+  engine = "grep",
   join_with = NULL,
   all_genes = FALSE,
   expression_data,
@@ -23,7 +23,7 @@ get_gene_expression(
 
 \item{ensembl_gene_ids}{One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.}
 
-\item{engine}{Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".}
+\item{engine}{Specific way to import the data into R. Defaults to "grep". Other acceptable options are "read_tsv", "vroom", and "fread".}
 
 \item{join_with}{The seq type used to join the expression data to the metadata table. Can be one of NULL (default),
 "mrna", "genome", or "capture". See the \strong{Details} section for more information.}
@@ -51,8 +51,7 @@ to prevent the user from having to load the full expression matrix if this funct
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
 The function has argument \code{engine}, which accepts string "read_tsv", "grep", "vroom", and "fread". This will determine the way
 the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
-Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
-systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
+Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
 
 If \code{these_metadata_samples} is not provided, and \code{join_with} is one of \code{"mrna"}, \code{"genome"} or \code{"capture"},
 \code{get_gambl_metadata} is called internally to retrieve all samples IDs of the respective seq type. If similar
