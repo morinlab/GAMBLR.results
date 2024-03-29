@@ -12,8 +12,8 @@
 #' @param desired_seq_type A single string specifying the seq type of the desired sample IDs.
 #'   Possible values are one of "genome", "capture", "mrna", or "any". If "any", sample IDs
 #'   of any other seq type that is not `given_seq_type` will be returned. 
-#' @param intermediary A single string of the column name in the metadata which will act as a 
-#'   intermediary to link the given sample IDs with the desired sample IDs.
+#' @param intermediary A vector of one or more strings with column names in the metadata which will 
+#'   act as intermediaries to link the given sample IDs with the desired sample IDs.
 #'
 #' @return A data frame with the given and desired sample IDs, values of the feature specified in
 #'   the `intermediary` parameter, and the `multi_desired_id` column.
@@ -26,7 +26,7 @@
 #'   these_sample_ids = c("00-14595_tumorA", "04-21622_tumorB", "01-20774T"), 
 #'   given_seq_type = "genome",
 #'   desired_seq_type = "mrna", 
-#'   intermediary = "biopsy_id"
+#'   intermediary = c("patient_id", "biopsy_id")
 #' )
 #' 
 link_seq_types <- function(these_sample_ids, 
@@ -35,19 +35,25 @@ link_seq_types <- function(these_sample_ids,
                            intermediary){
   
   # check parameters
-  stopifnot( "given_seq_type must be one of \"genome\", \"capture\", or \"mrna\"." = 
-               length(given_seq_type) == 1 &
-               given_seq_type %in% c("genome", "capture", "mrna") )
-  stopifnot( "desired_seq_type must be one of \"genome\", \"capture\", \"mrna\" or \"any\"." = 
-               length(given_seq_type) == 1 &
-               given_seq_type %in% c("genome", "capture", "mrna") )
-  stopifnot( "given_seq_type and desired_seq_type must be different." = 
-               length(given_seq_type) == 1 &
-               given_seq_type %in% c("genome", "capture", "mrna") )
+  stopifnot("`given_seq_type` must be one of \"genome\", \"capture\", or \"mrna\"." = 
+              length(given_seq_type) == 1 & given_seq_type %in% c("genome", "capture", "mrna"))
+  stopifnot("`desired_seq_type` must be one of \"genome\", \"capture\", \"mrna\" or \"any\"." = 
+              length(desired_seq_type) == 1 & desired_seq_type %in% c("genome", "capture", "mrna"))
+  stopifnot("given_seq_type and desired_seq_type must be different." = 
+              given_seq_type != desired_seq_type)
   
-  # get and subset metadata
-  meta = get_gambl_metadata(seq_type_filter = c(given_seq_type, desired_seq_type)) %>% 
-    dplyr::select(sample_id, seq_type, all_of(intermediary)) %>% 
+  # get metadata
+  meta = get_gambl_metadata(seq_type_filter = c(given_seq_type, desired_seq_type))
+  missing_columns <- ! intermediary %in% names(meta)
+  if(any(missing_columns)){
+    k <- intermediary[missing_columns] %>% 
+      paste(collapse = ", ") %>% 
+      gettextf("`intermediary` must be column names present in the metadata. Missing coumns: %s.", .)
+    stop(k)
+  }
+  
+  # subset metadata
+  meta = dplyr::select(meta, sample_id, seq_type, all_of(intermediary)) %>% 
     dplyr::filter(seq_type %in% c(given_seq_type, desired_seq_type))
   
   # add biopsy_id to the input these_sample_ids
