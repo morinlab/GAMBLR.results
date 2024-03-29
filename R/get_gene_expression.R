@@ -93,6 +93,9 @@ get_gene_expression = function(these_samples_metadata,
   stopifnot("You must provide one of `hugo_symbols` and `ensembl_gene_ids` while `all_genes` is FALSE. Instead, you can just set `all_genes` to TRUE." = 
               sum(!missing(hugo_symbols), !missing(ensembl_gene_ids), all_genes) == 1 )
   
+  stopifnot("You did not specify a valid engine. Please use one of \"read_tsv\", \"grep\", \"vroom\", or \"fread\"." = 
+              engine %in% c("read_tsv", "grep", "vroom", "fread"))
+  
   
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
@@ -165,49 +168,54 @@ get_gene_expression = function(these_samples_metadata,
       check_host()
     }
     #only ever load the full data frame when absolutely necessary
-    if(all_genes & missing(ensembl_gene_ids) & missing(hugo_symbols)){
+    if(all_genes){
       wide_expression_data = suppressMessages(read_tsv(tidy_expression_file)) %>%
         as.data.frame() %>%
         pivot_wider(names_from = ensembl_gene_id, values_from = expression)
+      
     }else{
+      # define gene ids and their type
       if(!missing(hugo_symbols)){
-        if(engine == "read_tsv"){
-          message("Will read the data using read_tsv")
-          wide_expression_data = read_tsv(tidy_expression_file,lazy=TRUE) %>%
-            dplyr::filter(Hugo_Symbol %in% hugo_symbols)
-        } else if(engine == "vroom"){
-          message("Will read the data using vroom")
-          wide_expression_data = vroom::vroom(tidy_expression_file) %>%
-            dplyr::filter(Hugo_Symbol %in% hugo_symbols)
-        } else if(engine == "fread"){
-          message("Will read the data using fread")
-          wide_expression_data = data.table::fread(tidy_expression_file, ) %>%
-            dplyr::filter(Hugo_Symbol %in% hugo_symbols)
-        } else if(engine == "grep"){
-          message("Will read the data using grep")
-          #lazily filter on the fly to conserve RAM (use grep without regex)
-          genes_regex=paste(c("-e Hugo_Symbol",hugo_symbols),collapse = " -e ");
-          grep_cmd = paste0("grep -w -F ",genes_regex," ",tidy_expression_file)
-          print(grep_cmd)
-          wide_expression_data = fread(cmd=grep_cmd) %>%
-            dplyr::filter(Hugo_Symbol %in% hugo_symbols)
-        } else {
-          stop("You did not specify valid engine. Please use one of read_tsv, grep, vroom, or fread")
-        }
-        wide_expression_data = wide_expression_data %>%
-          dplyr::select(-ensembl_gene_id) %>%
-          group_by(mrna_sample_id,Hugo_Symbol) %>% #deal with non 1:1 mapping of Hugo to Ensembl
-          slice_head() %>%
-          as.data.frame() %>%
-          pivot_wider(names_from = Hugo_Symbol, values_from = expression)
+        gene_ids = hugo_symbols
+        gene_id_type = "Hugo_Symbol"
+        not_the_id_type = "ensembl_gene_id"
+      }else{
+        gene_ids = ensembl_gene_ids
+        gene_id_type = "ensembl_gene_id"
+        not_the_id_type = "Hugo_Symbol"
       }
-      if(!missing(ensembl_gene_ids)){
-        wide_expression_data = suppressMessages(read_tsv(tidy_expression_file,lazy=TRUE)) %>%
-          dplyr::select(-Hugo_Symbol) %>%
-          dplyr::filter(ensembl_gene_id %in% ensembl_gene_ids) %>%
-          as.data.frame() %>%
-          pivot_wider(names_from = ensembl_gene_id, values_from = expression)
+      
+      # read expression data using the specified engine
+      if(engine == "read_tsv"){
+        message("Will read the data using read_tsv")
+        wide_expression_data = read_tsv(tidy_expression_file, lazy=TRUE)
+      } else if(engine == "vroom"){
+        message("Will read the data using vroom")
+        wide_expression_data = vroom::vroom(tidy_expression_file)
+      } else if(engine == "fread"){
+        message("Will read the data using fread")
+        wide_expression_data = data.table::fread(tidy_expression_file)
+      } else if(engine == "grep"){
+        message("Will read the data using grep")
+        #lazily filter on the fly to conserve RAM (use grep without regex)
+        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+          gettextf("grep -w -F -e %s -e %s %s", gene_id_type, ., tidy_expression_file)
+        print(grep_cmd)
+        wide_expression_data = fread(cmd = grep_cmd)
       }
+      
+      # keep only the specified genes
+      if(! engine == "grep"){
+        wide_expression_data = wide_expression_data %>% 
+          dplyr::filter(.[[gene_id_type]] %in% gene_ids)
+      }
+      
+      wide_expression_data = wide_expression_data %>%
+        dplyr::select(-all_of(not_the_id_type)) %>%
+        group_by(mrna_sample_id, !!as.symbol(gene_id_type)) %>% #deal with non 1:1 mapping of Hugo to Ensembl
+        slice_head() %>%
+        as.data.frame() %>%
+        pivot_wider(names_from = !!as.symbol(gene_id_type), values_from = expression)
     }
   }
   
