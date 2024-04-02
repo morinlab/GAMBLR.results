@@ -56,7 +56,7 @@ link_seq_types <- function(these_sample_ids,
   meta = dplyr::select(meta, sample_id, seq_type, all_of(intermediary)) %>% 
     dplyr::filter(seq_type %in% c(given_seq_type, desired_seq_type))
   
-  # add biopsy_id to the input these_sample_ids
+  # add intermediary columns to the input these_sample_ids
   these_sample_ids = dplyr::filter(meta, seq_type == given_seq_type) %>% 
     dplyr::select(sample_id, all_of(intermediary)) %>% 
     left_join( as.data.frame(these_sample_ids), .,
