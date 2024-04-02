@@ -8,11 +8,12 @@ get_gene_expression(
   these_samples_metadata,
   hugo_symbols,
   ensembl_gene_ids,
-  engine = "read_tsv",
-  join_with = "mrna",
+  engine = "grep",
+  join_with = NULL,
   all_genes = FALSE,
   expression_data,
-  from_flatfile = TRUE
+  from_flatfile = TRUE,
+  prioritize_rows_by
 )
 }
 \arguments{
@@ -22,15 +23,20 @@ get_gene_expression(
 
 \item{ensembl_gene_ids}{One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.}
 
-\item{engine}{Specific way to import the data into R. Defaults to "read_tsv". Other acceptable options are "grep", "vroom", and "fread".}
+\item{engine}{Specific way to import the data into R. Defaults to "grep". Other acceptable options are "read_tsv", "vroom", and "fread".}
 
-\item{join_with}{How to restrict cases for the join. Can be one of genome, mrna or "any".}
+\item{join_with}{The seq type used to join the expression data to the metadata table. Can be one of NULL (default),
+"mrna", "genome", or "capture". See the \strong{Details} section for more information.}
 
 \item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
 
 \item{expression_data}{Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).}
 
 \item{from_flatfile}{Deprecated but left here for backwards compatibility.}
+
+\item{prioritize_rows_by}{A named list with one or more vectors. Provide this parameter if you want to filter out
+duplications (as indicated by the \code{multi_exp} column of the output table) by prioritizing rows based on the values
+of columns specified by this parameter. See the \strong{Details} section for more information.}
 }
 \value{
 A data frame with gene expression.
@@ -39,27 +45,55 @@ A data frame with gene expression.
 Get the expression for one or more genes for all GAMBL samples.
 }
 \details{
-Effectively get gene expression for one or multiple genes for al GAMBL samples.
+Effectively get gene expression for one or multiple genes for all GAMBL samples.
 This function can also take an already loaded expression matrix (\code{expression_data})
 to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
 The function has argument \code{engine}, which accepts string "read_tsv", "grep", "vroom", and "fread". This will determine the way
 the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
-Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one. However, on other
-systems (especially with fast hard drives and MacBooks for remote users) the read_tsv engine was significantly faster than the grep.
+Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
+
+If \code{these_samples_metadata} is not provided, and \code{join_with} is one of \code{"mrna"}, \code{"genome"} or \code{"capture"},
+\code{get_gambl_metadata} is called internally to retrieve all samples IDs of the respective seq type. If similar
+scenario but \code{join_with = NULL}, \code{get_gambl_metadata} is called to retrieve all sample IDs of all seq types.
+For each metadata sample, \code{get_gene_expression} tries to return the expression of the genes provided by the
+\code{hugo_symbols} parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
+
+If \code{join_with = "mrna"}, \code{get_gene_expression} retrieves the gene expression of sample IDs from the metadata
+by directly matching them to mRNA sample IDs from the internal gene expression file. If \code{join_with} is other
+than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and
+biopsy IDs from the metadata and from the expression files.
+
+The \code{prioritize_rows_by} parameter may be used to prioritize rows and avoid duplications in the output table.
+A duplication is when a same sample ID from the metadata is linked to more than one mRNA sample ID from the
+internal gene expression file, hence the metadata sample ID is associated to more than one different expression
+level. To filter out duplications, provide to \code{prioritize_rows_by} a named list of vectors, where a name
+specifies a column (contained in the output) and its respective vector elements refer to possible values of
+this column to be prioritized. The first values of the vector have higher prioritization. First, filtering is
+applied using the column specified by the first element of list \code{prioritize_rows_by}. If any duplication remains,
+the next element is used, and so on. This parameter is optional and if not provided, the filtering is not applied.
+If a duplication can not be solved, their rows will be marked as \code{1} in the output \code{multi_exp} column. Below is
+an example of how to set up the \code{prioritize_rows_by} parameter:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{prioritize_rows_by = list(
+  protocol = c("Strand_Specific_Transcriptome_2",
+               "Strand_Specific_Transcriptome_3"),
+  ffpe_or_frozen = "frozen"
+)
+}\if{html}{\out{</div>}}
 }
 \examples{
-MYC_expr = get_gene_expression(hugo_symbols = c("MYC"), join_with = "mrna")
+MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
 
 #Read full expression values df (no subsetting on genes)
 full_expression_df = get_gene_expression(all_genes = TRUE,
-                                             join_with = "genome")
+                                         join_with = "genome")
 
 #Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
 irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-                                               all_genes = FALSE,
-                                               join_with = "genome",
-                                               from_flatfile = FALSE,
-                                               expression_data = full_expression_df)
+                                           all_genes = FALSE,
+                                           join_with = "genome",
+                                           from_flatfile = FALSE,
+                                           expression_data = full_expression_df)
 
 }

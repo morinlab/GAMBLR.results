@@ -196,7 +196,7 @@ get_coding_ssm_status = function(
     annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
     # review for the supported genes
     if(review_hotspots){
-      annotated = GAMBLR.helpers::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+      annotated = GAMBLR.data::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
     }
     message("annotating hotspots")
     hotspots = annotated %>%
