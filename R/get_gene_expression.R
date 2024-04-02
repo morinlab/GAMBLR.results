@@ -10,7 +10,7 @@
 #' the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
 #' Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
 #' 
-#' If `these_metadata_samples` is not provided, and `join_with` is one of `"mrna"`, `"genome"` or `"capture"`, 
+#' If `these_samples_metadata` is not provided, and `join_with` is one of `"mrna"`, `"genome"` or `"capture"`, 
 #' `get_gambl_metadata` is called internally to retrieve all samples IDs of the respective seq type. If similar 
 #' scenario but `join_with = NULL`, `get_gambl_metadata` is called to retrieve all sample IDs of all seq types.
 #' For each metadata sample, `get_gene_expression` tries to return the expression of the genes provided by the 
