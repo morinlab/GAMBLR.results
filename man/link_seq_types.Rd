@@ -21,8 +21,8 @@ values are one of "genome", "capture", or "mrna".}
 Possible values are one of "genome", "capture", "mrna", or "any". If "any", sample IDs
 of any other seq type that is not \code{given_seq_type} will be returned.}
 
-\item{intermediary}{A single string of the column name in the metadata which will act as a
-intermediary to link the given sample IDs with the desired sample IDs.}
+\item{intermediary}{A vector of one or more strings with column names in the metadata which will
+act as intermediaries to link the given sample IDs with the desired sample IDs.}
 }
 \value{
 A data frame with the given and desired sample IDs, values of the feature specified in
@@ -41,7 +41,7 @@ link_seq_types(
   these_sample_ids = c("00-14595_tumorA", "04-21622_tumorB", "01-20774T"), 
   given_seq_type = "genome",
   desired_seq_type = "mrna", 
-  intermediary = "biopsy_id"
+  intermediary = c("patient_id", "biopsy_id")
 )
 
 }
