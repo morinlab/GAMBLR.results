@@ -91,6 +91,9 @@ get_ssm_by_regions = function(regions_list,
                                                                 basic_columns = basic_columns)})
   }else{
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
+                                                                these_sample_ids = these_sample_ids,
+                                                                these_samples_metadata = these_samples_metadata,
+                                                                this_seq_type = this_seq_type,
                                                                 streamlined = streamlined,
                                                                 maf_data = maf_data,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
@@ -110,9 +113,9 @@ get_ssm_by_regions = function(regions_list,
   if(streamlined){
     unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
-    }else{
-      print("bind_rows")
-      return(bind_rows(region_mafs))
-      }
+  }else{
+    print("bind_rows")
+    return(bind_rows(region_mafs))
+  }
   return(unlisted_df)
 }
