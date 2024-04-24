@@ -205,7 +205,7 @@ get_gene_expression = function(these_samples_metadata,
       } else if(engine == "grep"){
         message("Will read the data using grep")
         #lazily filter on the fly to conserve RAM (use grep without regex)
-        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+        grep_cmd = paste(gene_ids, collapse = " -e ") %>% 
           gettextf("grep -w -F -e %s -e %s %s", gene_id_type, ., tidy_expression_file)
         print(grep_cmd)
         wide_expression_data = fread(cmd = grep_cmd)
@@ -293,6 +293,12 @@ get_gene_expression = function(these_samples_metadata,
           c(multi_exp_split) %>% 
           bind_rows %>% 
           arrange(sample_id, biopsy_id, patient_id, seq_type)
+      }
+      
+      # print warning message if duplications remain
+      if( any(expression_wider$multi_exp == 1) ){
+        k = gettextf("There are %i rows marked as duplicates (`multi_exp` column as 1). Set adequate row prioritization (`default_priority` or `prioritize_rows_by` parameter) to handle them.", sum(expression_wider$multi_exp))
+        warning(k)
       }
       
     }else if(join_with == "mrna"){
