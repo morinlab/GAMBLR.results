@@ -13,8 +13,7 @@ get_gene_expression(
   all_genes = FALSE,
   expression_data,
   from_flatfile = TRUE,
-  default_priority = FALSE,
-  prioritize_rows_by
+  collapse_duplicates = TRUE
 )
 }
 \arguments{
@@ -35,13 +34,9 @@ get_gene_expression(
 
 \item{from_flatfile}{Deprecated but left here for backwards compatibility.}
 
-\item{default_priority}{A Boolean value (default is FALSE). If TRUE, duplications (as indicated by the \code{multi_exp}
+\item{collapse_duplicates}{A Boolean value (default is TRUE). If TRUE, duplications (as indicated by the \code{multi_exp}
 column of the output table) are filtered out using the default row prioritization. See the \strong{Details} section for
 more information.}
-
-\item{prioritize_rows_by}{A named list with one or more vectors. Provide this parameter if you want to filter out
-duplications (as indicated by the \code{multi_exp} column of the output table) by prioritizing rows based on the values
-of columns specified by this parameter. See the \strong{Details} section for more information.}
 }
 \value{
 A data frame with gene expression.
@@ -69,24 +64,12 @@ by directly matching them to mRNA sample IDs from the internal gene expression f
 than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and
 biopsy IDs from the metadata and from the expression files.
 
-The parameters \code{default_priority} or \code{prioritize_rows_by} may be used to prioritize rows and avoid duplications
-in the output table. A duplication is when a same sample ID from the metadata is linked to more than one mRNA
-sample ID from the internal gene expression file, hence the metadata sample ID is associated to more than one
-different expression level. To filter out duplications, either set \code{default_priority} to TRUE or provide to
-\code{prioritize_rows_by} a named list of vectors, where a name specifies a column (contained in the output) and
-its respective vector elements refer to possible values of this column to be prioritized. The first values of
-the vector have higher prioritization. First, filtering is applied using the column specified by the first
-element of list \code{prioritize_rows_by}. If any duplication remains, the next element is used, and so on. If
-\code{default_priority = TRUE}, default prioritization is used by deploying the following named list:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{prioritize_rows_by = list(
-  protocol = c("Strand_Specific_Transcriptome_2",
-               "Strand_Specific_Transcriptome_3"),
-  ffpe_or_frozen = "frozen"
-)
-}\if{html}{\out{</div>}}
-
-If \code{default_priority = FALSE} and \code{prioritize_rows_by} is not provided, the filtering is not applied. If a
+The parameters \code{collapse_duplicates} may be used to prioritize rows and avoid duplications
+in the output table. A duplication is when the a sample ID from the metadata is linked to more than one mRNA
+sample ID from the internal gene expression file, hence the metadata sample ID is associated with more than one
+different expression level. If \code{collapse_duplicates} is TRUE (the default), duplications are filtered out by
+first prioritizing rows where the values in the \code{protocol} column match (using grep) the string \code{"Ribo"}. If
+any duplication remains, the \code{ffpe_or_frozen} column is used to match values to the \code{"frozen"} string. If a
 duplication can not be handled, its rows are marked as \code{1} in the output \code{multi_exp} column and a warning
 message is printed.
 }
