@@ -32,7 +32,7 @@
 #' @export
 #'
 #' @examples
-#' chr11_mut_freq = calc_mutation_frequency_bin_region(region = "chr11:69455000-69459900",
+#' chr11_mut_freq = calc_mutation_frequency_bin_region(region = "11:69455000-69459900",
 #'                                                          slide_by = 10,
 #'                                                          window_size = 10000)
 #'
