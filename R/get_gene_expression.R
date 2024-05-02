@@ -47,7 +47,7 @@
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
-#' @import dplyr readr tidyr GAMBLR.data
+#' @import dplyr readr tidyr
 #' @export
 #'
 #' @examples
