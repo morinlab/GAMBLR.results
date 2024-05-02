@@ -21,24 +21,14 @@
 #' than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and 
 #' biopsy IDs from the metadata and from the expression files.
 #' 
-#' The `prioritize_rows_by` parameter may be used to prioritize rows and avoid duplications in the output table. 
-#' A duplication is when a same sample ID from the metadata is linked to more than one mRNA sample ID from the 
-#' internal gene expression file, hence the metadata sample ID is associated to more than one different expression 
-#' level. To filter out duplications, provide to `prioritize_rows_by` a named list of vectors, where a name 
-#' specifies a column (contained in the output) and its respective vector elements refer to possible values of 
-#' this column to be prioritized. The first values of the vector have higher prioritization. First, filtering is 
-#' applied using the column specified by the first element of list `prioritize_rows_by`. If any duplication remains, 
-#' the next element is used, and so on. This parameter is optional and if not provided, the filtering is not applied. 
-#' If a duplication can not be solved, their rows will be marked as `1` in the output `multi_exp` column. Below is 
-#' an example of how to set up the `prioritize_rows_by` parameter:
-#' 
-#' ```
-#' prioritize_rows_by = list(
-#'   protocol = c("Strand_Specific_Transcriptome_2",
-#'                "Strand_Specific_Transcriptome_3"),
-#'   ffpe_or_frozen = "frozen"
-#' )
-#' ```
+#' The parameters `collapse_duplicates` may be used to prioritize rows and avoid duplications 
+#' in the output table. A duplication is when the a sample ID from the metadata is linked to more than one mRNA 
+#' sample ID from the internal gene expression file, hence the metadata sample ID is associated with more than one 
+#' different expression level. If `collapse_duplicates` is TRUE (the default), duplications are filtered out by
+#' first prioritizing rows where the values in the `protocol` column match (using grep) the string `"Ribo"`. If 
+#' any duplication remains, the `ffpe_or_frozen` column is used to match values to the `"frozen"` string. If a 
+#' duplication can not be handled, its rows are marked as `1` in the output `multi_exp` column and a warning 
+#' message is printed. 
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
 #' @param hugo_symbols One or more gene symbols.
@@ -49,9 +39,9 @@
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.
 #' @param expression_data Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).
 #' @param from_flatfile Deprecated but left here for backwards compatibility.
-#' @param prioritize_rows_by A named list with one or more vectors. Provide this parameter if you want to filter out 
-#'   duplications (as indicated by the `multi_exp` column of the output table) by prioritizing rows based on the values 
-#'   of columns specified by this parameter. See the **Details** section for more information. 
+#' @param collapse_duplicates A Boolean value (default is TRUE). If TRUE, duplications (as indicated by the `multi_exp`
+#'   column of the output table) are filtered out using the default row prioritization. See the **Details** section for 
+#'   more information.
 #'
 #' @return A data frame with gene expression.
 #'
@@ -80,22 +70,20 @@ get_gene_expression = function(these_samples_metadata,
                                engine = "grep",
                                join_with = NULL,
                                all_genes = FALSE,
-                               expression_data,
+                               tidy_expression_data,
                                from_flatfile = TRUE,
-                               prioritize_rows_by){
+                               collapse_duplicates = TRUE){
   
   # check parameters
   if(!is.null(join_with)){
     stopifnot("`join_with` must be one of NULL, \"mrna\", \"genome\", or \"capture\"." = 
                 join_with %in% c("mrna", "genome", "capture"))
   }
-  
   stopifnot("You must provide one of `hugo_symbols` and `ensembl_gene_ids` while `all_genes` is FALSE. Instead, you can just set `all_genes` to TRUE." = 
               sum(!missing(hugo_symbols), !missing(ensembl_gene_ids), all_genes) == 1 )
-  
   stopifnot("You did not specify a valid engine. Please use one of \"read_tsv\", \"grep\", \"vroom\", or \"fread\"." = 
               engine %in% c("read_tsv", "grep", "vroom", "fread"))
-  
+
   
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
@@ -135,8 +123,8 @@ get_gene_expression = function(these_samples_metadata,
     tidy_expression_file = paste0(base_path, tidy_expression_path)
   }
   
-  if(!missing(expression_data)){
-    tidy_expression_data = as.data.frame(expression_data) #is this necessary? Will it unnecessarily duplicate a large object if it's already a data frame?
+  if(!missing(tidy_expression_data)){
+    #tidy_expression_data = as.data.frame(expression_data) #is this necessary? Will it unnecessarily duplicate a large object if it's already a data frame?
     if(!missing(hugo_symbols)){
       #lazily filter on the fly to conserve RAM
       wide_expression_data = tidy_expression_data %>%
@@ -198,7 +186,7 @@ get_gene_expression = function(these_samples_metadata,
       } else if(engine == "grep"){
         message("Will read the data using grep")
         #lazily filter on the fly to conserve RAM (use grep without regex)
-        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+        grep_cmd = paste(gene_ids, collapse = " -e ") %>% 
           gettextf("grep -w -F -e %s -e %s %s", gene_id_type, ., tidy_expression_file)
         print(grep_cmd)
         wide_expression_data = fread(cmd = grep_cmd)
@@ -220,7 +208,7 @@ get_gene_expression = function(these_samples_metadata,
   }
   
   # join the expression data to the sample ids of the metadata
-  if(missing(expression_data)){
+  if(missing(tidy_expression_data)){
     join_with = ifelse(is.null(join_with), "NULL", join_with)
     
     if(join_with == "NULL" | join_with == "genome" | join_with == "capture"){
@@ -231,52 +219,39 @@ get_gene_expression = function(these_samples_metadata,
       
       # add column `multi_exp` to inform whether there are more than one 
       # `mrna_sample_id` associated to a `sample_id`
-      expression_wider = filter(expression_wider, !is.na(mrna_sample_id)) %>% 
-        { split(.$mrna_sample_id, .$sample_id) } %>% 
-        .[lengths(.) > 1] %>% 
-        lapply(unique) %>% 
-        .[lengths(.) > 1] %>% 
-        names %>% 
-        { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
+      mark_duplicates = function(ew){
+        mutate(expression_wider, sample_seqType = paste(sample_id, seq_type)) %>% 
+          filter(!is.na(mrna_sample_id)) %>% 
+          with( split(mrna_sample_id, sample_seqType) ) %>% 
+          .[lengths(.) > 1] %>% 
+          lapply(unique) %>% 
+          .[lengths(.) > 1] %>% 
+          names %>% 
+          sub(" .+", "", .) %>% 
+          { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
+      }
+      expression_wider = mark_duplicates(expression_wider)
       
-      ### filter out duplicated expressions based on prioritize_rows_by
-      if( !missing(prioritize_rows_by) & any(expression_wider$multi_exp == 1) ){
+      # collapse duplicates if any
+      if( collapse_duplicates & any(expression_wider$multi_exp == 1) ){
+        expression_wider = group_by(expression_wider, patient_id, biopsy_id) %>% 
+          slice_max(str_detect(protocol, "Ribo"), n=1, with_ties = TRUE) %>% 
+          slice_max(ffpe_or_frozen == "frozen", n=1, with_ties = TRUE) %>% 
+          ungroup()
         
-        # take only duplicated gene expression rows and split them by sample_id
-        multi_exp_split = dplyr::filter(expression_wider, multi_exp == 1) %>% 
-          split(.$sample_id)
-        
-        # use the first vector of the `prioritize_rows_by` list for the filtering. 
-        # if any duplication remains, use the next vector, and so on.
-        multi_exp_split = lapply(multi_exp_split, function(multi_exp_split_i){
-          for(based_column in names(prioritize_rows_by)){
-            for( prioritize_this_value in prioritize_rows_by[[based_column]] ){
-              k = multi_exp_split_i[,based_column] == prioritize_this_value
-              if( any(k) ){
-                multi_exp_split_i = multi_exp_split_i[k,]
-                break
-              } # else:
-              # if there is no row with this value to prioritize, keep the rows
-              # and try the lower-priority value of the next loop.
-            }
-          }
-          # update multi_exp column
-          not_duplicated = unique(multi_exp_split_i$mrna_sample_id) %>% 
-            length %>% 
-            {. == 1}
-          if(not_duplicated){
-            multi_exp_split_i$multi_exp = 0
-          }
-          multi_exp_split_i
-        })
-        
-        # update expression_wider. this time duplicated rows fixed (for those sample 
-        # ids that was possible)
-        expression_wider = dplyr::filter(expression_wider, multi_exp == 0) %>% 
-          list %>% 
-          c(multi_exp_split) %>% 
-          bind_rows %>% 
-          arrange(sample_id, biopsy_id, patient_id, seq_type)
+        # update `multi_exp` column
+        expression_wider = mark_duplicates(expression_wider)
+      }
+      
+      # print warning message if duplications remain
+      if( any(expression_wider$multi_exp == 1) ){
+        if(collapse_duplicates){
+          k = gettextf("Although you set `collapse_duplicates = TRUE`, there are still %i rows marked as duplicates (`multi_exp` column as 1). Handle them manually.", sum(expression_wider$multi_exp))
+          warning(k)
+        }else{
+          k = gettextf("There are %i rows marked as duplicates (`multi_exp` column as 1). Set `collapse_duplicates = TRUE` to handle them.", sum(expression_wider$multi_exp))
+          warning(k)
+        }
       }
       
     }else if(join_with == "mrna"){
