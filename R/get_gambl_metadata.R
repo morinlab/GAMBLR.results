@@ -548,10 +548,11 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   
   # take `seq_type_priority` lines
   all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_priority) %>% 
-    dplyr::group_by(sample_id) %>% 
+    #dplyr::group_by(sample_id) %>% 
+    dplyr::group_by(biopsy_id) %>% 
     dplyr::slice(which.min(na_count)) %>% 
     dplyr::ungroup()
-  samples_with_priority_seq_type <- all_meta_res$sample_id
+  samples_with_priority_seq_type <- all_meta_res$biopsy_id
   
   # take mrna lines (always)
   all_meta_res <- dplyr::filter(all_meta, seq_type == "mrna") %>% 
@@ -563,10 +564,11 @@ get_gambl_metadata = function(seq_type_filter = "genome",
   # define which seq type is not priority
   seq_type_non_priotiry <- ifelse(seq_type_priority == "genome", "capture", "genome")
   # take only those lines that seq_type is not `seq_type_priority` (those were already solved)
-  all_meta <- dplyr::filter(all_meta, ! sample_id %in% samples_with_priority_seq_type)
+  all_meta <- dplyr::filter(all_meta, ! biopsy_id %in% samples_with_priority_seq_type)
   # take non-`seq_type_priority` lines
   all_meta_res <- dplyr::filter(all_meta, seq_type == seq_type_non_priotiry) %>% 
-    dplyr::group_by(sample_id) %>% 
+    #dplyr::group_by(sample_id) %>% 
+    dplyr::group_by(biopsy_id) %>% 
     dplyr::slice(which.min(na_count)) %>% 
     dplyr::ungroup() %>% 
     rbind(all_meta_res) %>% 
