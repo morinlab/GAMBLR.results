@@ -20,18 +20,15 @@
 #'   \item{protocol}{Specifies the RNA-seq library construction protocol.}
 #'   \item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}}
 #' 
-check_gene_expression = function(verbose=F){
-  # We start with the minimal metadata for all available samples in the merge.
-  # This file allows you to load the required information without loading the entire tidy expression file
-  # TODO: put this in the config and automate its generation when the main files are created so it remains up-to-date
-  onegene = paste0("/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/","vst-just_onegene.tsv")
+check_gene_expression = function(verbose=F,show_linkages=F){
+  # We start with the minimal metadata that corresponds to the tidy expression file (sample_metadata.tsv)
+  metadata_file = check_config_value(config::get("results_merged")$tidy_expression_metadata)
+  metadata_file = paste0(check_config_value(config::get("project_base")),metadata_file)
+  expression_data_rows = suppressMessages(read_tsv(metadata_file)) %>% 
+                                            dplyr::select(sample_id,tissue_status,seq_type,patient_id,biopsy_id,protocol,ffpe_or_frozen,cohort) %>%
+                                            dplyr::rename(c("mrna_sample_id"="sample_id"))
   
-  expression_data_rows = suppressMessages(read_tsv(onegene,col_select = c(mrna_sample_id,patient_id,biopsy_id,protocol,ffpe_or_frozen),progress = F)) %>% 
-    mutate(Available=TRUE) %>%
-    mutate(seq_type="mrna")
-  these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","capture"))  %>%
-    dplyr::select(sample_id, 
-                  patient_id, biopsy_id, seq_type)
+
   
   collapse_duplicates = TRUE
 
@@ -55,6 +52,10 @@ check_gene_expression = function(verbose=F){
   
   expression_data_rows = mark_duplicates_biopsy(expression_data_rows)
   
+  if(verbose){
+    now_row = nrow(expression_data_rows)
+    print(paste(now_row,"remain after collapsing on biopsy_id"))
+  }
   
   # collapse duplicates if any
   if(any(expression_data_rows$multi_exp == 1) ){
@@ -62,7 +63,7 @@ check_gene_expression = function(verbose=F){
       rows_total = filter(expression_data_rows,multi_exp==1) %>% nrow()
       unique_redundant = filter(expression_data_rows,multi_exp==1) %>% pull(biopsy_id) %>% unique()
       nid = length(unique_redundant)
-      print(paste(rows_total, "rows and ", nid, "unique biopsies are redundant, dropping redundancy"))
+      print(paste(rows_total, "LINE 74: rows corresponding to ", nid, "unique biopsies are redundant, dropping redundancy"))
       print(head(unique_redundant))
     }
     original = expression_data_rows %>% filter(!is.na(mrna_sample_id))
@@ -82,12 +83,16 @@ check_gene_expression = function(verbose=F){
   }else{
     lost = data.frame()
   }
-  expression_data_rows = filter(expression_data_rows,Available==TRUE) %>% 
-    select(-Available) %>%
-    mutate(sample_id = mrna_sample_id) %>% 
+  expression_data_rows = 
+    mutate(expression_data_rows,sample_id = mrna_sample_id) %>% 
     unique()
-
-  #join to other seq_types where possible
+  if(!show_linkages){
+    return(select(expression_data_rows,-multi_exp))
+  }
+  #Optionally join to other seq_types where possible in case a user wants to see which samples have both RNA and a source of mutations
+  these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","capture"))  %>%
+    dplyr::select(sample_id, 
+                  patient_id, biopsy_id, seq_type)
   capture_meta = dplyr::filter(these_samples_metadata,
                                seq_type=="capture",
                                patient_id %in% expression_data_rows$patient_id) %>%

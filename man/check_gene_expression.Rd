@@ -4,7 +4,7 @@
 \alias{check_gene_expression}
 \title{Check Gene Expression.}
 \usage{
-check_gene_expression(verbose = F)
+check_gene_expression(verbose = F, show_linkages = F)
 }
 \arguments{
 \item{verbose}{Set to TRUE mainly for debugging}
