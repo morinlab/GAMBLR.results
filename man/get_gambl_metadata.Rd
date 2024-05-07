@@ -144,9 +144,11 @@ only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
 
 #override default filters and request metadata for samples other than tumour genomes,
 #e.g. also get the normals
-only_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
+tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
 
-non_duplicated_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
+non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
                                                        seq_type_priority = "genome")
+                                                       
+absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
 
 }
