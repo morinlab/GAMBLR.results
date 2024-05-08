@@ -1,49 +1,25 @@
+
 #' @title Get Gene Expression.
 #'
 #' @description Get the expression for one or more genes for all GAMBL samples.
 #'
-#' @details Effectively get gene expression for one or multiple genes for all GAMBL samples.
-#' This function can also take an already loaded expression matrix (`expression_data`)
-#' to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
+#' @details Efficiently retrieve variance-stabilized and batch effect corrected gene expression values for one, multiple or all genes for all GAMBL samples.
 #' For examples and more info, refer to the parameter descriptions as well as vignette examples.
-#' The function has argument `engine`, which accepts string "read_tsv", "grep", "vroom", and "fread". This will determine the way
-#' the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
-#' Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
-#' 
-#' If `these_samples_metadata` is not provided, and `join_with` is one of `"mrna"`, `"genome"` or `"capture"`, 
-#' `get_gambl_metadata` is called internally to retrieve all samples IDs of the respective seq type. If similar 
-#' scenario but `join_with = NULL`, `get_gambl_metadata` is called to retrieve all sample IDs of all seq types.
-#' For each metadata sample, `get_gene_expression` tries to return the expression of the genes provided by the 
-#' `hugo_symbols` parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
-#' 
-#' If `join_with = "mrna"`, `get_gene_expression` retrieves the gene expression of sample IDs from the metadata 
-#' by directly matching them to mRNA sample IDs from the internal gene expression file. If `join_with` is other 
-#' than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and 
-#' biopsy IDs from the metadata and from the expression files.
-#' 
-#' The parameters `collapse_duplicates` may be used to prioritize rows and avoid duplications 
-#' in the output table. A duplication is when the a sample ID from the metadata is linked to more than one mRNA 
-#' sample ID from the internal gene expression file, hence the metadata sample ID is associated with more than one 
-#' different expression level. If `collapse_duplicates` is TRUE (the default), duplications are filtered out by
-#' first prioritizing rows where the values in the `protocol` column match (using grep) the string `"Ribo"`. If 
-#' any duplication remains, the `ffpe_or_frozen` column is used to match values to the `"frozen"` string. If a 
-#' duplication can not be handled, its rows are marked as `1` in the output `multi_exp` column and a warning 
-#' message is printed. 
+#'
+#' Warnings: 
+#'
+#' 1) The speed of loading data is heavily impacted by how many samples you load. For the sake of efficiency, be sure not to specify extraneous samples. 
+#' 2) To reduce impact on memory (RAM), load only the data for the genes you need. 
+#' 3) To get the most complete set of RNA-seq data, be sure to call get_gambl_metadata(seq_type = "mrna") otherwise it will default to genomes. 
+#' 4) Before you run this function, it's recommended that you run `check_gene_expression` to determine which samples are available  
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
-#' @param hugo_symbols One or more gene symbols.
-#' @param ensembl_gene_ids One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.
-#' @param engine Specific way to import the data into R. Defaults to "grep". Other acceptable options are "read_tsv", "vroom", and "fread".
-#' @param join_with The seq type used to join the expression data to the metadata table. Can be one of NULL (default), 
-#'   "mrna", "genome", or "capture". See the **Details** section for more information. 
-#' @param all_genes Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.
-#' @param expression_data Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).
-#' @param from_flatfile Deprecated but left here for backwards compatibility.
-#' @param collapse_duplicates A Boolean value (default is TRUE). If TRUE, duplications (as indicated by the `multi_exp`
-#'   column of the output table) are filtered out using the default row prioritization. See the **Details** section for 
-#'   more information.
+#' @param hugo_symbols One or more gene symbols. Cannot be used in conjunction with ensembl_gene_ids. 
+#' @param ensembl_gene_ids One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols. 
+#' @param all_genes Set to TRUE to return the full expression data frame without any subsetting (see warnings below). 
+#' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
 #'
-#' @return A data frame with gene expression.
+#' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
@@ -51,219 +27,150 @@
 #' @export
 #'
 #' @examples
-#' MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
+#' 
+#' # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
+#' # When tested on a gphost, this took about 4 minutes to run with the readr engine
+#' SOX11_exp_all = get_gene_expression(these_samples_metadata = 
+#'                                        get_gambl_metadata(seq_type_filter="mrna"),
+#'                                        hugo_symbols = "SOX11")
+#'                                        
+#' # Get the expression for a single gene for every sample with both RNA-seq data AND genome data in GAMBL
+#' # When tested on a gphost, this took about 2 minutes to run with the default readr engine and 11 seconds with the grep engine
+#' SOX11_exp_all = get_gene_expression(these_samples_metadata = 
+#'                                        get_gambl_metadata(seq_type_filter="genome"),
+#'                                        hugo_symbols = "SOX11",
+#'                                        engine = "grep")
+#' 
+#' # Get the expression values for the Wright gene set from every DLBCL sample with either genome or capture data in GAMBL.
+#' # When tested on a gphost, this took about 3 minutes to run with the readr engine and about a minute with the grep engine
+#' wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
+#'                                                  these_samples_metadata = get_gambl_metadata(seq_type_filter = c('genome','capture')) %>% 
+#'                                                  dplyr::filter(pathology=="DLBCL"))
 #'
-#' #Read full expression values df (no subsetting on genes)
-#' full_expression_df = get_gene_expression(all_genes = TRUE,
-#'                                          join_with = "genome")
+#' #Load the full expression values for every FL sample with no subsetting on genes
+#' # When tested on a gphost, this took about 6 minutes to run
+#' FL_expression_df = get_gene_expression(these_samples_metadata = 
+#'                                                  get_gambl_metadata(seq_type_filter="mrna") %>% 
+#'                                                      dplyr::filter(pathology=="FL"),
+#'                                                  all_genes = TRUE)
 #'
-#' #Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
-#' irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-#'                                            all_genes = FALSE,
-#'                                            join_with = "genome",
-#'                                            from_flatfile = FALSE,
-#'                                            expression_data = full_expression_df)
 #'
 get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,
-                               engine = "grep",
-                               join_with = NULL,
                                all_genes = FALSE,
-                               tidy_expression_data,
-                               from_flatfile = TRUE,
-                               collapse_duplicates = TRUE){
-  
-  # check parameters
-  if(!is.null(join_with)){
-    stopifnot("`join_with` must be one of NULL, \"mrna\", \"genome\", or \"capture\"." = 
-                join_with %in% c("mrna", "genome", "capture"))
+                               verbose=FALSE,
+                               engine="readr"){
+  if(missing(these_samples_metadata)){
+    stop("Missing these_samples_metadata. You must supply a data frame of metadata to specify which samples you want to work with. ")
   }
-  stopifnot("You must provide one of `hugo_symbols` and `ensembl_gene_ids` while `all_genes` is FALSE. Instead, you can just set `all_genes` to TRUE." = 
-              sum(!missing(hugo_symbols), !missing(ensembl_gene_ids), all_genes) == 1 )
-  stopifnot("You did not specify a valid engine. Please use one of \"read_tsv\", \"grep\", \"vroom\", or \"fread\"." = 
-              engine %in% c("read_tsv", "grep", "vroom", "fread"))
-
-  
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
   }else if(!missing(ensembl_gene_ids)){
     ensembl_gene_ids = as.character(ensembl_gene_ids)
-  }
-  
-  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
-  if(missing(these_samples_metadata)){
-    if(is.null(join_with)){
-      these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome", "capture", "mrna"), 
-                                                  only_available = FALSE)
-      
-    }else if(join_with == "mrna"){
-      these_samples_metadata = get_gambl_metadata(seq_type_filter = "mrna", only_available = FALSE)
-      
-    }else if(join_with == "genome"){
-      these_samples_metadata = get_gambl_metadata(seq_type_filter = "genome", only_available = FALSE)
-      
-    }else if(join_with == "capture"){
-      these_samples_metadata = get_gambl_metadata(seq_type_filter = "capture", only_available = FALSE)
-    }
-  }
-  
-  #tidy_expression_file = config::get("results_merged")$tidy_expression_file
-  #use combination of base path and relative path instead of full path for flexibility accross sites
-  tidy_expression_path = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_path)
-  base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  tidy_expression_file = paste0(base_path,tidy_expression_path)
-  tidy_expression_file = gsub(".gz$","",tidy_expression_file)
-  
-  #check permission and updates paths accordingly
-  permissions = file.access(tidy_expression_file, 4)
-  if(permissions == -1 ){
-    message("restricting to non-ICGC data")
-    tidy_expression_path = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_path_gambl)
-    tidy_expression_file = paste0(base_path, tidy_expression_path)
-  }
-  
-  if(!missing(tidy_expression_data)){
-    #tidy_expression_data = as.data.frame(expression_data) #is this necessary? Will it unnecessarily duplicate a large object if it's already a data frame?
-    if(!missing(hugo_symbols)){
-      #lazily filter on the fly to conserve RAM
-      wide_expression_data = tidy_expression_data %>%
-        dplyr::filter(Hugo_Symbol %in% hugo_symbols) %>%
-        dplyr::select(-ensembl_gene_id) %>%
-        group_by(mrna_sample_id,Hugo_Symbol) %>% #deal with non 1:1 mapping of Hugo to Ensembl
-        slice_head() %>%
-        as.data.frame() %>%
-        pivot_wider(names_from = Hugo_Symbol, values_from = expression)
-    }else if(!missing(ensembl_gene_ids)){
-      wide_expression_data = tidy_expression_data %>%
-        dplyr::filter(ensembl_gene_id %in% ensembl_gene_ids) %>%
-        dplyr::select(-Hugo_Symbol) %>%
-        as.data.frame() %>%
-        pivot_wider(names_from = ensembl_gene_id, values_from = expression)
-    }else{
-      
-      #for when a user wants everything. Need to handle the option of getting back Hugo_Symbol instead
-      wide_expression_data = tidy_expression_data %>%
-        dplyr::select(-Hugo_Symbol) %>%
-        as.data.frame() %>%
-        pivot_wider(names_from = ensembl_gene_id, values_from = expression)
-    }
   }else{
-    if(!file.exists(tidy_expression_file)){
-      print(paste("missing: ", tidy_expression_file))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE= "remote")')
-      check_host()
-    }
-    #only ever load the full data frame when absolutely necessary
-    if(all_genes){
-      wide_expression_data = suppressMessages(read_tsv(tidy_expression_file)) %>%
-        as.data.frame() %>%
-        pivot_wider(names_from = ensembl_gene_id, values_from = expression)
-      
-    }else{
-      # define gene ids and their type
-      if(!missing(hugo_symbols)){
-        gene_ids = hugo_symbols
-        gene_id_type = "Hugo_Symbol"
-        not_the_id_type = "ensembl_gene_id"
-      }else{
-        gene_ids = ensembl_gene_ids
-        gene_id_type = "ensembl_gene_id"
-        not_the_id_type = "Hugo_Symbol"
-      }
-      
-      # read expression data using the specified engine
-      if(engine == "read_tsv"){
-        message("Will read the data using read_tsv")
-        wide_expression_data = read_tsv(tidy_expression_file, lazy=TRUE)
-      } else if(engine == "vroom"){
-        message("Will read the data using vroom")
-        wide_expression_data = vroom::vroom(tidy_expression_file)
-      } else if(engine == "fread"){
-        message("Will read the data using fread")
-        wide_expression_data = data.table::fread(tidy_expression_file)
-      } else if(engine == "grep"){
-        message("Will read the data using grep")
-        #lazily filter on the fly to conserve RAM (use grep without regex)
-        grep_cmd = paste(gene_ids, collapse = " -e ") %>% 
-          gettextf("grep -w -F -e %s -e %s %s", gene_id_type, ., tidy_expression_file)
-        print(grep_cmd)
-        wide_expression_data = fread(cmd = grep_cmd)
-      }
-      
-      # keep only the specified genes
-      if(! engine == "grep"){
-        wide_expression_data = wide_expression_data %>% 
-          dplyr::filter(.[[gene_id_type]] %in% gene_ids)
-      }
-      
-      wide_expression_data = wide_expression_data %>%
-        dplyr::select(-all_of(not_the_id_type)) %>%
-        group_by(mrna_sample_id, !!as.symbol(gene_id_type)) %>% #deal with non 1:1 mapping of Hugo to Ensembl
-        slice_head() %>%
-        as.data.frame() %>%
-        pivot_wider(names_from = !!as.symbol(gene_id_type), values_from = expression)
+    #both are missing
+    if(!all_genes){
+      stop("You must either provide a vector of ensembl_gene_ids, hugo_symbols or explicitly set all_genes = TRUE (if you really want to load everything)")
     }
   }
   
-  # join the expression data to the sample ids of the metadata
-  if(missing(tidy_expression_data)){
-    join_with = ifelse(is.null(join_with), "NULL", join_with)
-    
-    if(join_with == "NULL" | join_with == "genome" | join_with == "capture"){
-      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, 
-                                             patient_id, biopsy_id, seq_type)
-      expression_wider = left_join(these_samples_metadata, wide_expression_data,
-                                   by = c("patient_id", "biopsy_id"))
-      
-      # add column `multi_exp` to inform whether there are more than one 
-      # `mrna_sample_id` associated to a `sample_id`
-      mark_duplicates = function(ew){
-        mutate(expression_wider, sample_seqType = paste(sample_id, seq_type)) %>% 
-          filter(!is.na(mrna_sample_id)) %>% 
-          with( split(mrna_sample_id, sample_seqType) ) %>% 
-          .[lengths(.) > 1] %>% 
-          lapply(unique) %>% 
-          .[lengths(.) > 1] %>% 
-          names %>% 
-          sub(" .+", "", .) %>% 
-          { mutate(expression_wider, multi_exp = ifelse(sample_id %in% ., 1, 0)) }
-      }
-      expression_wider = mark_duplicates(expression_wider)
-      
-      # collapse duplicates if any
-      if( collapse_duplicates & any(expression_wider$multi_exp == 1) ){
-        expression_wider = group_by(expression_wider, patient_id, biopsy_id) %>% 
-          slice_max(str_detect(protocol, "Ribo"), n=1, with_ties = TRUE) %>% 
-          slice_max(ffpe_or_frozen == "frozen", n=1, with_ties = TRUE) %>% 
-          ungroup()
-        
-        # update `multi_exp` column
-        expression_wider = mark_duplicates(expression_wider)
-      }
-      
-      # print warning message if duplications remain
-      if( any(expression_wider$multi_exp == 1) ){
-        if(collapse_duplicates){
-          k = gettextf("Although you set `collapse_duplicates = TRUE`, there are still %i rows marked as duplicates (`multi_exp` column as 1). Handle them manually.", sum(expression_wider$multi_exp))
-          warning(k)
+  sample_details = check_gene_expression() 
+  # this contains all available non-redundant RNA-seq sample_ids. 
+  # if necessary, subset it to samples in these_samples_metadata
+  # The subsetting must consider the seq_type of each row in the metadata because there are as many as 3 sample IDs
+  
+  sample_details = filter(sample_details,
+                          mrna_sample_id %in% these_samples_metadata$sample_id | 
+                          capture_sample_id %in% these_samples_metadata$sample_id |
+                          genome_sample_id %in% these_samples_metadata$sample_id)
+  if(verbose){
+    remaining_rows = nrow(sample_details)
+    message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
+  }
+  load_expression_by_samples = function(hugo_symbols,ensembl_gene_ids,samples,verbose,engine=engine){
+      split_dir = "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/split/"
+      if(engine=="grep"){
+        if(!missing(hugo_symbols)){
+          gene_ids = hugo_symbols
+        }else if(!missing(ensembl_gene_ids)){
+          gene_ids = ensembl_gene_ids
         }else{
-          k = gettextf("There are %i rows marked as duplicates (`multi_exp` column as 1). Set `collapse_duplicates = TRUE` to handle them.", sum(expression_wider$multi_exp))
-          warning(k)
+          stop("grep is only compatible with gene subsetting")
         }
+        sample_files = paste(paste0(split_dir,samples,".tsv"),collapse=" " )
+        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+          gettextf("grep -h -w -F -e %s %s", ., sample_files)
+        if(verbose){
+          print(grep_cmd)
+        }
+        
+        all_rows = fread(cmd = grep_cmd,col.names = c("ensembl_gene_id",
+                                                                  "Hugo_Symbol",
+                                                                  "mrna_sample_id",
+                                                                  "expression",
+                                                                  "patient_id",
+                                                                  "biopsy_id",
+                                                                  "protocol",
+                                                                  "ffpe_or_frozen"))
+      }else{
+        all_sample_exp = list()
+        for(sample in samples){
+          sfile = paste0(split_dir,"/",sample,".tsv")
+          if(!file.exists(sfile)){
+            stop(paste("Can't find file for",sample))
+          }
+          rows = suppressMessages(read_tsv(sfile,progress = F,
+                                         col_types = "cccncccc",
+                                         num_threads = 8,
+                                         lazy=TRUE))
+          if(!missing(hugo_symbols)){
+            rows = rows %>% 
+              filter(Hugo_Symbol %in% hugo_symbols)
+          }else if(!missing(ensembl_gene_ids)){
+            rows = rows %>% 
+              filter(ensembl_gene_id %in% ensembl_gene_ids)
+          }
+          all_sample_exp[[sample]] = rows
+          nr = nrow(all_sample_exp[[sample]] )
+          if(verbose){
+            print(paste("loading data from",sample))
+          }
+        }
+        all_rows = do.call("bind_rows",all_sample_exp)
       }
-      
-    }else if(join_with == "mrna"){
-      these_samples_metadata = dplyr::select(these_samples_metadata, sample_id, 
-                                             patient_id, biopsy_id, seq_type)
-      expression_wider = dplyr::select(wide_expression_data, -patient_id, -biopsy_id) %>% 
-        left_join(these_samples_metadata, ., by = c("sample_id" = "mrna_sample_id"))
-      
-    }
-  }else{ # expression_data is not missing
-    expression_wider = wide_expression_data
+    
+    return(all_rows)
+  }
+  if(!missing(hugo_symbols)){
+    expression_long = load_expression_by_samples(hugo_symbols=hugo_symbols,
+                                               samples=sample_details$mrna_sample_id,
+                                               verbose=verbose,
+                                               engine=engine)
+    expression_wide = pivot_wider(expression_long,
+                                  -ensembl_gene_id,
+                                  names_from="Hugo_Symbol",
+                                  values_from="expression")
+  }else if(!missing(ensembl_gene_ids)){
+    expression_long = load_expression_by_samples(ensembl_gene_ids=ensembl_gene_ids,
+                                                 samples=sample_details$mrna_sample_id,
+                                                 verbose=verbose,
+                                                 engine=engine)
+    expression_wide = pivot_wider(expression_long,
+                                  -Hugo_Symbol,
+                                  names_from="ensembl_gene_id",
+                                  values_from="expression")
+  }else{
+    expression_long = load_expression_by_samples(samples=sample_details$mrna_sample_id,
+                                                 verbose=verbose)
+    expression_wide = pivot_wider(expression_long,
+                                  -Hugo_Symbol,
+                                  names_from="ensembl_gene_id",
+                                  values_from="expression")
   }
   
-  return(expression_wider)
+  
+  expression_wide = left_join(sample_details,expression_wide)
+  
+  return(expression_wide)
 }

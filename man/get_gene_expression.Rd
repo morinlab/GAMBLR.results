@@ -8,83 +8,68 @@ get_gene_expression(
   these_samples_metadata,
   hugo_symbols,
   ensembl_gene_ids,
-  engine = "grep",
-  join_with = NULL,
   all_genes = FALSE,
-  tidy_expression_data,
-  from_flatfile = TRUE,
-  collapse_duplicates = TRUE
+  verbose = FALSE,
+  engine = "readr",
+  from_merge = TRUE
 )
 }
 \arguments{
 \item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
 
-\item{hugo_symbols}{One or more gene symbols.}
+\item{hugo_symbols}{One or more gene symbols. Cannot be used in conjunction with ensembl_gene_ids.}
 
-\item{ensembl_gene_ids}{One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.}
+\item{ensembl_gene_ids}{One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols.}
 
-\item{engine}{Specific way to import the data into R. Defaults to "grep". Other acceptable options are "read_tsv", "vroom", and "fread".}
+\item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting (see warnings below).}
 
-\item{join_with}{The seq type used to join the expression data to the metadata table. Can be one of NULL (default),
-"mrna", "genome", or "capture". See the \strong{Details} section for more information.}
-
-\item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
-
-\item{from_flatfile}{Deprecated but left here for backwards compatibility.}
-
-\item{collapse_duplicates}{A Boolean value (default is TRUE). If TRUE, duplications (as indicated by the \code{multi_exp}
-column of the output table) are filtered out using the default row prioritization. See the \strong{Details} section for
-more information.}
-
-\item{expression_data}{Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).}
+\item{engine}{Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.}
 }
 \value{
-A data frame with gene expression.
+A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested.
 }
 \description{
 Get the expression for one or more genes for all GAMBL samples.
 }
 \details{
-Effectively get gene expression for one or multiple genes for all GAMBL samples.
-This function can also take an already loaded expression matrix (\code{expression_data})
-to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
+Efficiently retrieve variance-stabilized and batch effect corrected gene expression values for one, multiple or all genes for all GAMBL samples.
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
-The function has argument \code{engine}, which accepts string "read_tsv", "grep", "vroom", and "fread". This will determine the way
-the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
-Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
 
-If \code{these_samples_metadata} is not provided, and \code{join_with} is one of \code{"mrna"}, \code{"genome"} or \code{"capture"},
-\code{get_gambl_metadata} is called internally to retrieve all samples IDs of the respective seq type. If similar
-scenario but \code{join_with = NULL}, \code{get_gambl_metadata} is called to retrieve all sample IDs of all seq types.
-For each metadata sample, \code{get_gene_expression} tries to return the expression of the genes provided by the
-\code{hugo_symbols} parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
-
-If \code{join_with = "mrna"}, \code{get_gene_expression} retrieves the gene expression of sample IDs from the metadata
-by directly matching them to mRNA sample IDs from the internal gene expression file. If \code{join_with} is other
-than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and
-biopsy IDs from the metadata and from the expression files.
-
-The parameters \code{collapse_duplicates} may be used to prioritize rows and avoid duplications
-in the output table. A duplication is when the a sample ID from the metadata is linked to more than one mRNA
-sample ID from the internal gene expression file, hence the metadata sample ID is associated with more than one
-different expression level. If \code{collapse_duplicates} is TRUE (the default), duplications are filtered out by
-first prioritizing rows where the values in the \code{protocol} column match (using grep) the string \code{"Ribo"}. If
-any duplication remains, the \code{ffpe_or_frozen} column is used to match values to the \code{"frozen"} string. If a
-duplication can not be handled, its rows are marked as \code{1} in the output \code{multi_exp} column and a warning
-message is printed.
+Warnings:
+\enumerate{
+\item The speed of loading data is heavily impacted by how many samples you load. For the sake of efficiency, be sure not to specify extraneous samples.
+\item To reduce impact on memory (RAM), load only the data for the genes you need.
+\item To get the most complete set of RNA-seq data, be sure to call get_gambl_metadata(seq_type = "mrna") otherwise it will default to genomes.
+\item Before you run this function, it's recommended that you run \code{check_gene_expression} to determine which samples are available
+}
 }
 \examples{
-MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
 
-#Read full expression values df (no subsetting on genes)
-full_expression_df = get_gene_expression(all_genes = TRUE,
-                                         join_with = "genome")
+# Get the expression for a single gene for every sample with RNA-seq data in GAMBL
+# When tested on a gphost, this took about 4 minutes to run with the readr engine
+SOX11_exp_all = get_gene_expression(these_samples_metadata = 
+                                       get_gambl_metadata(seq_type_filter="mrna"),
+                                       hugo_symbols = "SOX11")
+                                       
+# Get the expression for a single gene for every sample with both RNA-seq data AND genome data in GAMBL
+# When tested on a gphost, this took about 2 minutes to run with the default readr engine and 11 seconds with the grep engine
+SOX11_exp_all = get_gene_expression(these_samples_metadata = 
+                                       get_gambl_metadata(seq_type_filter="genome"),
+                                       hugo_symbols = "SOX11",
+                                       engine = "grep")
 
-#Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
-irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-                                           all_genes = FALSE,
-                                           join_with = "genome",
-                                           from_flatfile = FALSE,
-                                           expression_data = full_expression_df)
+# Get the expression values for the Wright gene set from every DLBCL sample with either genome or capture data in GAMBL.
+# When tested on a gphost, this took about 3 minutes to run with the readr engine and about a minute with the grep engine
+wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
+                                                 these_samples_metadata = get_gambl_metadata(seq_type_filter = c('genome','capture')) \%>\% 
+                                                 dplyr::filter(pathology=="DLBCL"))
+
+#Load the full expression values for every FL sample with no subsetting on genes
+# When tested on a gphost, this took about 6 minutes to run
+FL_expression_df = get_gene_expression(these_samples_metadata = 
+                                                 get_gambl_metadata(seq_type_filter="mrna") \%>\% 
+                                                     dplyr::filter(pathology=="FL"),
+                                                 all_genes = TRUE)
+
 
 }
