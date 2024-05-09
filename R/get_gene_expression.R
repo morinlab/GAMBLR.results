@@ -60,7 +60,8 @@ get_gene_expression = function(these_samples_metadata,
                                ensembl_gene_ids,
                                all_genes = FALSE,
                                verbose=FALSE,
-                               engine="readr"){
+                               engine="grep",
+                               from_merge=TRUE){
   if(missing(these_samples_metadata)){
     stop("Missing these_samples_metadata. You must supply a data frame of metadata to specify which samples you want to work with. ")
   }
@@ -89,7 +90,7 @@ get_gene_expression = function(these_samples_metadata,
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
   load_expression_by_samples = function(hugo_symbols,ensembl_gene_ids,samples,verbose,engine=engine){
-      split_dir = "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/split/"
+      #split_dir = "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/split/"
       if(engine=="grep"){
         if(!missing(hugo_symbols)){
           gene_ids = hugo_symbols
@@ -99,20 +100,51 @@ get_gene_expression = function(these_samples_metadata,
           stop("grep is only compatible with gene subsetting")
         }
         sample_files = paste(paste0(split_dir,samples,".tsv"),collapse=" " )
-        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
-          gettextf("grep -h -w -F -e %s %s", ., sample_files)
-        if(verbose){
-          print(grep_cmd)
-        }
+        sample_file = paste(paste0(split_dir,samples[1],".tsv"),collapse=" " )
         
-        all_rows = fread(cmd = grep_cmd,col.names = c("ensembl_gene_id",
-                                                                  "Hugo_Symbol",
-                                                                  "mrna_sample_id",
-                                                                  "expression",
-                                                                  "patient_id",
-                                                                  "biopsy_id",
-                                                                  "protocol",
-                                                                  "ffpe_or_frozen"))
+        if(from_merge){
+          
+          tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
+          tidy_expression_path = str_remove(tidy_expression_path,".gz$")
+          base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+          tidy_expression_file = paste0(base_path,tidy_expression_path)
+          grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+            gettextf("grep -h -w -F -e Hugo_Symbol -e %s %s", . , tidy_expression_file)
+          if(verbose){
+            print(grep_cmd)
+          }
+          all_rows = fread(cmd = grep_cmd,verbose = T) 
+        }else{
+          all_sample_exp = list()
+          for(sample in samples){
+            sfile = paste0(split_dir,"/",sample,".tsv")
+            grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+              gettextf("grep -h -w -e %s %s", . , sfile)
+            if(verbose){
+              #print(grep_cmd)
+              print(paste("loading data from",sample))
+            }
+            rows = fread(cmd=grep_cmd,col.names = c("ensembl_gene_id",
+                                                    "Hugo_Symbol",     
+                                                    "mrna_sample_id",  
+                                                    "expression",      
+                                                    "patient_id",     
+                                                    "biopsy_id",
+                                                    "protocol",
+                                                    "ffpe_or_frozen"))
+            
+            all_sample_exp[[sample]] = rows
+            nr = nrow(all_sample_exp[[sample]] )
+            
+          }
+          all_rows = do.call("bind_rows",all_sample_exp)
+          #grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+          #  gettextf("grep -h -w -F -e %s %s)",sample_file,., sample_files)
+          #if(verbose){
+          #  print(grep_cmd)
+          #}
+          #all_rows = fread(cmd = grep_cmd,verbose=T)
+        }
       }else{
         all_sample_exp = list()
         for(sample in samples){
