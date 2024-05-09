@@ -61,9 +61,9 @@ get_gene_expression = function(these_samples_metadata,
                                all_genes = FALSE,
                                verbose=FALSE,
                                engine="grep",
-                               from_merge=TRUE){
+                               lazy_join = FALSE){
   if(missing(these_samples_metadata)){
-    stop("Missing these_samples_metadata. You must supply a data frame of metadata to specify which samples you want to work with. ")
+    warning("Missing these_samples_metadata. Results will contain data from all available samples. ")
   }
   if(!missing(hugo_symbols)){
     hugo_symbols = as.character(hugo_symbols)
@@ -76,21 +76,23 @@ get_gene_expression = function(these_samples_metadata,
     }
   }
   
-  sample_details = check_gene_expression() 
+  sample_details = check_gene_expression(show_linkages = T) 
   # this contains all available non-redundant RNA-seq sample_ids. 
   # if necessary, subset it to samples in these_samples_metadata
   # The subsetting must consider the seq_type of each row in the metadata because there are as many as 3 sample IDs
   
-  sample_details = filter(sample_details,
-                          mrna_sample_id %in% these_samples_metadata$sample_id | 
-                          capture_sample_id %in% these_samples_metadata$sample_id |
-                          genome_sample_id %in% these_samples_metadata$sample_id)
+  if(!missing(these_samples_metadata)){
+    sample_details = filter(sample_details,
+                            mrna_sample_id %in% these_samples_metadata$sample_id | 
+                              capture_sample_id %in% these_samples_metadata$sample_id |
+                              genome_sample_id %in% these_samples_metadata$sample_id)
+  }
+  
   if(verbose){
     remaining_rows = nrow(sample_details)
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
   load_expression_by_samples = function(hugo_symbols,ensembl_gene_ids,samples,verbose,engine=engine){
-      #split_dir = "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/split/"
       if(engine=="grep"){
         if(!missing(hugo_symbols)){
           gene_ids = hugo_symbols
@@ -99,77 +101,32 @@ get_gene_expression = function(these_samples_metadata,
         }else{
           stop("grep is only compatible with gene subsetting")
         }
-        sample_files = paste(paste0(split_dir,samples,".tsv"),collapse=" " )
-        sample_file = paste(paste0(split_dir,samples[1],".tsv"),collapse=" " )
         
-        if(from_merge){
-          
-          tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
-          tidy_expression_path = str_remove(tidy_expression_path,".gz$")
-          base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-          tidy_expression_file = paste0(base_path,tidy_expression_path)
-          grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
-            gettextf("grep -h -w -F -e Hugo_Symbol -e %s %s", . , tidy_expression_file)
-          if(verbose){
-            print(grep_cmd)
-          }
-          all_rows = fread(cmd = grep_cmd,verbose = T) 
-        }else{
-          all_sample_exp = list()
-          for(sample in samples){
-            sfile = paste0(split_dir,"/",sample,".tsv")
-            grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
-              gettextf("grep -h -w -e %s %s", . , sfile)
-            if(verbose){
-              #print(grep_cmd)
-              print(paste("loading data from",sample))
-            }
-            rows = fread(cmd=grep_cmd,col.names = c("ensembl_gene_id",
-                                                    "Hugo_Symbol",     
-                                                    "mrna_sample_id",  
-                                                    "expression",      
-                                                    "patient_id",     
-                                                    "biopsy_id",
-                                                    "protocol",
-                                                    "ffpe_or_frozen"))
-            
-            all_sample_exp[[sample]] = rows
-            nr = nrow(all_sample_exp[[sample]] )
-            
-          }
-          all_rows = do.call("bind_rows",all_sample_exp)
-          #grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
-          #  gettextf("grep -h -w -F -e %s %s)",sample_file,., sample_files)
-          #if(verbose){
-          #  print(grep_cmd)
-          #}
-          #all_rows = fread(cmd = grep_cmd,verbose=T)
+        tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
+        tidy_expression_path = str_remove(tidy_expression_path,".gz$")
+        base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+        tidy_expression_file = paste0(base_path,tidy_expression_path)
+        grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
+          gettextf("grep -h -w -F -e Hugo_Symbol -e %s %s", . , tidy_expression_file)
+        if(verbose){
+          print(grep_cmd)
         }
+        all_rows = fread(cmd = grep_cmd,verbose = F) 
+        
       }else{
-        all_sample_exp = list()
-        for(sample in samples){
-          sfile = paste0(split_dir,"/",sample,".tsv")
-          if(!file.exists(sfile)){
-            stop(paste("Can't find file for",sample))
-          }
-          rows = suppressMessages(read_tsv(sfile,progress = F,
+        
+        all_rows = read_tsv(tidy_expression_file,
                                          col_types = "cccncccc",
                                          num_threads = 8,
-                                         lazy=TRUE))
+                                         lazy=TRUE)
           if(!missing(hugo_symbols)){
-            rows = rows %>% 
+            all_rows = all_rows %>% 
               filter(Hugo_Symbol %in% hugo_symbols)
           }else if(!missing(ensembl_gene_ids)){
-            rows = rows %>% 
+            all_rows = all_rows %>% 
               filter(ensembl_gene_id %in% ensembl_gene_ids)
           }
-          all_sample_exp[[sample]] = rows
-          nr = nrow(all_sample_exp[[sample]] )
-          if(verbose){
-            print(paste("loading data from",sample))
-          }
-        }
-        all_rows = do.call("bind_rows",all_sample_exp)
+
       }
     
     return(all_rows)
