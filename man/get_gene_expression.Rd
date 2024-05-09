@@ -10,7 +10,7 @@ get_gene_expression(
   ensembl_gene_ids,
   all_genes = FALSE,
   verbose = FALSE,
-  engine = "readr",
+  engine = "grep",
   from_merge = TRUE
 )
 }
