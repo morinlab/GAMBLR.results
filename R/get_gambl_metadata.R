@@ -124,7 +124,7 @@
 #'                                                        
 #' absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
 #'
-get_gambl_metadata = function(seq_type_filter = "genome",
+og_get_gambl_metadata = function(seq_type_filter = "genome",
                                tissue_status_filter = "tumour",
                                case_set,
                                remove_benchmarking = TRUE,

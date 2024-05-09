@@ -10,8 +10,7 @@ get_gene_expression(
   ensembl_gene_ids,
   all_genes = FALSE,
   verbose = FALSE,
-  engine = "readr",
-  from_merge = TRUE
+  engine = "readr"
 )
 }
 \arguments{
