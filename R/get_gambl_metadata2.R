@@ -226,8 +226,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
     if(verbose){
       message(paste("started with ",original,"rows and now have ",now))
     }
-    collapsed = select(collapsed,-priority)
-    return(collapsed)
+    #collapsed = select(collapsed,-priority)
+    return(ungroup(collapsed))
   }
   sample_meta_tumour_dna_capture = filter(sample_meta_tumour_dna,seq_type=="capture")
   
@@ -251,13 +251,13 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   sample_meta_tumour_dna_capture_kept = prioritize_metadata_column(sample_meta_tumour_dna_capture,
                                                                    seq_type,
                                                                    protocol,
-                                                                   capture_protocol_priority)
+                                                                   capture_protocol_priority) 
 
   sample_meta_tumour_dna_capture_dropped = suppressMessages(anti_join(sample_meta_tumour_dna_capture,sample_meta_tumour_dna_capture_kept)) %>% unique()
   dropped_rows[["tumour_capture"]] = sample_meta_tumour_dna_capture_dropped
   
   #prioritize across the DNA seq_types using dna_seq_type_priority paraameter
-  sample_meta_tumour_dna = bind_rows(sample_meta_tumour_dna_genome,sample_meta_tumour_dna_capture)
+  sample_meta_tumour_dna = bind_rows(sample_meta_tumour_dna_genome,sample_meta_tumour_dna_capture_kept)
   
   if(verbose){
     message(paste("prioritizing",dna_seq_type_priority, "for tumours"))
@@ -294,7 +294,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   
   
   
-  all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>% ungroup()
+  all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>% 
+    ungroup() %>% select(-priority)
   all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id")) 
   all_meta_kept = GAMBLR.utils::tidy_lymphgen(all_meta_kept,
                                          lymphgen_column_in = "lymphgen_cnv_noA53",

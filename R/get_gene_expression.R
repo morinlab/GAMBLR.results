@@ -10,42 +10,35 @@
 #'
 #' 1) The speed of loading data is heavily impacted by how many samples you load. For the sake of efficiency, be sure not to specify extraneous samples. 
 #' 2) To reduce impact on memory (RAM), load only the data for the genes you need. 
-#' 3) To get the most complete set of RNA-seq data, be sure to call get_gambl_metadata(seq_type = "mrna") otherwise it will default to genomes. 
-#' 4) Before you run this function, it's recommended that you run `check_gene_expression` to determine which samples are available  
+#' 3) Before you run this function, it's recommended that you run `check_gene_expression` to determine which samples are available  
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
 #' @param hugo_symbols One or more gene symbols. Cannot be used in conjunction with ensembl_gene_ids. 
 #' @param ensembl_gene_ids One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols. 
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting (see warnings below). 
 #' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
+#' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
+#' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
 #' @import dplyr readr tidyr
 #' @export
 #'
 #' @examples
 #' 
 #' # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
-#' # When tested on a gphost, this took about 4 minutes to run with the readr engine
-#' SOX11_exp_all = get_gene_expression(these_samples_metadata = 
-#'                                        get_gambl_metadata(seq_type_filter="mrna"),
-#'                                        hugo_symbols = "SOX11")
+#' # When tested on a gphost, this took about 45 minutes to run with the grep engine
+#' SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
 #'                                        
-#' # Get the expression for a single gene for every sample with both RNA-seq data AND genome data in GAMBL
-#' # When tested on a gphost, this took about 2 minutes to run with the default readr engine and 11 seconds with the grep engine
-#' SOX11_exp_all = get_gene_expression(these_samples_metadata = 
-#'                                        get_gambl_metadata(seq_type_filter="genome"),
-#'                                        hugo_symbols = "SOX11",
-#'                                        engine = "grep")
+#' Get the expression for a single gene for every sample wit RNA-seq data AND get all available linkages to genome/capture samples without dropping anything
+#' SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11",lazy_join=TRUE)
 #' 
 #' # Get the expression values for the Wright gene set from every DLBCL sample with either genome or capture data in GAMBL.
-#' # When tested on a gphost, this took about 3 minutes to run with the readr engine and about a minute with the grep engine
 #' wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
-#'                                                  these_samples_metadata = get_gambl_metadata(seq_type_filter = c('genome','capture')) %>% 
-#'                                                  dplyr::filter(pathology=="DLBCL"))
+#'                                                  these_samples_metadata = get_gambl_metadata() %>% 
+#'                                                  dplyr::filter(pathology=="DLBCL"),seq_type %in% c('genome','capture'))
 #'
 #' #Load the full expression values for every FL sample with no subsetting on genes
 #' # When tested on a gphost, this took about 6 minutes to run
@@ -61,7 +54,8 @@ get_gene_expression = function(these_samples_metadata,
                                all_genes = FALSE,
                                verbose=FALSE,
                                engine="grep",
-                               lazy_join = FALSE){
+                               lazy_join = FALSE,
+                               ...){
   if(missing(these_samples_metadata)){
     warning("Missing these_samples_metadata. Results will contain data from all available samples. ")
   }
@@ -75,17 +69,27 @@ get_gene_expression = function(these_samples_metadata,
       stop("You must either provide a vector of ensembl_gene_ids, hugo_symbols or explicitly set all_genes = TRUE (if you really want to load everything)")
     }
   }
+  if(lazy_join){
+    sample_details = check_gene_expression(show_linkages = T, ...) 
+  }else{
+    sample_details = check_gene_expression(show_linkages = F) 
+  }
   
-  sample_details = check_gene_expression(show_linkages = T) 
   # this contains all available non-redundant RNA-seq sample_ids. 
   # if necessary, subset it to samples in these_samples_metadata
   # The subsetting must consider the seq_type of each row in the metadata because there are as many as 3 sample IDs
   
   if(!missing(these_samples_metadata)){
-    sample_details = filter(sample_details,
-                            mrna_sample_id %in% these_samples_metadata$sample_id | 
-                              capture_sample_id %in% these_samples_metadata$sample_id |
-                              genome_sample_id %in% these_samples_metadata$sample_id)
+    original_row_num = nrow(sample_details)
+    sample_details = inner_join(select(these_samples_metadata,biopsy_id,patient_id) %>% unique(),sample_details) 
+    #filter(sample_details,
+    #                        mrna_sample_id %in% these_samples_metadata$sample_id | 
+    #                          capture_sample_id %in% these_samples_metadata$sample_id |
+    #                          genome_sample_id %in% these_samples_metadata$sample_id)
+    new_row_num = nrow(sample_details)
+    if(verbose){
+      print(paste("originally",original_row_num, "rows.", "After subsetting with the provided metadata,",new_row_num,"rows remain"))
+    }
   }
   
   if(verbose){

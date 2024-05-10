@@ -3,9 +3,10 @@
 #'
 #' @description This function determines which samples have expression data available in the merge and drop redundant data while consistently prioritizing by protocol and nucleic acid source.
 #' 
-#' 
-#' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
+#' @param show_linkages Set to TRUE to link every row to an available capture and genome sample 
+#' using get_gambl_metadata to prioritize each to at most one per biopsy_id
 #' @param verbose Set to TRUE mainly for debugging
+#' @param ... Optional parameters to pass along to get_gambl_metadata (only used if show_linkages = TRUE)
 #' 
 #' @return A data frame with a row for each non-redundant RNA-seq result and the following columns:
 #' 
@@ -20,7 +21,7 @@
 #'   \item{protocol}{Specifies the RNA-seq library construction protocol.}
 #'   \item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}}
 #' 
-check_gene_expression = function(verbose=F,show_linkages=F){
+check_gene_expression = function(verbose=F, show_linkages=F, ...){
   # We start with the minimal metadata that corresponds to the tidy expression file (sample_metadata.tsv)
   metadata_file = check_config_value(config::get("results_merged")$tidy_expression_metadata)
   metadata_file = paste0(check_config_value(config::get("project_base")),metadata_file)
@@ -90,7 +91,8 @@ check_gene_expression = function(verbose=F,show_linkages=F){
     return(select(expression_data_rows,-multi_exp))
   }
   #Optionally join to other seq_types where possible in case a user wants to see which samples have both RNA and a source of mutations
-  these_samples_metadata = get_gambl_metadata(seq_type_filter = c("genome","capture"))  %>%
+  these_samples_metadata = get_gambl_metadata(...)  %>%
+    dplyr:: filter(seq_type %in% c("genome","capture")) %>%
     dplyr::select(sample_id, 
                   patient_id, biopsy_id, seq_type)
   capture_meta = dplyr::filter(these_samples_metadata,
