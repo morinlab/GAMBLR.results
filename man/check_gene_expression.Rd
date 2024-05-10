@@ -4,12 +4,15 @@
 \alias{check_gene_expression}
 \title{Check Gene Expression.}
 \usage{
-check_gene_expression(verbose = F, show_linkages = F)
+check_gene_expression(verbose = F, show_linkages = F, ...)
 }
 \arguments{
 \item{verbose}{Set to TRUE mainly for debugging}
 
-\item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
+\item{show_linkages}{Set to TRUE to link every row to an available capture and genome sample
+using get_gambl_metadata to prioritize each to at most 1 per biopsy_id}
+
+\item{...}{Optional parameters to pass along to get_gambl_metadata (only used if show_linkages = TRUE)}
 }
 \value{
 A data frame with a row for each non-redundant RNA-seq result and the following columns:
