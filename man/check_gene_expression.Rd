@@ -10,7 +10,7 @@ check_gene_expression(verbose = F, show_linkages = F, ...)
 \item{verbose}{Set to TRUE mainly for debugging}
 
 \item{show_linkages}{Set to TRUE to link every row to an available capture and genome sample
-using get_gambl_metadata to prioritize each to at most 1 per biopsy_id}
+using get_gambl_metadata to prioritize each to at most one per biopsy_id}
 
 \item{...}{Optional parameters to pass along to get_gambl_metadata (only used if show_linkages = TRUE)}
 }
