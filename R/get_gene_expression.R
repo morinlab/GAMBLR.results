@@ -18,6 +18,7 @@
 #' @param ensembl_gene_ids One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols. 
 #' @param all_genes Set to TRUE to return the full expression data frame without any subsetting (see warnings below). 
 #' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
+#' @param format Either `wide` or `long`. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column. 
 #' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
@@ -55,6 +56,7 @@ get_gene_expression = function(these_samples_metadata,
                                all_genes = FALSE,
                                verbose=FALSE,
                                engine="grep",
+                               format="wide",
                                lazy_join = FALSE,
                                ...){
   if(missing(these_samples_metadata)){
@@ -199,7 +201,11 @@ get_gene_expression = function(these_samples_metadata,
         left_join(sample_details,.,by="sample_id")
       return(expression_wide)
     }else{
-      return(expression_wide)
+        if(format == "wide") {
+            return(expression_wide)
+            } else {
+                return(expression_long)
+            }
     }
     
   }
