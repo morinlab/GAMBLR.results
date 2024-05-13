@@ -77,7 +77,6 @@ get_gene_expression = function(these_samples_metadata,
   }
   if(verbose){
     message(paste("will attach these columns:",paste(colnames(sample_details),collapse=",")))
-    message("=============")
   }
   
   # this contains all available non-redundant RNA-seq sample_ids. 
