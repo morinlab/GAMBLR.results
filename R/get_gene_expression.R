@@ -75,6 +75,10 @@ get_gene_expression = function(these_samples_metadata,
   }else{
     sample_details = check_gene_expression(show_linkages = F) 
   }
+  if(verbose){
+    message(paste("will attach these columns:",paste(colnames(sample_details),collapse=",")))
+    message("=============")
+  }
   
   # this contains all available non-redundant RNA-seq sample_ids. 
   # if necessary, subset it to samples in these_samples_metadata
@@ -150,7 +154,7 @@ get_gene_expression = function(these_samples_metadata,
                                                verbose=verbose,
                                                engine=engine)
     expression_wide = pivot_wider(expression_long,
-                                  -ensembl_gene_id,
+                                  id_cols=-ensembl_gene_id,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
   }else if(!missing(ensembl_gene_ids)){
@@ -159,7 +163,7 @@ get_gene_expression = function(these_samples_metadata,
                                                  verbose=verbose,
                                                  engine=engine)
     expression_wide = pivot_wider(expression_long,
-                                  -Hugo_Symbol,
+                                  id_cols=-Hugo_Symbol,
                                   names_from="ensembl_gene_id",
                                   values_from="expression")
   }else{
