@@ -97,12 +97,17 @@ get_gene_expression = function(these_samples_metadata,
     remaining_rows = nrow(sample_details)
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
-  load_expression_by_samples = function(hugo_symbols,ensembl_gene_ids,samples,verbose,engine=engine,all_genes=all_genes){
+  load_expression_by_samples = function(hugo,
+                                        ensembl,
+                                        samples,
+                                        verbose,
+                                        engine=engine,
+                                        all=all_genes){
       if(engine=="grep"){
-        if(!missing(hugo_symbols)){
-          gene_ids = hugo_symbols
-        }else if(!missing(ensembl_gene_ids)){
-          gene_ids = ensembl_gene_ids
+        if(!missing(hugo)){
+          gene_ids = hugo
+        }else if(!missing(ensembl)){
+          gene_ids = ensembl
         }else{
           stop("grep is only compatible with gene subsetting")
         }
@@ -127,12 +132,12 @@ get_gene_expression = function(these_samples_metadata,
                                          col_types = "cccncccc",
                                          num_threads = 8,
                                          lazy=TRUE)
-          if(!missing(hugo_symbols)){
+          if(!missing(hugo)){
             all_rows = all_rows %>% 
-              filter(Hugo_Symbol %in% hugo_symbols)
-          }else if(!missing(ensembl_gene_ids)){
+              filter(Hugo_Symbol %in% hugo)
+          }else if(!missing(ensembl)){
             all_rows = all_rows %>% 
-              filter(ensembl_gene_id %in% ensembl_gene_ids)
+              filter(ensembl_gene_id %in% ensembl)
           }
 
       }
@@ -140,7 +145,7 @@ get_gene_expression = function(these_samples_metadata,
     return(all_rows)
   }
   if(!missing(hugo_symbols)){
-    expression_long = load_expression_by_samples(hugo_symbols=hugo_symbols,
+    expression_long = load_expression_by_samples(hugo=hugo_symbols,
                                                samples=sample_details$mrna_sample_id,
                                                verbose=verbose,
                                                engine=engine)
@@ -149,7 +154,7 @@ get_gene_expression = function(these_samples_metadata,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
   }else if(!missing(ensembl_gene_ids)){
-    expression_long = load_expression_by_samples(ensembl_gene_ids=ensembl_gene_ids,
+    expression_long = load_expression_by_samples(ensembl=ensembl_gene_ids,
                                                  samples=sample_details$mrna_sample_id,
                                                  verbose=verbose,
                                                  engine=engine)
