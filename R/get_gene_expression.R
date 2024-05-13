@@ -202,7 +202,11 @@ get_gene_expression = function(these_samples_metadata,
         left_join(sample_details,.,by="sample_id")
       return(expression_wide)
     }else{
-      return(expression_wide)
+        if(format == "wide") {
+            return(expression_wide)
+            } else {
+                return(expression_long)
+            }
     }
     
   }
