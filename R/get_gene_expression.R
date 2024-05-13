@@ -56,6 +56,7 @@ get_gene_expression = function(these_samples_metadata,
                                all_genes = FALSE,
                                verbose=FALSE,
                                engine="grep",
+                               format="wide",
                                lazy_join = FALSE,
                                ...){
   if(missing(these_samples_metadata)){
