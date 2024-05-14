@@ -71,6 +71,9 @@ get_gene_expression = function(these_samples_metadata,
     if(!all_genes){
       stop("You must either provide a vector of ensembl_gene_ids, hugo_symbols or explicitly set all_genes = TRUE (if you really want to load everything)")
     }
+    if(format == "long") {
+      stop("long format is only available when you supply a set of genes with ensembl_gene_ids or hugo_symbols")
+    }
   }
   if(lazy_join){
     sample_details = check_gene_expression(show_linkages = T, ...) 
@@ -88,10 +91,6 @@ get_gene_expression = function(these_samples_metadata,
   if(!missing(these_samples_metadata)){
     original_row_num = nrow(sample_details)
     sample_details = inner_join(select(these_samples_metadata,biopsy_id,patient_id) %>% unique(),sample_details) 
-    #filter(sample_details,
-    #                        mrna_sample_id %in% these_samples_metadata$sample_id | 
-    #                          capture_sample_id %in% these_samples_metadata$sample_id |
-    #                          genome_sample_id %in% these_samples_metadata$sample_id)
     new_row_num = nrow(sample_details)
     if(verbose){
       print(paste("originally",original_row_num, "rows.", "After subsetting with the provided metadata,",new_row_num,"rows remain"))
@@ -102,9 +101,8 @@ get_gene_expression = function(these_samples_metadata,
     remaining_rows = nrow(sample_details)
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
-  load_expression_by_samples = function(hugo,
+  load_expression = function(hugo,
                                         ensembl,
-                                        samples,
                                         verbose,
                                         engine=engine,
                                         all=all_genes){
@@ -150,31 +148,27 @@ get_gene_expression = function(these_samples_metadata,
     return(all_rows)
   }
   if(!missing(hugo_symbols)){
-    expression_long = load_expression_by_samples(hugo=hugo_symbols,
-                                               samples=sample_details$mrna_sample_id,
+    expression_long = load_expression(hugo=hugo_symbols,
                                                verbose=verbose,
-                                               engine=engine)
-    expression_wide = pivot_wider(expression_long,
+                                               engine=engine) %>%
+      left_join(sample_details,.)
+    expression_wide = filter(expression_long,!is.na(expression)) %>% 
+                               pivot_wider(.,
                                   id_cols=-ensembl_gene_id,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
   }else if(!missing(ensembl_gene_ids)){
-    expression_long = load_expression_by_samples(ensembl=ensembl_gene_ids,
-                                                 samples=sample_details$mrna_sample_id,
+    expression_long = load_expression(ensembl=ensembl_gene_ids,
                                                  verbose=verbose,
-                                                 engine=engine)
-    expression_wide = pivot_wider(expression_long,
+                                                 engine=engine) %>%
+      left_join(sample_details,.)
+    expression_wide = filter(expression_long,!is.na(expression)) %>% 
+                               pivot_wider(.,
                                   id_cols=-Hugo_Symbol,
                                   names_from="ensembl_gene_id",
                                   values_from="expression")
-  }else{
+  }else{ #all genes
     #just directly load the matrix, skipping the tidy format version and unnecessary pivoting
-    #expression_long = load_expression_by_samples(samples=sample_details$mrna_sample_id,
-    #                                             verbose=verbose,all_genes = all_genes)
-    #expression_wide = pivot_wider(expression_long,
-    #                              -Hugo_Symbol,
-    #                              names_from="ensembl_gene_id",
-    #                              values_from="expression")
     base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
     wide_expression_path = check_config_value(config::get("results_merged")$ex_matrix_path)
     wide_expression_file = paste0(base_path,wide_expression_path)
@@ -192,6 +186,7 @@ get_gene_expression = function(these_samples_metadata,
     nc = ncol(expression_wide) - 3
     message(paste("kept",nc,"columns"))
     if(lazy_join){
+     
       message("transposing, setting ensembl_gene_id as column name")
       expression_wide = select(expression_wide,-gene_id,-hgnc_symbol) %>% 
         column_to_rownames("ensembl_gene_id") %>%
@@ -201,16 +196,18 @@ get_gene_expression = function(these_samples_metadata,
         left_join(sample_details,.,by="sample_id")
       return(expression_wide)
     }else{
-        if(format == "wide") {
-            return(expression_wide)
-            } else {
-                return(expression_long)
-            }
+        return(expression_wide)
     }
-    
   }
-  
-  expression_wide = left_join(sample_details,expression_wide)
-  
-  return(expression_wide)
+  if(format == "long") {
+    #if(lazy_join){
+    #  expression_long = left_join(sample_details,expression_long,by="mrna_sample_id")  
+    #}
+    return(expression_long)
+  }else{
+    #if(lazy_join){
+    #  expression_wide = left_join(sample_details,expression_wide)  
+    #}
+    return(expression_wide)
+  }
 }
