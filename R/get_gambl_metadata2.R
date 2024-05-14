@@ -191,6 +191,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
     sample_meta_rna_dropped = suppressMessages(anti_join(sample_meta_rna,sample_subset_rna))
     sample_meta_rna_kept = suppressMessages(inner_join(sample_meta_rna,sample_subset_rna))
     dropped_rows[["mrna"]] = sample_meta_rna_dropped
+  }else{
+    sample_meta_rna_kept = sample_meta_rna
   }
   
   sample_meta_tumour_dna = sample_meta_tumour %>%
