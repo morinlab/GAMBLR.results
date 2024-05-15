@@ -57,20 +57,28 @@ Warnings:
 # When tested on a gphost, this took about 45 minutes to run with the grep engine
 SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
                                        
-Get the expression for a single gene for every sample wit RNA-seq data AND get all available linkages to genome/capture samples without dropping anything
-SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11",lazy_join=TRUE)
+Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
+my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 
-# Get the expression values for the Wright gene set from every DLBCL sample with either genome or capture data in GAMBL.
+# Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
 wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
                                                  these_samples_metadata = get_gambl_metadata() \%>\% 
-                                                 dplyr::filter(pathology=="DLBCL"),seq_type \%in\% c('genome','capture'))
+                                                 dplyr::filter(cohort=="DLBCL_DLC"),seq_type \%in\% c('genome','capture'))
 
 #Load the full expression values for every FL sample with no subsetting on genes
-# When tested on a gphost, this took about 1 minute to run
+# When tested on a gphost, this took less than a minute to run
 FL_expression_df = get_gene_expression(these_samples_metadata = 
                                                  get_gambl_metadata() \%>\% 
                                                      dplyr::filter(pathology=="FL",seq_type=="mrna"),
                                                  all_genes = TRUE)
+
+#Load the full expression table for every sample available in GAMBL (in the wide format)
+all_exp_wide = get_gene_expression(all_genes=T)
+
+#Load the full expression table for every sample available in GAMBL (in the wide format) AND lazy-join to the minimal metadata 
+# NOTE: This will transpose the matrix, which makes it significantly slower. 
+# Also, due to incomplete Hugo_Symbols, it has to use the ENSG identifiers for column names. 
+all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
 
 
 }
