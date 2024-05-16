@@ -30,6 +30,8 @@ get_gambl_metadata(
 
 \item{also_normals}{Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)}
 
+\item{everything}{Set to TRUE to include samples with \code{bam_available == FALSE}. Default: FALSE - only samples with \code{bam_available = TRUE} are retained.}
+
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
 \item{invert}{Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)}
@@ -102,19 +104,21 @@ The purpose of this function is to provide the metadata for the non-redundant se
 types of redundancy caused by samples or biopsies that have data from >1 seq_type (genome or capture), different capture protocols (exome or targeted capture) etc.
 }
 \examples{
-#basic usage
-my_metadata = get_gambl_metadata()
+# basic usage
+my_metadata <- get_gambl_metadata()
 
-#use pre-defined custom sample sets
-only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
+# use pre-defined custom sample sets
+only_blgsp_metadata <- get_gambl_metadata(case_set = "BLGSP-study")
 
-#override default filters and request metadata for samples other than tumour genomes,
-#e.g. also get the normals
-tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
+# override default filters and request metadata for samples other than tumour genomes,
+# e.g. also get the normals
+tumour_and_normal_metadata <- get_gambl_metadata(tissue_status_filter = c("tumour", "normal"))
 
-non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
-                                                       seq_type_priority = "genome")
-                                                       
-absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
+non_redundant_genome_and_capture <- get_gambl_metadata(
+  seq_type_filter = c("genome", "capture"),
+  seq_type_priority = "genome"
+)
+
+absolutely_everything <- get_gambl_metadata(seq_type_filter = c("genome", "capture", "mrna"), tissue_status_filter = c("tumour", "normal"))
 
 }
