@@ -128,7 +128,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   
   
   # We virtually always want to remove samples without bam_available == TRUE
-  if(!everything){
+  if(everything){
+    mrna_collapse_redundancy = FALSE
+  }else{
     sample_meta = dplyr::filter(sample_meta, bam_available %in% c(1, "TRUE"))
   }
   

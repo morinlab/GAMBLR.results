@@ -61,7 +61,8 @@ Get the expression for a few genes for all available samples AND get all availab
 my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 
 # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
-wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
+# This is one example where the grep engine is significantly slower than using the readr engine. This example shows the more efficient approach:
+wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(engine="readr",hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
                                                  these_samples_metadata = get_gambl_metadata() \%>\% 
                                                  dplyr::filter(cohort=="DLBCL_DLC"),seq_type \%in\% c('genome','capture'))
 

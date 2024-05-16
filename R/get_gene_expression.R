@@ -38,7 +38,8 @@
 #' my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 #' 
 #' # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
-#' wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
+#' # This is one example where the grep engine is significantly slower than using the readr engine. This example shows the more efficient approach:
+#' wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(engine="readr",hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
 #'                                                  these_samples_metadata = get_gambl_metadata() %>% 
 #'                                                  dplyr::filter(cohort=="DLBCL_DLC"),seq_type %in% c('genome','capture'))
 #'
@@ -109,24 +110,23 @@ get_gene_expression = function(these_samples_metadata,
     remaining_rows = nrow(sample_details)
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
-  load_expression = function(hugo,
-                                        ensembl,
-                                        verbose,
-                                        engine=engine,
-                                        all=all_genes){
+  load_expression = function(genes,
+                             id_type,
+                             verbose,
+                             engine=engine,
+                             all=all_genes){
+    tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
+    tidy_expression_path = str_remove(tidy_expression_path,".gz$")
+    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    tidy_expression_file = paste0(base_path,tidy_expression_path)
       if(engine=="grep"){
-        if(!missing(hugo)){
-          gene_ids = hugo
-        }else if(!missing(ensembl)){
-          gene_ids = ensembl
+        if(id_type=="hugo" || id_type == "ensembl"){
+          gene_ids = genes
         }else{
           stop("grep is only compatible with gene subsetting")
         }
         
-        tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
-        tidy_expression_path = str_remove(tidy_expression_path,".gz$")
-        base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-        tidy_expression_file = paste0(base_path,tidy_expression_path)
+       
         if(all_genes){
           stop("grep is only compatible with gene subsetting")
         }else{
@@ -136,6 +136,7 @@ get_gene_expression = function(these_samples_metadata,
             print(grep_cmd)
           }
           all_rows = fread(cmd = grep_cmd,verbose = F) 
+          
         }
       }else{
         
@@ -143,20 +144,25 @@ get_gene_expression = function(these_samples_metadata,
                                          col_types = "cccncccc",
                                          num_threads = 8,
                                          lazy=TRUE)
-          if(!missing(hugo)){
-            all_rows = all_rows %>% 
-              filter(Hugo_Symbol %in% hugo)
-          }else if(!missing(ensembl)){
-            all_rows = all_rows %>% 
-              filter(ensembl_gene_id %in% ensembl)
-          }
-
       }
-    
+      if(id_type=="hugo"){
+        if(verbose){
+          message(paste("filtering to keep only these genes",paste(genes,collapse=",")))
+        }
+        all_rows = all_rows %>% 
+            filter(Hugo_Symbol %in% genes)
+      }else if(id_type=="ensembl"){
+        if(verbose){
+          message(paste("filtering to keep only these genes",paste(genes,collapse=",")))
+        }
+        all_rows = all_rows %>% 
+            filter(ensembl_gene_id %in% genes)
+      }
     return(all_rows)
   }
   if(!missing(hugo_symbols)){
-    expression_long = load_expression(hugo=hugo_symbols,
+    expression_long = load_expression(genes=hugo_symbols,
+                                      id_type="hugo",
                                                verbose=verbose,
                                                engine=engine) %>%
       left_join(sample_details,.)
@@ -166,7 +172,8 @@ get_gene_expression = function(these_samples_metadata,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
   }else if(!missing(ensembl_gene_ids)){
-    expression_long = load_expression(ensembl=ensembl_gene_ids,
+    expression_long = load_expression(genes=ensembl_gene_ids,
+                                      id_type="ensembl",
                                                  verbose=verbose,
                                                  engine=engine) %>%
       left_join(sample_details,.)
