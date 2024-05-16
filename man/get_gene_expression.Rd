@@ -8,92 +8,78 @@ get_gene_expression(
   these_samples_metadata,
   hugo_symbols,
   ensembl_gene_ids,
-  engine = "grep",
-  join_with = NULL,
   all_genes = FALSE,
-  expression_data,
-  from_flatfile = TRUE,
-  prioritize_rows_by
+  verbose = FALSE,
+  engine = "grep",
+  format = "wide",
+  lazy_join = FALSE,
+  ...
 )
 }
 \arguments{
 \item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
 
-\item{hugo_symbols}{One or more gene symbols.}
+\item{hugo_symbols}{One or more gene symbols. Cannot be used in conjunction with ensembl_gene_ids.}
 
-\item{ensembl_gene_ids}{One or more ensembl gene IDs. Only one of hugo_symbols or ensembl_gene_ids may be used.}
+\item{ensembl_gene_ids}{One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols.}
 
-\item{engine}{Specific way to import the data into R. Defaults to "grep". Other acceptable options are "read_tsv", "vroom", and "fread".}
+\item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting (see warnings below).}
 
-\item{join_with}{The seq type used to join the expression data to the metadata table. Can be one of NULL (default),
-"mrna", "genome", or "capture". See the \strong{Details} section for more information.}
+\item{engine}{Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.}
 
-\item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting. Avoid this if you don't want to use tons of RAM.}
+\item{format}{Either \code{wide} or \code{long}. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column.}
 
-\item{expression_data}{Optional argument to use an already loaded expression data frame (prevent function to re-load full df from flat file or database).}
+\item{lazy_join}{If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See \code{check_gene_expression} for more information.}
 
-\item{from_flatfile}{Deprecated but left here for backwards compatibility.}
-
-\item{prioritize_rows_by}{A named list with one or more vectors. Provide this parameter if you want to filter out
-duplications (as indicated by the \code{multi_exp} column of the output table) by prioritizing rows based on the values
-of columns specified by this parameter. See the \strong{Details} section for more information.}
+\item{...}{Optional parameters to pass along to \code{get_gambl_metadata} (only used in conjunction with lazy_join)}
 }
 \value{
-A data frame with gene expression.
+A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested.
 }
 \description{
 Get the expression for one or more genes for all GAMBL samples.
 }
 \details{
-Effectively get gene expression for one or multiple genes for all GAMBL samples.
-This function can also take an already loaded expression matrix (\code{expression_data})
-to prevent the user from having to load the full expression matrix if this function needs to be run in an interactive session.
+Efficiently retrieve variance-stabilized and batch effect corrected gene expression values for one, multiple or all genes for all GAMBL samples.
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
-The function has argument \code{engine}, which accepts string "read_tsv", "grep", "vroom", and "fread". This will determine the way
-the data is imported into R. When testing on GSC, the grep was the fastest but with a lot of variation in the run time (anywhere between 4-10 min).
-Other engines produced similar run times (~ 7 min) on GSC, with vroom engine being the most consistent one.
 
-If \code{these_samples_metadata} is not provided, and \code{join_with} is one of \code{"mrna"}, \code{"genome"} or \code{"capture"},
-\code{get_gambl_metadata} is called internally to retrieve all samples IDs of the respective seq type. If similar
-scenario but \code{join_with = NULL}, \code{get_gambl_metadata} is called to retrieve all sample IDs of all seq types.
-For each metadata sample, \code{get_gene_expression} tries to return the expression of the genes provided by the
-\code{hugo_symbols} parameter. If a gene expression can not be retrieved for a sample, the function returns NA.
-
-If \code{join_with = "mrna"}, \code{get_gene_expression} retrieves the gene expression of sample IDs from the metadata
-by directly matching them to mRNA sample IDs from the internal gene expression file. If \code{join_with} is other
-than "mrna" (genome", "capture", or NULL), the function links the sample IDs by matching both patient and
-biopsy IDs from the metadata and from the expression files.
-
-The \code{prioritize_rows_by} parameter may be used to prioritize rows and avoid duplications in the output table.
-A duplication is when a same sample ID from the metadata is linked to more than one mRNA sample ID from the
-internal gene expression file, hence the metadata sample ID is associated to more than one different expression
-level. To filter out duplications, provide to \code{prioritize_rows_by} a named list of vectors, where a name
-specifies a column (contained in the output) and its respective vector elements refer to possible values of
-this column to be prioritized. The first values of the vector have higher prioritization. First, filtering is
-applied using the column specified by the first element of list \code{prioritize_rows_by}. If any duplication remains,
-the next element is used, and so on. This parameter is optional and if not provided, the filtering is not applied.
-If a duplication can not be solved, their rows will be marked as \code{1} in the output \code{multi_exp} column. Below is
-an example of how to set up the \code{prioritize_rows_by} parameter:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{prioritize_rows_by = list(
-  protocol = c("Strand_Specific_Transcriptome_2",
-               "Strand_Specific_Transcriptome_3"),
-  ffpe_or_frozen = "frozen"
-)
-}\if{html}{\out{</div>}}
+Warnings:
+\enumerate{
+\item The speed of loading data is heavily impacted by how many samples you load. For the sake of efficiency, be sure not to specify extraneous samples.
+\item To reduce impact on memory (RAM), load only the data for the genes you need.
+\item Combining lazy_join with all_genes will result in a data table with samples on rows and genes on columns. Use with caution. This is practically guaranteed to use more RAM than you want.
+\item Before you run this function, it's recommended that you run \code{check_gene_expression} to determine which samples are available
+}
 }
 \examples{
-MYC_expr = get_gene_expression(hugo_symbols = "MYC", join_with = "mrna")
 
-#Read full expression values df (no subsetting on genes)
-full_expression_df = get_gene_expression(all_genes = TRUE,
-                                         join_with = "genome")
+# Get the expression for a single gene for every sample with RNA-seq data in GAMBL
+# When tested on a gphost, this took about 45 minutes to run with the grep engine
+SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
+                                       
+Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
+my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 
-#Use loaded df (in the previous step) to get expression values for IRF4 and MYC.
-irf4_myc_expressions = get_gene_expression(hugo_symbols = c("IRF4", "MYC"),
-                                           all_genes = FALSE,
-                                           join_with = "genome",
-                                           from_flatfile = FALSE,
-                                           expression_data = full_expression_df)
+# Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
+# This is one example where the grep engine is significantly slower than using the readr engine. This example shows the more efficient approach:
+wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(engine="readr",hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
+                                                 these_samples_metadata = get_gambl_metadata() \%>\% 
+                                                 dplyr::filter(cohort=="DLBCL_DLC"),seq_type \%in\% c('genome','capture'))
+
+#Load the full expression values for every FL sample with no subsetting on genes
+# When tested on a gphost, this took less than a minute to run
+FL_expression_df = get_gene_expression(these_samples_metadata = 
+                                                 get_gambl_metadata() \%>\% 
+                                                     dplyr::filter(pathology=="FL",seq_type=="mrna"),
+                                                 all_genes = TRUE)
+
+#Load the full expression table for every sample available in GAMBL (in the wide format)
+all_exp_wide = get_gene_expression(all_genes=T)
+
+#Load the full expression table for every sample available in GAMBL (in the wide format) AND lazy-join to the minimal metadata 
+# NOTE: This will transpose the matrix, which makes it significantly slower. 
+# Also, due to incomplete Hugo_Symbols, it has to use the ENSG identifiers for column names. 
+all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
+
 
 }
