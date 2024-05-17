@@ -20,6 +20,7 @@
 #' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
 #' @param format Either `wide` or `long`. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column. 
 #' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
+#' @param arbitrarily_pick A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
@@ -67,6 +68,7 @@ get_gene_expression = function(these_samples_metadata,
                                engine="grep",
                                format="wide",
                                lazy_join = FALSE,
+                               arbitrarily_pick = FALSE,
                                ...){
   if(missing(these_samples_metadata)){
     warning("Missing these_samples_metadata. Results will contain data from all available samples. ")
@@ -118,7 +120,13 @@ get_gene_expression = function(these_samples_metadata,
     tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
     tidy_expression_path = str_remove(tidy_expression_path,".gz$")
     base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-    tidy_expression_file = paste0(base_path,tidy_expression_path)
+    #automatically default to file in tempfs if available
+    tidy_expression_file = "/dev/shm/vst-matrix-Hugo_Symbol_tidy.tsv"
+    if(file.exists(tidy_expression_file)){
+      message(paste("using file in tempfs:",tidy_expression_file))
+    }else{
+      tidy_expression_file = paste0(base_path,tidy_expression_path)
+    }
       if(engine=="grep"){
         if(id_type=="hugo" || id_type == "ensembl"){
           gene_ids = genes
@@ -166,11 +174,25 @@ get_gene_expression = function(these_samples_metadata,
                                                verbose=verbose,
                                                engine=engine) %>%
       left_join(sample_details,.)
-    expression_wide = filter(expression_long,!is.na(expression)) %>% 
+      if(arbitrarily_pick){
+        if(verbose){
+          message("if any hugo_symbols mapping to >1 ENSG are identified, the first one encountered will be arbitrarily used")
+        }
+        expression_wide = filter(expression_long,!is.na(expression)) %>% 
+          group_by(Hugo_Symbol,mrna_sample_id,biopsy_id,patient_id) %>% 
+          slice_head(n=1) %>%
+          pivot_wider(.,
+                      id_cols=-ensembl_gene_id,
+                      names_from="Hugo_Symbol",
+                      values_from="expression")
+      }else{
+        expression_wide = filter(expression_long,!is.na(expression)) %>% 
                                pivot_wider(.,
                                   id_cols=-ensembl_gene_id,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
+      }
+    
   }else if(!missing(ensembl_gene_ids)){
     expression_long = load_expression(genes=ensembl_gene_ids,
                                       id_type="ensembl",
