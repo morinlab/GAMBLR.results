@@ -20,13 +20,14 @@
 #'   its respective gene. If this integer is below 2 (neutral CN state for diploids), it is taken as the maximum 
 #'   (gene consider as tumor suppressor); if above 2, it is the minimum (oncogene); if equal to 2, do not consider
 #'   CNV to return status.
-#' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix.
-#'   Can be created with `get_gambl_metadata` function.
+#' @param these_sample_ids A vector of sample IDs that you want results for.
+#' @param these_samples_metadata A metadata table with sample IDs that you want results for. Can be created with 
+#'   the `get_gambl_metadata` function.
 #' @param this_seq_type The seq type to get results for. Possible values are "genome" (default) or "capture".
 #' @param only_cnv A vector of gene names indicating the genes for which only CNV status should be considered, 
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
-#' @param genome_build Reference genome build. Possible values are "grch37" (default) or "hg38".
+#' @param projection Reference genome build. Possible values are "grch37" (default) or "hg38".
 #' @param from_flatfile Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE 
 #' to use database instead. Default is TRUE.
 #' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
@@ -57,38 +58,35 @@
 #'   "BLGSP-71-21-00188-01A-04E"
 #' )
 #' 
-#' # Get sample meta data
-#' this_meta = get_gambl_metadata()
-#' this_meta = dplyr::filter(this_meta, sample_id %in% these_sample_ids)
-#' 
 #' # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 #' # return only CNV status; for CCND3 return only SSM status
 #' genes_and_cn_threshs = data.frame(
-#'   gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
-#'   cn_thresh=c(3, 3, 2, 1)
+#'   gene_id = c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
+#'   cn_thresh = c(3, 3, 2, 1)
 #' )
 #' get_cnv_and_ssm_status(
-#'   genes_and_cn_threshs,
-#'   this_meta,
+#'   genes_and_cn_threshs = genes_and_cn_threshs,
+#'   these_sample_ids = these_sample_ids,
 #'   only_cnv = "MIR17HG",
 #' )
 #' 
-#' # For all genes, return only CNV status
+#' # For all genes of interest, return only CNV status
 #' genes_and_cn_threshs = data.frame(
-#'   gene_id=c("MYC", "MIR17HG", "SYNCRIP"),
-#'   cn_thresh=c(3, 3, 1)
+#'   gene_id = c("MYC", "MIR17HG", "SYNCRIP"),
+#'   cn_thresh = c(3, 3, 1)
 #' )
 #' get_cnv_and_ssm_status(
-#'   genes_and_cn_threshs,
-#'   this_meta,
+#'   genes_and_cn_threshs = genes_and_cn_threshs,
+#'   these_sample_ids = these_sample_ids,
 #'   only_cnv = "all",
 #' )
 #' 
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,
-                                  these_samples_metadata,
+                                  these_sample_ids = NULL,
+                                  these_samples_metadata = NULL,
                                   this_seq_type = "genome",
                                   only_cnv = "none",
-                                  genome_build = "grch37",
+                                  projection = "grch37",
                                   from_flatfile = TRUE,
                                   include_hotspots = TRUE,
                                   review_hotspots = TRUE,
@@ -109,7 +107,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     }
   })
   
-  stopifnot('`genome_build` argument must be "grch37" or "hg38."' = genome_build %in% c("grch37", "hg38"))
+  stopifnot('`projection` argument must be "grch37" or "hg38."' = projection %in% c("grch37", "hg38"))
   
   stopifnot('`this_seq_type` argument must be "genome" or "capture."' = this_seq_type %in% c("genome", "capture"))
   
@@ -119,16 +117,17 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
       all(only_cnv %in% genes_and_cn_threshs$gene_id)
   })
   
-  # define variables
-  if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
-  }else{
-    these_samples_metadata = dplyr::filter(these_samples_metadata, seq_type==this_seq_type)
-  }
+  # get metadata with the dedicated helper function
+  these_samples_metadata = id_ease(
+    these_samples_metadata = these_samples_metadata,
+    these_sample_ids = these_sample_ids,
+    this_seq_type = this_seq_type,
+    verbose = FALSE
+  )
   
   # get gene regions
   my_regions = GAMBLR.utils::gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
-                                            projection = genome_build,
+                                            projection = projection,
                                             sort_regions = FALSE)
   
   if(length(my_regions) < nrow(genes_and_cn_threshs)){
@@ -189,7 +188,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   # get maf data
   my_maf = get_ssm_by_samples(
     these_samples_metadata = these_samples_metadata,
-    projection = genome_build,
+    projection = projection,
     this_seq_type = this_seq_type,
     min_read_support = min_read_support_ssm,
     these_genes = genes_to_check_ssm,
@@ -202,8 +201,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     gene_symbols = genes_to_check_ssm,
     these_samples_metadata = these_samples_metadata,
     maf_data = my_maf,
-    projection = genome_build,
-    genome_build = genome_build,
+    projection = projection,
+    genome_build = projection,
     min_read_support = min_read_support_ssm,
     from_flatfile = from_flatfile,
     include_hotspots = include_hotspots,

@@ -6,10 +6,11 @@
 \usage{
 get_cnv_and_ssm_status(
   genes_and_cn_threshs,
-  these_samples_metadata,
+  these_sample_ids = NULL,
+  these_samples_metadata = NULL,
   this_seq_type = "genome",
   only_cnv = "none",
-  genome_build = "grch37",
+  projection = "grch37",
   from_flatfile = TRUE,
   include_hotspots = TRUE,
   review_hotspots = TRUE,
@@ -26,8 +27,10 @@ its respective gene. If this integer is below 2 (neutral CN state for diploids),
 (gene consider as tumor suppressor); if above 2, it is the minimum (oncogene); if equal to 2, do not consider
 CNV to return status.}
 
-\item{these_samples_metadata}{The metadata for samples of interest to be included in the returned matrix.
-Can be created with \code{get_gambl_metadata} function.}
+\item{these_sample_ids}{A vector of sample IDs that you want results for.}
+
+\item{these_samples_metadata}{A metadata table with sample IDs that you want results for. Can be created with
+the \code{get_gambl_metadata} function.}
 
 \item{this_seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
 
@@ -35,7 +38,7 @@ Can be created with \code{get_gambl_metadata} function.}
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
 of the genes, respectively.}
 
-\item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
+\item{projection}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
 
 \item{from_flatfile}{Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE
 to use database instead. Default is TRUE.}
@@ -86,30 +89,26 @@ these_sample_ids = c(
   "BLGSP-71-21-00188-01A-04E"
 )
 
-# Get sample meta data
-this_meta = get_gambl_metadata()
-this_meta = dplyr::filter(this_meta, sample_id \%in\% these_sample_ids)
-
 # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 # return only CNV status; for CCND3 return only SSM status
 genes_and_cn_threshs = data.frame(
-  gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
-  cn_thresh=c(3, 3, 2, 1)
+  gene_id = c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
+  cn_thresh = c(3, 3, 2, 1)
 )
 get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
+  genes_and_cn_threshs = genes_and_cn_threshs,
+  these_sample_ids = these_sample_ids,
   only_cnv = "MIR17HG",
 )
 
-# For all genes, return only CNV status
+# For all genes of interest, return only CNV status
 genes_and_cn_threshs = data.frame(
-  gene_id=c("MYC", "MIR17HG", "SYNCRIP"),
-  cn_thresh=c(3, 3, 1)
+  gene_id = c("MYC", "MIR17HG", "SYNCRIP"),
+  cn_thresh = c(3, 3, 1)
 )
 get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
+  genes_and_cn_threshs = genes_and_cn_threshs,
+  these_sample_ids = these_sample_ids,
   only_cnv = "all",
 )
 
