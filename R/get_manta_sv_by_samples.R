@@ -60,7 +60,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
     dplyr::filter(need_lift == TRUE)
 
   if(nrow(to_be_lifted) > 0){
-    lifted_calls = liftover_bedpe(bedpe_df = to_be_lifted, target_build = projection)
+    lifted_calls = liftover(data_df = to_be_lifted, target_build = projection)
 
     #subset calls that does not need a "lift"
     no_lift_needed = merged_bedpe %>%

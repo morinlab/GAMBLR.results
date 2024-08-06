@@ -156,7 +156,7 @@ get_manta_sv_by_sample = function(this_sample_id,
 
   if(force_lift){
     if(bedpe_dat_raw$need_lift[1] == TRUE){
-      bedpe_dat_raw = liftover_bedpe(bedpe_df = bedpe_dat_raw, target_build = projection)
+      bedpe_dat_raw = liftover(data_df = bedpe_dat_raw, target_build = projection)
       message(paste0(this_sample_id, " flat-file is not available in the selected projection, running liftover_bedpe..."))
       message(paste0(this_sample_id, " successfully lifted to ", projection))
     }
