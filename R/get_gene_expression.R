@@ -21,6 +21,7 @@
 #' @param format Either `wide` or `long`. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column. 
 #' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
 #' @param arbitrarily_pick A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."
+#' @param HGNC When you request the wide matrix and all genes, this forces the columns to contain hgnc_id rather than ensembl_gene_id
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
@@ -60,6 +61,14 @@
 #' all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
 #'
 #'
+#' #If you want hgnc_symbol instead of Ensembl_gene_id you need to force the function to arbitrarily drop duplicates. Not ideal
+#' all_exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
+#'                                    all_genes = T,
+#'                                    lazy_join = T,
+#'                                    HGNC=TRUE,
+#'                                    arbitrarily_pick = T)
+#'
+#'
 get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,
@@ -69,6 +78,7 @@ get_gene_expression = function(these_samples_metadata,
                                format="wide",
                                lazy_join = FALSE,
                                arbitrarily_pick = FALSE,
+                               HGNC = FALSE,
                                ...){
   if(missing(these_samples_metadata)){
     warning("Missing these_samples_metadata. Results will contain data from all available samples. ")
@@ -223,14 +233,31 @@ get_gene_expression = function(these_samples_metadata,
     nc = ncol(expression_wide) - 3
     message(paste("kept",nc,"columns"))
     if(lazy_join){
-     
-      message("transposing, setting ensembl_gene_id as column name")
-      expression_wide = select(expression_wide,-gene_id,-hgnc_symbol) %>% 
-        column_to_rownames("ensembl_gene_id") %>%
-        t() %>%
-        as.data.table(keep.rownames=T) %>% 
-        dplyr::rename("sample_id"="rn") %>%
-        left_join(sample_details,.,by="sample_id")
+      if(HGNC){
+        message("transposing, setting hgnc_id as column name")
+        if(arbitrarily_pick){
+          expression_wide = expression_wide %>% 
+            group_by(hgnc_symbol) %>% 
+            slice_head(n=1) %>%
+            ungroup() %>%
+            filter(!is.na(hgnc_symbol))
+        }
+        expression_wide = select(expression_wide,-gene_id,-ensembl_gene_id) %>% 
+          column_to_rownames("hgnc_symbol") %>%
+          t() %>%
+          as.data.table(keep.rownames=T) %>% 
+          dplyr::rename("sample_id"="rn") %>%
+          left_join(sample_details,.,by="sample_id")
+      }else{
+        message("transposing, setting ensembl_gene_id as column name")
+        expression_wide = select(expression_wide,-gene_id,-hgnc_symbol) %>% 
+          column_to_rownames("ensembl_gene_id") %>%
+          t() %>%
+          as.data.table(keep.rownames=T) %>% 
+          dplyr::rename("sample_id"="rn") %>%
+          left_join(sample_details,.,by="sample_id")
+      }
+      
       return(expression_wide)
     }else{
         return(expression_wide)
