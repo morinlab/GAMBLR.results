@@ -45,6 +45,7 @@
 get_cn_states = function(regions_list,
                          regions_bed,
                          region_names,
+                         seg_data,
                          these_samples_metadata,
                          this_seq_type = "genome",
                          all_cytobands = FALSE,
@@ -56,23 +57,23 @@ get_cn_states = function(regions_list,
   }else{
     these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type==this_seq_type)
   }
+  seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
   if(all_cytobands){
     message("Currently, only grch37 is supported")
   }
   #retrieve the CN value for this region for every segment that overlaps it
   bed2region=function(x){
-    paste0(x[1], ":", as.numeric(x[2]), "-", as.numeric(x[3]))
+    paste0(x[1], ":", as.integer(x[2]), "-", as.integer(x[3]))
   }
   if(all_cytobands){
     message("Cytobands are in respect to hg19. This will take awhile but it does work, trust me!")
-    use_cytoband_name = TRUE
     regions_bed = circlize::read.cytoband(species = "hg19")$df
     colnames(regions_bed) = c("chromosome_name", "start_position", "end_position", "name", "dunno")
     if(use_cytoband_name){
       regions_bed = mutate(regions_bed, region_name = paste0(str_remove(chromosome_name, pattern = "chr"), name))
       region_names = pull(regions_bed, region_name)
     }else{
-      region_names = pull(regions_bed, region_name)
+      #region_names = pull(regions_bed, region_name)
     }
     regions = apply(regions_bed, 1, bed2region)
     #use the cytobands from the circlize package (currently hg19 but can extend to hg38 once GAMBLR handles it) Has this been updated?
@@ -85,20 +86,32 @@ get_cn_states = function(regions_list,
   }else{
     regions = regions_list
   }
-  region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
   if(missing(region_names) & !use_cytoband_name){
     region_names = regions
   }
+  if(missing(seg_data)){
+    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
+  }else{
+    #return(regions)
+    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type, weighted_average = T, seg_data = seg_data)})
+  }
+  
+  
+
   tibbled_data = tibble(region_segs, region_name = region_names)
   unnested_df = tibbled_data %>%
     unnest_longer(region_segs)
 
   seg_df = data.frame(ID = unnested_df$region_segs$ID, CN = unnested_df$region_segs$CN,region_name = unnested_df$region_name)
-  #arbitrarily take the first segment for each region/ID combination
-  seg_df = seg_df %>%
-    dplyr::group_by(ID, region_name) %>%
-    dplyr::slice(1) %>%
-    dplyr::rename("sample_id" = "ID")
+  if(missing(seg_data)){
+    #arbitrarily take the first segment for each region/ID combination
+    seg_df = seg_df %>%
+      dplyr::group_by(ID, region_name) %>%
+      dplyr::slice(1) %>%
+      dplyr::rename("sample_id" = "ID")
+  }else{
+    seg_df = dplyr::rename(seg_df,sample_id=ID) 
+  }
 
   meta_arranged = these_samples_metadata %>%
     dplyr::select(sample_id, pathology, lymphgen) %>%
@@ -116,6 +129,12 @@ get_cn_states = function(regions_list,
     column_to_rownames("sample_id")
 
   #order the regions the same way the user provided them for convenience
+  if(any(!region_names %in% colnames(cn_matrix))){
+    missing = region_names[!region_names %in% colnames(cn_matrix)]
+    nmissing = length(missing)
+    region_names = region_names[!region_names %in% missing]
+    message(paste("missing data for",nmissing,"regions"))
+  }
   cn_matrix = cn_matrix[,region_names, drop=FALSE]
 
   return(cn_matrix)
