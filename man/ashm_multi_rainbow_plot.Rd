@@ -55,21 +55,17 @@ This function will call \link{get_ssm_by_region} if \code{maf_data} is not calle
 \examples{
 library(GAMBLR.data)
 
-# get lymphgen colours
-lymphgen_colours <- GAMBLR.helpers::get_gambl_colours(classification = "lymphgen")
+#get lymphgen colours
+lymphgen_colours = GAMBLR.helpers::get_gambl_colours(classification = "lymphgen")
 
-# build plot
+#build plot
 \dontrun{
-ashm_multi_rainbow_plot(
-  regions_to_display = c(
-    "BCL2-TSS",
-    "MYC-TSS",
-    "SGK1-TSS",
-    "IGL"
-  ),
-  custom_colours = lymphgen_colours,
-  this_seq_type = "genome"
-)
+ashm_multi_rainbow_plot(regions_to_display = c("BCL2-TSS",
+                                               "MYC-TSS",
+                                               "SGK1-TSS",
+                                               "IGL"),
+                        custom_colours = lymphgen_colours,
+                        this_seq_type = "genome")
 }
 
 }
