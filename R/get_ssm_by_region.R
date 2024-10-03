@@ -71,9 +71,6 @@ get_ssm_by_region = function(chromosome,
   #duplicate the seq type variable used for glue
   seq_type = this_seq_type
 
-  #check remote connection
-  remote_session = check_remote_configuration(auto_connect = TRUE)
-
   if(mode == "strelka2"){
     message("Mode is set to strelka2. Streamlined = TRUE is hardcoded for this mode...")
     streamlined = TRUE #force streamlined to TRUE, if strelka2 output is requested.
@@ -137,9 +134,10 @@ get_ssm_by_region = function(chromosome,
     #use glue to get the absolute path
     maf_path = glue::glue(maf_partial_path)
     full_maf_path = paste0(base_path, maf_path)
-
+    
     if(mode == "slms-3"){
       full_maf_path_comp = paste0(full_maf_path, ".bgz")
+
     }else if(mode == "strelka2"){
       full_maf_path_comp = gsub('.{3}$', 'bed', full_maf_path) #do we instead want to add the exact path to the file in the config, or is this acceptable?
       full_maf_path_comp = paste0(full_maf_path_comp, ".gz")
@@ -181,94 +179,46 @@ get_ssm_by_region = function(chromosome,
 
   #use vroom on indexed maf files (if maf_data is not provided)
   if(missing(maf_data)){
-    if(from_indexed_flatfile){
-      if(remote_session){
-        if(verbose){
-          print("ssh session!")
-        }
-        #Helper function that may come in handy elsewhere so could be moved out of this function if necessary
-        run_command_remote = function(ssh_session,to_run){
-          output = ssh::ssh_exec_internal(ssh_session,to_run)$stdout
-          output = rawToChar(output)
-          return(output)
-        }
-
-        # NOTE!
-        # Retrieving mutations per region over ssh connection is only supporting the basic columns for now in an attempt to keep the transfer of unnecessary data to a minimum
-
-        remote_tabix_bin = GAMBLR.helpers::check_config_value(config::get("dependencies",config="default")$tabix)
-
-        full_maf_path_comp = paste0(base_path_remote, maf_path, ".bgz")
-        #if(!file.exists(full_maf_path_comp)){
-        #  message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-        #  message('Sys.setenv(R_CONFIG_ACTIVE= "remote")')
-        #  check_host()
-        #}else{
-        message(paste("reading from:", full_maf_path_comp))
-        #}
-        if(mode == "slms-3"){
-          tabix_command = paste("/home/rmorin/miniconda3/bin/tabix", full_maf_path_comp, region, "| cut -f", paste(maf_indexes, collapse = ","))
-        }else if(mode == "strelka2"){
-          tabix_command = paste("/home/rmorin/miniconda3/bin/tabix", full_maf_path_comp, region)
-        }
-
-        if(verbose){
-          print(tabix_command)
-        }
-
-        muts = run_command_remote(ssh_session, tabix_command)
-        muts_region = vroom::vroom(I(muts),col_types = maf_column_types, col_names = maf_columns, delim = "\t")
-
-      }else{ #(not remote)
-        #get tabix command
-        if(mode == "slms-3"){
-          tabix_command = paste(tabix_bin, full_maf_path_comp, region, "| cut -f", paste(maf_indexes, collapse = ","))
-        }else if(mode == "strelka2"){
-          tabix_command = paste(tabix_bin, full_maf_path_comp, region)
-        }
-        if(verbose){
-          print(tabix_command)
-        }
-
-        #execute the tabix command
-        muts = system(tabix_command, intern = TRUE)
-        if(verbose){
-          print(paste("TYPES:"))
-          print(maf_column_types)
-          print("NAMES:")
-          print(maf_columns)
-        }
-
-        if(length(muts)==0){
-          maf_types_sep = str_split(maf_column_types, pattern = "")[[1]] %>%
-            str_replace_all("c", "character") %>%
-            str_replace_all("i|n", "numeric")
-
-          muts_region = read.table(textConnection(""), col.names = maf_columns, colClasses = maf_types_sep)
-        }else{
-          #this is what gets executed with default parameters
-          muts_region = vroom::vroom(I(muts), col_types = paste(maf_column_types, collapse = ""), col_names = maf_columns, delim = "\t")
-        }
-
-        if(verbose){
-          print('SUCCESS')
-        }
-
-      }
-      if(augmented){
-        # drop poorly supported reads but only from augmented MAF
-        muts_region = dplyr::filter(muts_region, t_alt_count >= min_read_support)
-      }
-    }else{
-      con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
-      muts_region = dplyr::tbl(con, table_name) %>%
-        dplyr::filter(Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
-
-      muts_region = as.data.frame(muts_region)
-      DBI::dbDisconnect(con)
+    
+    #get tabix command
+    if(mode == "slms-3"){
+      tabix_command = paste(tabix_bin, full_maf_path_comp, region, "| cut -f", paste(maf_indexes, collapse = ","))
+    }else if(mode == "strelka2"){
+      tabix_command = paste(tabix_bin, full_maf_path_comp, region)
     }
+    if(verbose){
+        print(tabix_command)
+    }
+
+    #execute the tabix command
+    muts = system(tabix_command, intern = TRUE)
+    if(verbose){
+      print(paste("TYPES:"))
+      print(maf_column_types)
+      print("NAMES:")
+      print(maf_columns)
+    }
+
+    if(length(muts)==0){
+      maf_types_sep = str_split(maf_column_types, pattern = "")[[1]] %>%
+          str_replace_all("c", "character") %>%
+          str_replace_all("i|n", "numeric")
+
+      muts_region = read.table(textConnection(""), col.names = maf_columns, colClasses = maf_types_sep)
+    }else{
+      #this is what gets executed with default parameters
+      muts_region = vroom::vroom(I(muts), col_types = paste(maf_column_types, collapse = ""), col_names = maf_columns, delim = "\t")
+    }
+
+    if(verbose){
+      print('SUCCESS')
+    }
+    if(augmented){
+        # drop poorly supported reads but only from augmented MAF
+      muts_region = dplyr::filter(muts_region, t_alt_count >= min_read_support)
+    }
+  
   }else{
-    message("not using the database")
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
   }

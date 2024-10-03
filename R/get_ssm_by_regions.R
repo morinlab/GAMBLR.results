@@ -76,7 +76,9 @@ get_ssm_by_regions = function(regions_list,
   }else{
     regions = regions_list
   }
-  
+  if(verbose){
+    print(regions)
+  }
   if(missing(maf_data)){
     
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
