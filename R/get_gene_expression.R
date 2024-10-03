@@ -96,8 +96,12 @@ get_gene_expression = function(these_samples_metadata,
     remaining_rows = nrow(sample_details)
     message(paste(remaining_rows,"samples from your metadata have RNA-seq data available"))
   }
-  load_expression_by_samples = function(hugo_symbols,ensembl_gene_ids,samples,verbose,engine=engine){
-      if(engine=="grep"){
+  load_expression_by_samples = function(samples,hugo_symbols,ensembl_gene_ids,verbose,read_engine=engine){
+    tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
+    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    tidy_expression_file = paste0(base_path,tidy_expression_path)
+    print(tidy_expression_file)
+      if(read_engine=="grep"){
         if(!missing(hugo_symbols)){
           gene_ids = hugo_symbols
         }else if(!missing(ensembl_gene_ids)){
@@ -106,10 +110,7 @@ get_gene_expression = function(these_samples_metadata,
           stop("grep is only compatible with gene subsetting")
         }
         
-        tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
-        tidy_expression_path = str_remove(tidy_expression_path,".gz$")
-        base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-        tidy_expression_file = paste0(base_path,tidy_expression_path)
+        
         grep_cmd <- paste(gene_ids, collapse = " -e ") %>% 
           gettextf("grep -h -w -F -e Hugo_Symbol -e %s %s", . , tidy_expression_file)
         if(verbose){
@@ -136,29 +137,35 @@ get_gene_expression = function(these_samples_metadata,
     return(all_rows)
   }
   if(!missing(hugo_symbols)){
-    expression_long = load_expression_by_samples(hugo_symbols=hugo_symbols,
-                                               samples=sample_details$mrna_sample_id,
+    expression_long = load_expression_by_samples(sample_details$mrna_sample_id,
+                                                 hugo_symbols=hugo_symbols,
                                                verbose=verbose,
-                                               engine=engine)
+                                               read_engine=engine)
+    check_config_value(config::get("results_merged")$tidy_expression_path)
     expression_wide = pivot_wider(expression_long,
                                   -ensembl_gene_id,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
   }else if(!missing(ensembl_gene_ids)){
-    expression_long = load_expression_by_samples(ensembl_gene_ids=ensembl_gene_ids,
-                                                 samples=sample_details$mrna_sample_id,
+    expression_long = load_expression_by_samples(sample_details$mrna_sample_id,
+                                                 ensembl_gene_ids=ensembl_gene_ids,
+                                
                                                  verbose=verbose,
-                                                 engine=engine)
+                                                 read_engine=engine)
     expression_wide = pivot_wider(expression_long,
                                   -Hugo_Symbol,
                                   names_from="ensembl_gene_id",
                                   values_from="expression")
   }else{
-    expression_long = load_expression_by_samples(samples=sample_details$mrna_sample_id,
-                                                 verbose=verbose)
+    expression_long = load_expression_by_samples(sample_details$mrna_sample_id)
+    #expression_wide = pivot_wider(expression_long,
+    #                              -Hugo_Symbol,
+    #                              names_from="ensembl_gene_id",
+    #                              values_from="expression")
+    
     expression_wide = pivot_wider(expression_long,
-                                  -Hugo_Symbol,
-                                  names_from="ensembl_gene_id",
+                                  -ensembl_gene_id,
+                                  names_from="Hugo_Symbol",
                                   values_from="expression")
   }
   
