@@ -13,6 +13,7 @@
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed. 
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour) 
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
+#' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
 #' 
 #' @return A data frame with metadata for each biopsy in GAMBL
@@ -128,7 +129,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   
   
   # We virtually always want to remove samples without bam_available == TRUE
-  if(!everything){
+  if(everything){
+    mrna_collapse_redundancy = FALSE
+  }else{
     sample_meta = dplyr::filter(sample_meta, bam_available %in% c(1, "TRUE"))
   }
   
@@ -191,6 +194,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
     sample_meta_rna_dropped = suppressMessages(anti_join(sample_meta_rna,sample_subset_rna))
     sample_meta_rna_kept = suppressMessages(inner_join(sample_meta_rna,sample_subset_rna))
     dropped_rows[["mrna"]] = sample_meta_rna_dropped
+  }else{
+    sample_meta_rna_kept = sample_meta_rna
   }
   
   sample_meta_tumour_dna = sample_meta_tumour %>%

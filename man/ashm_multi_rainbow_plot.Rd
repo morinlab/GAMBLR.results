@@ -50,22 +50,26 @@ Note that for this function to work, the column names must be exactly this.
 The user also needs to specify a vector of names (\code{regions_to_display}) to further control what regions are to be displayed on the returned plot.
 It is also possible to exclude specific classifications from the metadata file. This is achieved with \code{exclude_classifications}.
 In addition the user can also use the \code{metadata} parameter to use an already subset and arranged metadata table.
-This function will call \link[GAMBLR:get_ssm_by_region]{GAMBLR::get_ssm_by_region} if \code{maf_data} is not called. For more info, refer to the parameter descriptions of this function.
+This function will call \link{get_ssm_by_region} if \code{maf_data} is not called. For more info, refer to the parameter descriptions of this function.
 }
 \examples{
 library(GAMBLR.data)
 
-#get lymphgen colours
-lymphgen_colours = GAMBLR.helpers::get_gambl_colours(classification = "lymphgen")
+# get lymphgen colours
+lymphgen_colours <- GAMBLR.helpers::get_gambl_colours(classification = "lymphgen")
 
-#build plot
+# build plot
 \dontrun{
-ashm_multi_rainbow_plot(regions_to_display = c("BCL2-TSS",
-                                               "MYC-TSS",
-                                               "SGK1-TSS",
-                                               "IGL"),
-                        custom_colours = lymphgen_colours,
-                        this_seq_type = "genome")
+ashm_multi_rainbow_plot(
+  regions_to_display = c(
+    "BCL2-TSS",
+    "MYC-TSS",
+    "SGK1-TSS",
+    "IGL"
+  ),
+  custom_colours = lymphgen_colours,
+  this_seq_type = "genome"
+)
 }
 
 }

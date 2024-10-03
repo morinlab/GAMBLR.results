@@ -10,6 +10,7 @@
 #' 
 #' @return A data frame with a row for each non-redundant RNA-seq result and the following columns:
 #' 
+#'
 #' \describe{
 #'   \item{mrna_sample_id}{The unique sample_id value that will match a single row from the GAMBL metadata where seq_type is mrna. }
 #'   \item{biopsy_id}{The unique identifier for the source of nucleic acids.}
@@ -19,8 +20,11 @@
 #'   \item{patient_id}{The anonymized unique identifier for this patient. For BC samples, this will be Res ID.}
 #'   \item{seq_type}{The assay type used to produce this data (will always be "mrna" in this case)}
 #'   \item{protocol}{Specifies the RNA-seq library construction protocol.}
-#'   \item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}}
-#' 
+#'   \item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}
+#'   }
+#'   
+#' @export
+#'
 check_gene_expression = function(verbose=F, show_linkages=F, ...){
   # We start with the minimal metadata that corresponds to the tidy expression file (sample_metadata.tsv)
   metadata_file = check_config_value(config::get("results_merged")$tidy_expression_metadata)

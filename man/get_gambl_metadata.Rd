@@ -30,6 +30,8 @@ get_gambl_metadata(
 
 \item{also_normals}{Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)}
 
+\item{everything}{Set to TRUE to include samples with \code{bam_available == FALSE}. Default: FALSE - only samples with \code{bam_available = TRUE} are retained.}
+
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
 \item{invert}{Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)}

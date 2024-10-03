@@ -26,7 +26,8 @@ A data frame with a row for each non-redundant RNA-seq result and the following 
 \item{patient_id}{The anonymized unique identifier for this patient. For BC samples, this will be Res ID.}
 \item{seq_type}{The assay type used to produce this data (will always be "mrna" in this case)}
 \item{protocol}{Specifies the RNA-seq library construction protocol.}
-\item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}}
+\item{ffpe_or_frozen}{Specifies the way the source of nucleic acids was preserved. Either FFPE or frozen.}
+}
 }
 \description{
 This function determines which samples have expression data available in the merge and drop redundant data while consistently prioritizing by protocol and nucleic acid source.

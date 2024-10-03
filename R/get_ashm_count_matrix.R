@@ -45,6 +45,9 @@ get_ashm_count_matrix = function(
         this_seq_type <- these_samples_metadata %>%
             pull(seq_type) %>%
             unique()
+        if(length(this_seq_type)>1){
+          stop("Error: more than one seq_type was present in the metadata provided")
+        }
     }
 
     if(missing(regions_bed)){
@@ -59,7 +62,8 @@ get_ashm_count_matrix = function(
         regions_bed = regions_bed,
         streamlined = TRUE,
         maf_data = maf_data,
-        use_name_column = TRUE
+        use_name_column = TRUE,
+        these_samples_metadata=these_samples_metadata
     )
 
     ashm_counted <- ashm_maf %>%

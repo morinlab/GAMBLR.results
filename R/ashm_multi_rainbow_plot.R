@@ -7,7 +7,7 @@
 #' The user also needs to specify a vector of names (`regions_to_display`) to further control what regions are to be displayed on the returned plot.
 #' It is also possible to exclude specific classifications from the metadata file. This is achieved with `exclude_classifications`.
 #' In addition the user can also use the `metadata` parameter to use an already subset and arranged metadata table.
-#' This function will call [GAMBLR::get_ssm_by_region] if `maf_data` is not called. For more info, refer to the parameter descriptions of this function.
+#' This function will call [GAMBLR.results::get_ssm_by_region] if `maf_data` is not called. For more info, refer to the parameter descriptions of this function.
 #'
 #' @param regions_bed Bed file with chromosome coordinates, should contain columns chr, start, end, name (with these exact names). Not required if selecting from many common regions; bonus regions also exist in grch37.
 #' @param regions_to_display Optional vector of names from default regions_bed to use.
