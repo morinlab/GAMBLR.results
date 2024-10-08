@@ -14,11 +14,13 @@
 #' @param qstart Start coordinate of the range you are restricting to. Required parameter if region is not specified.
 #' @param qend End coordinate of the range you are restricting to. Required parameter if region is not specified.
 #' @param projection Selected genome projection for returned CN segments. Default is "grch37".
+#' @param weighted_average Enable a more accurate estimation of the copy number for a region that uses a weighted average of all overlapping/contained segments.
 #' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
 #' @param with_chr_prefix Boolean parameter for toggling if chr prefixes should be present in the return, default is FALSE.
 #' @param streamlined Return a basic rather than full MAF format. Default is FALSE.
 #' @param from_flatfile Set to TRUE by default.
 #' @param these_samples_metadata Provide a metadata table to restrict the data to the samples in your table
+#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #'
 #' @return A data frame with CN segments for the specified region.
 #'
@@ -56,9 +58,6 @@ get_cn_segments = function(region,
                            from_flatfile = TRUE,
                            these_samples_metadata){
 
-  #checks
-  remote_session = check_remote_configuration(auto_connect = TRUE)
-  
   
   #get wildcards from this_seq_type (lazy)
   seq_type = this_seq_type

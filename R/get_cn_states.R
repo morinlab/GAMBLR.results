@@ -12,12 +12,14 @@
 #' @param these_samples_metadata A metadata table to auto-subset the data to samples in that table before returning.
 #' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
 #' @param all_cytobands Include all cytobands, default is set to FALSE. Currently only supports hg19.
+#' @param n_bins_split Split genome into N equally sized bins
 #' @param use_cytoband_name Use cytoband names instead of region names, e.g p36.33.
 #' @param missing_data_as_diploid Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.
+#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #'
 #' @return Copy number matrix.
 #'
-#' @import dplyr circlize tibble stringr tidyr
+#' @import dplyr circlize tibble stringr tidyr GenomicDistributions
 #' @export
 #'
 #' @examples
@@ -50,14 +52,15 @@ get_cn_states = function(regions_list,
                          this_seq_type = "genome",
                          all_cytobands = FALSE,
                          use_cytoband_name = FALSE,
-                         missing_data_as_diploid = FALSE){
+                         missing_data_as_diploid = FALSE,
+                         n_bins_split){
 
   if(missing(these_samples_metadata)){
     these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
   }else{
     these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type==this_seq_type)
   }
-  seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
+  
   if(all_cytobands){
     message("Currently, only grch37 is supported")
   }
@@ -77,6 +80,10 @@ get_cn_states = function(regions_list,
     }
     regions = apply(regions_bed, 1, bed2region)
     #use the cytobands from the circlize package (currently hg19 but can extend to hg38 once GAMBLR handles it) Has this been updated?
+  }else if(!missing(n_bins_split)){
+    all_len = circlize::read.chromInfo()$chr.len
+    bin_df = GenomicDistributions::binChroms(binCount = n_bins_split,chromSizes=all_len[c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX")])
+    regions = apply(bin_df, 1, bed2region)
   }else if(missing(regions_list)){
     if(!missing(regions_bed)){
       regions = apply(regions_bed, 1, bed2region)
@@ -92,12 +99,9 @@ get_cn_states = function(regions_list,
   if(missing(seg_data)){
     region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
   }else{
-    #return(regions)
+    seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
     region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type, weighted_average = T, seg_data = seg_data)})
   }
-  
-  
-
   tibbled_data = tibble(region_segs, region_name = region_names)
   unnested_df = tibbled_data %>%
     unnest_longer(region_segs)
