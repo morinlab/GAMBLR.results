@@ -8,7 +8,6 @@
 #' Lastly, `p_thresh` sets the p value threshold, default is 0.05.
 #'
 #' @param mutation_maf A data frame in MAF format.
-#' @param this_genome_build Specify the genome build for the MAF provided
 #' @param recurrence_min minimum number of recurrences for mutation to be included, default is 5.
 #' @param analysis_base Base name for hot spot output directory.
 #' @param p_thresh P value threshold, default is 0.05.
@@ -27,7 +26,6 @@
 #' hot_ssms = annotate_hotspots(all_coding_ssm)
 #'
 annotate_hotspots = function(mutation_maf,
-                             this_genome_build = "grch37",
                              recurrence_min = 5,
                              analysis_base = c("FL--DLBCL", "BL--DLBCL"),
                              p_thresh = 0.05){

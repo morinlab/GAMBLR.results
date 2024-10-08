@@ -30,6 +30,10 @@ get_cn_segments(
 
 \item{projection}{Selected genome projection for returned CN segments. Default is "grch37".}
 
+\item{weighted_average}{Enable a more accurate estimation of the copy number for a region that uses a weighted average of all overlapping/contained segments.}
+
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+
 \item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
 
 \item{with_chr_prefix}{Boolean parameter for toggling if chr prefixes should be present in the return, default is FALSE.}

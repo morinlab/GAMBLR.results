@@ -6,7 +6,6 @@
 \usage{
 annotate_hotspots(
   mutation_maf,
-  this_genome_build = "grch37",
   recurrence_min = 5,
   analysis_base = c("FL--DLBCL", "BL--DLBCL"),
   p_thresh = 0.05
@@ -14,8 +13,6 @@ annotate_hotspots(
 }
 \arguments{
 \item{mutation_maf}{A data frame in MAF format.}
-
-\item{this_genome_build}{Specify the genome build for the MAF provided}
 
 \item{recurrence_min}{minimum number of recurrences for mutation to be included, default is 5.}
 
