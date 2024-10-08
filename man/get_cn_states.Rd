@@ -8,11 +8,13 @@ get_cn_states(
   regions_list,
   regions_bed,
   region_names,
+  seg_data,
   these_samples_metadata,
   this_seq_type = "genome",
   all_cytobands = FALSE,
   use_cytoband_name = FALSE,
-  missing_data_as_diploid = FALSE
+  missing_data_as_diploid = FALSE,
+  n_bins_split
 )
 }
 \arguments{
@@ -21,6 +23,8 @@ get_cn_states(
 \item{regions_bed}{A bed file with one row for each region you want to determine the CN state from.}
 
 \item{region_names}{Subset CN states on specific regions (gene symbols e.g FCGR2B).}
+
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
 
 \item{these_samples_metadata}{A metadata table to auto-subset the data to samples in that table before returning.}
 
@@ -31,6 +35,8 @@ get_cn_states(
 \item{use_cytoband_name}{Use cytoband names instead of region names, e.g p36.33.}
 
 \item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
+
+\item{n_bins_split}{Split genome into N equally sized bins}
 }
 \value{
 Copy number matrix.

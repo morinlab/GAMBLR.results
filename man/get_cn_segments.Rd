@@ -10,10 +10,13 @@ get_cn_segments(
   qstart,
   qend,
   projection = "grch37",
+  weighted_average = FALSE,
+  seg_data,
   this_seq_type = "genome",
   with_chr_prefix = FALSE,
   streamlined = FALSE,
-  from_flatfile = TRUE
+  from_flatfile = TRUE,
+  these_samples_metadata
 )
 }
 \arguments{
@@ -27,6 +30,10 @@ get_cn_segments(
 
 \item{projection}{Selected genome projection for returned CN segments. Default is "grch37".}
 
+\item{weighted_average}{Enable a more accurate estimation of the copy number for a region that uses a weighted average of all overlapping/contained segments.}
+
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+
 \item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
 
 \item{with_chr_prefix}{Boolean parameter for toggling if chr prefixes should be present in the return, default is FALSE.}
@@ -34,6 +41,8 @@ get_cn_segments(
 \item{streamlined}{Return a basic rather than full MAF format. Default is FALSE.}
 
 \item{from_flatfile}{Set to TRUE by default.}
+
+\item{these_samples_metadata}{Provide a metadata table to restrict the data to the samples in your table}
 }
 \value{
 A data frame with CN segments for the specified region.
@@ -42,7 +51,7 @@ A data frame with CN segments for the specified region.
 Retrieve all copy number segments from the GAMBL database that overlap with a single genomic coordinate range.
 }
 \details{
-This function returns CN segments for s specified region.
+This function returns CN segments for s specified region, chromosome, or with no filtering on region (i.e. everything).
 There are multiple ways a region can be specified.
 For example, the user can provide the full region in a "region" format (chr:start-end) to the \code{region} parameter.
 Or, the user can provide chromosome, start and end coordinates individually with \code{chr}, \code{start}, and \code{end} parameters.
