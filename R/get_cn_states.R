@@ -53,14 +53,21 @@ get_cn_states = function(regions_list,
                          all_cytobands = FALSE,
                          use_cytoband_name = FALSE,
                          missing_data_as_diploid = FALSE,
-                         n_bins_split){
+                         n_bins_split,
+                         adjust_for_ploidy=FALSE){
 
   if(missing(these_samples_metadata)){
     these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
   }else{
     these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type==this_seq_type)
   }
-  
+  if(adjust_for_ploidy & !missing(seg_data)){
+   
+    seg_data = mutate(seg_data,size=end-start,CN=ifelse(CN>5,5,CN),weighted = CN*size) %>% 
+      group_by(ID) %>% mutate(average=sum(weighted)/sum(size)) %>% 
+      mutate(CN=round(CN-average+2))
+    
+  }
   if(all_cytobands){
     message("Currently, only grch37 is supported")
   }
@@ -100,6 +107,7 @@ get_cn_states = function(regions_list,
     region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
   }else{
     seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
+
     region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type, weighted_average = T, seg_data = seg_data)})
   }
   tibbled_data = tibble(region_segs, region_name = region_names)

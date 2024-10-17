@@ -95,6 +95,7 @@ get_cn_segments = function(region,
   }
   
   if(!missing(seg_data)){
+
     #work directly from the data provided
     all_segs = 
       dplyr::filter(seg_data, (chrom == chromosome & start >= qstart & start <= qend)|
@@ -102,13 +103,13 @@ get_cn_segments = function(region,
                                (chrom == chromosome & end > qend & start < qstart)) %>%
       mutate(start=ifelse(start < qstart,qstart,start),end=ifelse(end>qend,qend,end)) %>% 
       mutate(length=end-start)
+    
     all_segs = all_segs %>% mutate(CN_L = length * CN,logr_L = length*log.ratio) 
     if(weighted_average){
       all_segs = all_segs %>% 
         group_by(ID) %>%
         summarise(total_L = sum(length), log.ratio = sum(logr_L)/sum(length), 
-                  CN = sum(CN_L)/sum(length)) %>% ungroup() %>%
-        mutate(CN=round(2*2^log.ratio,2))
+                  CN = sum(CN_L)/sum(length)) %>% ungroup() 
       
     }else{
       all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
@@ -126,6 +127,7 @@ get_cn_segments = function(region,
     #check permissions to ICGC data.
     permissions = file.access(full_cnv_path, 4)
     if(permissions == -1){
+      message(paste("failed loading from",full_cnv_path))
       message("restricting to non-ICGC data")
       cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
       cnv_path =  glue::glue(cnv_flatfile_template)

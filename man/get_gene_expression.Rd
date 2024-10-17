@@ -60,10 +60,10 @@ Warnings:
 \examples{
 
 # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
-# When tested on a gphost, this took about 45 minutes to run with the grep engine
+# This uses the default (grep) engine, which may be intolerably slow on some systems
 SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
                                        
-Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
+# Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
 my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 
 # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
