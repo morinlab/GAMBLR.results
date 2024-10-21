@@ -10,7 +10,7 @@ get_cn_states(
   region_names,
   seg_data,
   these_samples_metadata,
-  this_seq_type = "genome",
+  this_seq_type,
   all_cytobands = FALSE,
   use_cytoband_name = FALSE,
   missing_data_as_diploid = FALSE,
