@@ -15,7 +15,7 @@
 #' @param with_chr_prefix Prepend all chromosome names with chr (required by some downstream analyses). Default is FALSE.
 #' @param projection The projection genome build. Default is "grch37".
 #' @param oncogenes A character vector of genes commonly involved in translocations. Possible values: CCND1, CIITA, SOCS1, BCL2, RFTN1, BCL6, MYC, PAX5.
-#'
+#' @param region Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
 #' @import config dplyr readr stringr GAMBLR.helpers
@@ -28,8 +28,17 @@ get_combined_sv = function(min_vaf = 0,
                            these_sample_ids,
                            with_chr_prefix = FALSE,
                            projection = "grch37",
-                           oncogenes){
-
+                           oncogenes,
+                           region){
+  if(!missing(region)){
+    region = gsub(",", "", region)
+    split_chunks = unlist(strsplit(region, ":"))
+    chromosome = split_chunks[1]
+    startend = unlist(strsplit(split_chunks[2], "-"))
+    qstart = startend[1]
+    qend = startend[2]
+  }
+  
   base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
   sv_file = GAMBLR.helpers::check_config_value(config::get()$results_flatfiles$sv_combined$icgc_dart)
   if(projection == "hg38"){
@@ -71,7 +80,21 @@ get_combined_sv = function(min_vaf = 0,
     all_sv = all_sv %>%
       dplyr::mutate(CHROM_B = case_when(str_detect(CHROM_B, "chr") ~ CHROM_B, TRUE ~ paste0("chr", CHROM_B)))
   }
-
+  #deal with chr prefixes based on the selected projection (if return is to be subset to regions...)
+  if(!missing(region)){
+    if(projection == "grch37"){
+      if(grepl("chr", chromosome)){
+        chromosome = gsub("chr", "", chromosome)
+      }
+    }else if(projection == "hg38"){
+      if(!grepl("chr", chromosome)){
+        chromosome = paste0("chr", chromosome)
+      }
+    }
+    all_sv = all_sv %>%
+      dplyr::filter((CHROM_A == chromosome & START_A >= qstart & START_A <= qend) | (CHROM_B == chromosome & START_B >= qstart & START_B <= qend))
+  }
+  
   all_sv = all_sv %>%
       mutate(FILTER = "PASS") #i.e all variants returned with get_combined_sv() all have PASS in the FILTER column.
 
