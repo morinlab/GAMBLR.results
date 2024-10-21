@@ -29,7 +29,7 @@ collate_nfkbiz_results = function(sample_table,
     pull(Tumor_Sample_Barcode) %>%
     unique
   if(seq_type_filter=="genome"){
-    nfkbiz_sv = get_manta_sv(region = this_region) %>%
+    nfkbiz_sv = get_combined_sv(region = this_region) %>%
       pull(tumour_sample_id) %>%
       unique
     nfkbiz = unique(c(nfkbiz_ssm, nfkbiz_sv))
