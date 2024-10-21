@@ -52,17 +52,15 @@ get_cn_segments = function(region,
                            projection = "grch37",
                            weighted_average=FALSE,
                            seg_data,
-                           this_seq_type = "genome",
+                           this_seq_type,
                            with_chr_prefix = FALSE,
                            streamlined = FALSE,
                            from_flatfile = TRUE,
                            these_samples_metadata){
 
   
-  #get wildcards from this_seq_type (lazy)
-  seq_type = this_seq_type
-  if(!missing(these_samples_metadata)){
-    these_samples = filter(these_samples_metadata,seq_type == this_seq_type) %>% pull(sample_id)
+  if(!missing(this_seq_type)){
+    message("this_seq_type has been deprecated in get_cn_segments")
   }
   #perform wrangling on the region to have it in the correct format.
   if(!missing(region)){
