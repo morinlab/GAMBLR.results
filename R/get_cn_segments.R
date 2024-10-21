@@ -62,6 +62,15 @@ get_cn_segments = function(region,
   if(!missing(this_seq_type)){
     message("this_seq_type has been deprecated in get_cn_segments")
   }
+  if(missing(these_samples_metadata) & missing(seg_data)){
+      message("no metadata provided, will get segments for every genome and capture sample")
+      these_samples_metadata = get_gambl_metadata() %>% filter(seq_type %in% c("genome","capture"))
+      seq_type = pull(these_samples_metadata,seq_type) %>% unique()
+  }else if(!missing(these_samples_metadata)){
+    seq_type = pull(these_samples_metadata,seq_type) %>% unique()
+  }
+  
+  
   #perform wrangling on the region to have it in the correct format.
   if(!missing(region)){
     region = gsub(",", "", region)
@@ -123,9 +132,9 @@ get_cn_segments = function(region,
     full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
 
     #check permissions to ICGC data.
-    permissions = file.access(full_cnv_path, 4)
+    permissions = file.access(full_cnv_path[1], 4)
     if(permissions == -1){
-      message(paste("failed loading from",full_cnv_path))
+      message(paste("failed loading from",full_cnv_path[1]))
       message("restricting to non-ICGC data")
       cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
       cnv_path =  glue::glue(cnv_flatfile_template)
@@ -133,23 +142,24 @@ get_cn_segments = function(region,
     }
 
     #check for missingness.
-    if(!file.exists(full_cnv_path)){
-      print(paste("missing: ", full_cnv_path))
+    if(!file.exists(full_cnv_path[1])){
+      print(paste("missing: ", full_cnv_path[1]))
       message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
+    df_list <- map(full_cnv_path, read_tsv)
+    all_segs = bind_rows(df_list) %>%  as.data.frame()
     if(missing(qstart) & missing(qend) & missing(region)){
       if(missing(chromosome)){
-        all_segs = suppressMessages(read_tsv(full_cnv_path)) %>% as.data.frame()
+
       }else{
-        all_segs = suppressMessages(read_tsv(full_cnv_path)) %>%
-          dplyr::filter(chrom == chromosome) %>% as.data.frame()
+        all_segs = all_segs %>%
+          dplyr::filter(chrom == chromosome) 
       }
     }
     else{
-      all_segs = suppressMessages(read_tsv(full_cnv_path)) %>%
-        dplyr::filter((chrom == chromosome & start <= qstart & end >= qend) | (chrom == chromosome & start >= qstart & end <= qend)) %>%
-        as.data.frame()
+      all_segs = all_segs %>%
+        dplyr::filter((chrom == chromosome & start <= qstart & end >= qend) | (chrom == chromosome & start >= qstart & end <= qend)) 
     }
     
     all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
@@ -176,6 +186,7 @@ get_cn_segments = function(region,
     all_segs = dplyr::select(all_segs, ID, CN)
   }
   if(!missing(these_samples_metadata)){
+    these_samples = pull(these_samples_metadata,sample_id)
     all_segs = dplyr::filter(all_segs,ID %in% these_samples)
   }
   #return data frame with CN segments
