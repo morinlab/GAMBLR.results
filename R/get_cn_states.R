@@ -49,7 +49,7 @@ get_cn_states = function(regions_list,
                          region_names,
                          seg_data,
                          these_samples_metadata,
-                         this_seq_type = "genome",
+                         this_seq_type,
                          all_cytobands = FALSE,
                          use_cytoband_name = FALSE,
                          missing_data_as_diploid = FALSE,
@@ -57,9 +57,17 @@ get_cn_states = function(regions_list,
                          adjust_for_ploidy=FALSE){
 
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
-  }else{
-    these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type==this_seq_type)
+    if(missing(this_seq_type) & missing(seg_data)){
+      stop("provide either seg_data, seq_type or these_samples_metadata")
+    }else{
+      if(missing(this_seq_type)){
+        stop("provide either seg_data, seq_type or these_samples_metadata")
+      }else{
+         these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
+      }
+      
+    }
+    
   }
   if(adjust_for_ploidy & !missing(seg_data)){
    
@@ -107,8 +115,8 @@ get_cn_states = function(regions_list,
     region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
   }else{
     seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
-
-    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type, weighted_average = T, seg_data = seg_data)})
+    
+    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, weighted_average = T, seg_data = seg_data)})
   }
   tibbled_data = tibble(region_segs, region_name = region_names)
   unnested_df = tibbled_data %>%
