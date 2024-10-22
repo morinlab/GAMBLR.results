@@ -306,6 +306,21 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                          lymphgen_column_in = "lymphgen_cnv_noA53",
                                          lymphgen_column_out = "lymphgen",
                                          relevel=TRUE)
+  
+  sample_meta_normal_dna_rna_kept = bind_rows(sample_meta_normal_dna_kept,
+                                              filter(sample_meta_rna_kept,tissue_status=="normal"))
+  col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_rna_kept %>%
+    dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
+    dplyr::rename("normal_sample_id" = "sample_id")
+  all_meta_kept = left_join(all_meta_kept, 
+                            col_sample_meta_normal_dna_rna_kept, 
+                            by=c("patient_id", "seq_type","genome_build")) %>%
+    mutate(
+      pairing_status = case_when(
+        is.na(normal_sample_id) ~ "unmatched",
+        TRUE ~ "matched"
+      ))
+  
   if(also_normals){
     #add missing normals to the data frame by calling the function again
     all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal"))
