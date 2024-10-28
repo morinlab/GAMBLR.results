@@ -11,6 +11,7 @@
 #' @param check For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available 
 #' @param all_samples Set to TRUE to force the function to return all available data (should rarely be necessary)
 #' @param map_to_symbol Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias
+#' @param TPM Set to TRUE to get TPM estimates instead of counts
 #' 
 #' @return A list containing a counts matrix and the associated metadata for DESeq2
 #'
@@ -54,7 +55,8 @@ get_raw_expression_counts = function(these_samples_metadata,
                                      check=FALSE,
                                      from_flatfile=TRUE,
                                      map_to_symbol=FALSE,
-                                     verbose=FALSE){
+                                     verbose=FALSE,
+                                     TPM = FALSE){
   if(missing(these_samples_metadata)){
     
     if(!all_samples & !check){
@@ -69,7 +71,8 @@ get_raw_expression_counts = function(these_samples_metadata,
   sample_ids = pull(these_samples_metadata,sample_id)
   
   if(from_flatfile){
-    files_dir = paste0(config::get("project_base"),GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$expression$salmon$counts))
+    files_dir = paste0(config::get("project_base"),
+                       GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$expression$salmon$counts))
     all_files = dir(files_dir)
     file_df = data.frame(name=all_files) %>% 
       mutate(sample_id = str_remove(name,".tsv.gz"))
@@ -86,14 +89,28 @@ get_raw_expression_counts = function(these_samples_metadata,
 
     file_df = mutate(file_df,full_path = paste0(files_dir,name))
     if(verbose){
+      #return(file_df)
       print(tail(file_df,150))
     }
     
     df_list <- suppressMessages(map(file_df$full_path, read_tsv))
     expression_long = bind_rows(df_list)
-    message("transposing")
-    expression_wide = pivot_wider(expression_long,names_from="sample_id",values_from="count") %>%
-      column_to_rownames("gene")
+    if(TPM){
+      expression_long = expression_long %>% dplyr::select(-count)
+      message("transposing")
+      expression_wide = pivot_wider(expression_long,
+                                    names_from="sample_id",
+                                    values_from="TPM") %>%
+        column_to_rownames("gene")
+    }else{
+      expression_long = expression_long %>% dplyr::select(-TPM)
+      message("transposing")
+      expression_wide = pivot_wider(expression_long,
+                                    names_from="sample_id",
+                                    values_from="count") %>%
+        column_to_rownames("gene")
+    }
+    
     expression_metadata = dplyr::filter(these_samples_metadata,sample_id %in% colnames(expression_wide)) %>%
       column_to_rownames("sample_id")
     expression_metadata = expression_metadata[colnames(expression_wide),]

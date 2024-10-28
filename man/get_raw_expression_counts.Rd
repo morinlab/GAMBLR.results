@@ -10,7 +10,8 @@ get_raw_expression_counts(
   check = FALSE,
   from_flatfile = TRUE,
   map_to_symbol = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  TPM = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ get_raw_expression_counts(
 \item{from_flatfile}{Set to FALSE to use the database instead of reading from flatfiles}
 
 \item{map_to_symbol}{Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias}
+
+\item{TPM}{Set to TRUE to get TPM estimates instead of counts}
 }
 \value{
 A list containing a counts matrix and the associated metadata for DESeq2
