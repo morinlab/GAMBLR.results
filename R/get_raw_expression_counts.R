@@ -51,7 +51,7 @@
 get_raw_expression_counts = function(these_samples_metadata,
                                      all_samples=FALSE,
                                      check=FALSE,
-                                     from_flatfile=FALSE){
+                                     from_flatfile=TRUE){
   if(missing(these_samples_metadata)){
     
     if(!all_samples & !check){
