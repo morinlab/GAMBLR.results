@@ -8,7 +8,9 @@ get_raw_expression_counts(
   these_samples_metadata,
   all_samples = FALSE,
   check = FALSE,
-  from_flatfile = FALSE
+  from_flatfile = TRUE,
+  map_to_symbol = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -19,6 +21,8 @@ get_raw_expression_counts(
 \item{check}{For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available}
 
 \item{from_flatfile}{Set to FALSE to use the database instead of reading from flatfiles}
+
+\item{map_to_symbol}{Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias}
 }
 \value{
 A list containing a counts matrix and the associated metadata for DESeq2
