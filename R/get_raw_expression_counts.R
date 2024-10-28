@@ -10,10 +10,11 @@
 #' @param from_flatfile Set to FALSE to use the database instead of reading from flatfiles
 #' @param check For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available 
 #' @param all_samples Set to TRUE to force the function to return all available data (should rarely be necessary)
+#' @param map_to_symbol Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias
 #' 
 #' @return A list containing a counts matrix and the associated metadata for DESeq2
 #'
-#' @import dplyr readr tidyr
+#' @import dplyr readr tidyr msigdbr org.Hs.eg.db
 #' @export
 #'
 #' @examples
@@ -51,7 +52,9 @@
 get_raw_expression_counts = function(these_samples_metadata,
                                      all_samples=FALSE,
                                      check=FALSE,
-                                     from_flatfile=TRUE){
+                                     from_flatfile=TRUE,
+                                     map_to_symbol=FALSE,
+                                     verbose=FALSE){
   if(missing(these_samples_metadata)){
     
     if(!all_samples & !check){
@@ -80,8 +83,13 @@ get_raw_expression_counts = function(these_samples_metadata,
     }
     file_df = filter(file_df,sample_id %in% sample_ids) 
     #load and combine
+
     file_df = mutate(file_df,full_path = paste0(files_dir,name))
-    df_list <- map(file_df$full_path, read_tsv(show_col_types=F))
+    if(verbose){
+      print(tail(file_df,150))
+    }
+    
+    df_list <- suppressMessages(map(file_df$full_path, read_tsv))
     expression_long = bind_rows(df_list)
     message("transposing")
     expression_wide = pivot_wider(expression_long,names_from="sample_id",values_from="count") %>%
@@ -117,7 +125,19 @@ get_raw_expression_counts = function(these_samples_metadata,
     dbDisconnect(con)
   }
   
+  if(map_to_symbol){
+    ensembl_id_clean = gsub("\\..+","",rownames(expression_wide))
+    gene_symbol = mapIds(org.Hs.eg.db,
+                         keys=ensembl_id_clean,
+                         keytype="ENSEMBL",
+                         column="SYMBOL")
+    mapped = data.frame(original_id=rownames(expression_wide),
+                        clean_id=names(gene_symbol),
+                        symbol=unname(gene_symbol))
+    return(list(counts=expression_wide,metadata=expression_metadata,IDs=mapped))
+  }else{
+    return(list(counts=expression_wide,metadata=expression_metadata))
+  }
   
   
-  return(list(counts=expression_wide,metadata=expression_metadata))
 }
