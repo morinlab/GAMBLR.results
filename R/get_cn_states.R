@@ -49,18 +49,35 @@ get_cn_states = function(regions_list,
                          region_names,
                          seg_data,
                          these_samples_metadata,
-                         this_seq_type = "genome",
+                         this_seq_type,
                          all_cytobands = FALSE,
                          use_cytoband_name = FALSE,
                          missing_data_as_diploid = FALSE,
-                         n_bins_split){
+                         n_bins_split,
+                         adjust_for_ploidy=FALSE){
 
-  if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
-  }else{
-    these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type==this_seq_type)
+  if(missing(seg_data)){
+    if(missing(this_seq_type) & missing(these_samples_metadata)){
+      stop("when not supplying seg_data, you must specify the samples with either this_seq_type or these_samples_metadata")
+    }else{
+      if(missing(this_seq_type)){
+        #metadata was provided, seq_type is not needed
+      }else{
+         these_samples_metadata = get_gambl_metadata() %>% dplyr::filter(seq_type == this_seq_type)
+      }
+      
+    }
+    
   }
+
   
+  if(adjust_for_ploidy & !missing(seg_data)){
+   
+    seg_data = mutate(seg_data,size=end-start,CN=ifelse(CN>5,5,CN),weighted = CN*size) %>% 
+      group_by(ID) %>% mutate(average=sum(weighted)/sum(size)) %>% 
+      mutate(CN=round(CN-average+2))
+    
+  }
   if(all_cytobands){
     message("Currently, only grch37 is supported")
   }
@@ -97,10 +114,14 @@ get_cn_states = function(regions_list,
     region_names = regions
   }
   if(missing(seg_data)){
-    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type)})
+    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, these_samples_metadata = these_samples_metadata)})
   }else{
-    seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
-    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, this_seq_type = this_seq_type, weighted_average = T, seg_data = seg_data)})
+    if(!missing(these_samples_metadata)){
+      #subset to the samples in the provided
+      seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
+    }
+    
+    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, weighted_average = T, seg_data = seg_data)})
   }
   tibbled_data = tibble(region_segs, region_name = region_names)
   unnested_df = tibbled_data %>%
@@ -117,11 +138,15 @@ get_cn_states = function(regions_list,
     seg_df = dplyr::rename(seg_df,sample_id=ID) 
   }
 
-  meta_arranged = these_samples_metadata %>%
-    dplyr::select(sample_id, pathology, lymphgen) %>%
-    arrange(pathology, lymphgen)
-
-  eg = expand_grid(sample_id = pull(meta_arranged, sample_id), region_name = as.character(unique(seg_df$region_name)))
+  if(missing(these_samples_metadata) & !missing(seg_data)){
+    eg = expand_grid(sample_id = unique(seg_data$ID), region_name = as.character(unique(seg_df$region_name)))
+  }else{
+    meta_arranged = these_samples_metadata %>%
+      dplyr::select(sample_id, pathology, lymphgen) %>%
+      arrange(pathology, lymphgen)
+    eg = expand_grid(sample_id = pull(meta_arranged, sample_id), region_name = as.character(unique(seg_df$region_name)))
+    
+  }
   all_cn = left_join(eg, seg_df, by = c("sample_id" = "sample_id", "region_name" = "region_name"))
 
   #fill in any sample/region combinations with missing data as diploid

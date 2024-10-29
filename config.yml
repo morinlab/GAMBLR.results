@@ -81,6 +81,9 @@ default:
     qc_met: "{unix_group}/qc-1.0/99-outputs/{seq_type_filter}.qc_metrics.tsv"
 
     results_flatfiles:
+        expression:
+            salmon: 
+                counts: "all_the_things/salmon-1.0/counts_files/"
         cnv:
             gambl:
                 unmatched: "controlfreec_liftover_current/99-outputs/"

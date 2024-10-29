@@ -21,7 +21,7 @@
 #'                                      oncogenes = c("MYC", "BCL2"))
 #'
 collate_sv_results = function(sample_table,
-                              tool = "manta",
+                              tool = "svar",
                               seq_type_filter = "genome",
                               oncogenes = c("MYC", "BCL2", "BCL6", "CCND1", "IRF4")){
   if(seq_type_filter!="genome"){
@@ -30,12 +30,15 @@ collate_sv_results = function(sample_table,
   }
   if(tool == "manta"){
     all_svs = get_manta_sv()
+  }else if(tool == "svar"){
+    all_svs = get_combined_sv()
   }
   annotated_svs = GAMBLR.utils::annotate_sv(all_svs) %>%
   dplyr::filter(!is.na(partner))
 
   if(missing(sample_table)){
     sample_table = get_gambl_metadata() %>%
+      dplyr::filter(seq_type=="genome") %>%
       dplyr::select(sample_id, patient_id, biopsy_id)
   }
   multiout = function(df,

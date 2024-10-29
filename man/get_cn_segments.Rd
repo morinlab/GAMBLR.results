@@ -12,7 +12,7 @@ get_cn_segments(
   projection = "grch37",
   weighted_average = FALSE,
   seg_data,
-  this_seq_type = "genome",
+  this_seq_type,
   with_chr_prefix = FALSE,
   streamlined = FALSE,
   from_flatfile = TRUE,

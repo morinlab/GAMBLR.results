@@ -40,7 +40,7 @@
 #'   from each sample.
 #' @param min_read_support_ssm Only consider SSMs with at least this many reads in t_alt_count (for cleaning 
 #'   up augmented MAFs).
-#'
+#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #' @return A data frame with CNV and SSM combined status.
 #' 
 #' @import dplyr
@@ -94,7 +94,9 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   review_hotspots = TRUE,
                                   subset_from_merge = FALSE,
                                   augmented = TRUE,
-                                  min_read_support_ssm = 3){
+                                  min_read_support_ssm = 3,
+                                  seg_data,
+                                  adjust_for_ploidy=FALSE){
   
   # check parameters
   stopifnot('`genes_and_cn_threshs` argument is missing.' = !missing(genes_and_cn_threshs))
@@ -142,12 +144,26 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   if(check_cnv){
     # get cn states
-    cn_matrix = get_cn_states(
-      regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
-      region_names = genes_and_cn_threshs_non_neutral$gene_id,
-      these_samples_metadata = these_samples_metadata,
-      this_seq_type = this_seq_type
-    )
+    if(missing(seg_data)){
+      cn_matrix = get_cn_states(
+        regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
+        region_names = genes_and_cn_threshs_non_neutral$gene_id,
+        these_samples_metadata = these_samples_metadata,
+        this_seq_type = this_seq_type
+      )
+    }else{
+     
+      cn_matrix = get_cn_states(
+        regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
+        region_names = genes_and_cn_threshs_non_neutral$gene_id,
+        these_samples_metadata = these_samples_metadata,
+        this_seq_type = this_seq_type,
+        seg_data = seg_data,
+        adjust_for_ploidy=adjust_for_ploidy
+      )
+     
+    }
+
     cn_matrix = cn_matrix[these_samples_metadata$sample_id,, drop=FALSE]
     
     # get cnv status
@@ -162,8 +178,11 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     }, cn_matrix, genes_and_cn_threshs_non_neutral$cn_thresh, USE.NAMES = TRUE, SIMPLIFY = FALSE) %>% 
       as.data.frame %>% 
       {. * 1}
+    if("name" %in% colnames(genes_and_cn_threshs)){
+      colnames(cnv_status) = genes_and_cn_threshs$name
+    }
     rownames(cnv_status) = rownames(cn_matrix)
-    
+    cnv_status[is.na(cnv_status)]=0
     # if only CNV statuses are desired, output them
     if(only_cnv == "all"){
       return(cnv_status)
