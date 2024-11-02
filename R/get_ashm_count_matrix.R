@@ -64,7 +64,8 @@ get_ashm_count_matrix = function(
         maf_data = maf_data,
         use_name_column = TRUE,
         these_samples_metadata=these_samples_metadata,
-        projection=projection
+        projection=projection,
+        this_seq_type=this_seq_type
     )
 
     ashm_counted <- ashm_maf %>%
