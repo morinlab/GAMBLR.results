@@ -89,6 +89,7 @@ default:
                 unmatched: "controlfreec_liftover_current/99-outputs/"
             template: "{unix_group}/cnv_master-1.0/99-outputs/{seq_type}--projection/all--{projection}.seg"
             battenberg: "{unix_group}/battenberg_current/99-outputs/seg/{seq_type}--projection/{tumour_sample_id}--{normal_sample_id}--{pairing_status}.battenberg.{projection}.seg"
+            battenberg_cellularity: "{unix_group}/battenberg-1.1/02-battenberg/{seq_type}--{genome_build}/{sample_id}--{normal_sample_id}/{sample_id}_cellularity_ploidy.txt"
             battenberg_wildcards:
                 pairing_status: "matched"
         cnv_combined:
