@@ -15,7 +15,9 @@ get_cnv_and_ssm_status(
   review_hotspots = TRUE,
   subset_from_merge = FALSE,
   augmented = TRUE,
-  min_read_support_ssm = 3
+  min_read_support_ssm = 3,
+  seg_data,
+  adjust_for_ploidy = FALSE
 )
 }
 \arguments{
@@ -55,6 +57,8 @@ from each sample.}
 
 \item{min_read_support_ssm}{Only consider SSMs with at least this many reads in t_alt_count (for cleaning
 up augmented MAFs).}
+
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
 }
 \value{
 A data frame with CNV and SSM combined status.

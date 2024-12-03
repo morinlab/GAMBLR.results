@@ -13,6 +13,8 @@ get_gene_expression(
   engine = "grep",
   format = "wide",
   lazy_join = FALSE,
+  arbitrarily_pick = FALSE,
+  HGNC = FALSE,
   ...
 )
 }
@@ -30,6 +32,10 @@ get_gene_expression(
 \item{format}{Either \code{wide} or \code{long}. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column.}
 
 \item{lazy_join}{If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See \code{check_gene_expression} for more information.}
+
+\item{arbitrarily_pick}{A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."}
+
+\item{HGNC}{When you request the wide matrix and all genes, this forces the columns to contain hgnc_id rather than ensembl_gene_id}
 
 \item{...}{Optional parameters to pass along to \code{get_gambl_metadata} (only used in conjunction with lazy_join)}
 }
@@ -54,10 +60,10 @@ Warnings:
 \examples{
 
 # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
-# When tested on a gphost, this took about 45 minutes to run with the grep engine
+# This uses the default (grep) engine, which may be intolerably slow on some systems
 SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
                                        
-Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
+# Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
 my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 
 # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
@@ -80,6 +86,14 @@ all_exp_wide = get_gene_expression(all_genes=T)
 # NOTE: This will transpose the matrix, which makes it significantly slower. 
 # Also, due to incomplete Hugo_Symbols, it has to use the ENSG identifiers for column names. 
 all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
+
+
+#If you want hgnc_symbol instead of Ensembl_gene_id you need to force the function to arbitrarily drop duplicates. Not ideal
+all_exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
+                                   all_genes = T,
+                                   lazy_join = T,
+                                   HGNC=TRUE,
+                                   arbitrarily_pick = T)
 
 
 }

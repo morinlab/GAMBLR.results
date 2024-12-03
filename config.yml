@@ -4,6 +4,8 @@ remote:
     dependencies:
         tabix: "/Users/rmorin/miniconda3/bin/tabix"
     host: "gphost03.bcgsc.ca"
+    results_merged:
+        ex_matrix_path: "/icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/vst-matrix.tsv"
 
 default:
     project_base: "/projects/nhl_meta_analysis_scratch/gambl/results_local/"
@@ -79,11 +81,15 @@ default:
     qc_met: "{unix_group}/qc-1.0/99-outputs/{seq_type_filter}.qc_metrics.tsv"
 
     results_flatfiles:
+        expression:
+            salmon: 
+                counts: "all_the_things/salmon-1.0/counts_files/"
         cnv:
             gambl:
                 unmatched: "controlfreec_liftover_current/99-outputs/"
             template: "{unix_group}/cnv_master-1.0/99-outputs/{seq_type}--projection/all--{projection}.seg"
             battenberg: "{unix_group}/battenberg_current/99-outputs/seg/{seq_type}--projection/{tumour_sample_id}--{normal_sample_id}--{pairing_status}.battenberg.{projection}.seg"
+            battenberg_cellularity: "{unix_group}/battenberg-1.1/02-battenberg/{seq_type}--{genome_build}/{sample_id}--{normal_sample_id}/{sample_id}_cellularity_ploidy.txt"
             battenberg_wildcards:
                 pairing_status: "matched"
         cnv_combined:

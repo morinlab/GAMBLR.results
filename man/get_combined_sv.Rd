@@ -9,7 +9,8 @@ get_combined_sv(
   these_sample_ids,
   with_chr_prefix = FALSE,
   projection = "grch37",
-  oncogenes
+  oncogenes,
+  region
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get_combined_sv(
 \item{projection}{The projection genome build. Default is "grch37".}
 
 \item{oncogenes}{A character vector of genes commonly involved in translocations. Possible values: CCND1, CIITA, SOCS1, BCL2, RFTN1, BCL6, MYC, PAX5.}
+
+\item{region}{Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.}
 }
 \value{
 A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.

@@ -20,6 +20,8 @@
 #' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
 #' @param format Either `wide` or `long`. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column. 
 #' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
+#' @param arbitrarily_pick A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."
+#' @param HGNC When you request the wide matrix and all genes, this forces the columns to contain hgnc_id rather than ensembl_gene_id
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
@@ -31,10 +33,10 @@
 #' @examples
 #' 
 #' # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
-#' # When tested on a gphost, this took about 45 minutes to run with the grep engine
+#' # This uses the default (grep) engine, which may be intolerably slow on some systems
 #' SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
 #'                                        
-#' Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
+#' # Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
 #' my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
 #' 
 #' # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
@@ -59,6 +61,14 @@
 #' all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
 #'
 #'
+#' #If you want hgnc_symbol instead of Ensembl_gene_id you need to force the function to arbitrarily drop duplicates. Not ideal
+#' all_exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
+#'                                    all_genes = T,
+#'                                    lazy_join = T,
+#'                                    HGNC=TRUE,
+#'                                    arbitrarily_pick = T)
+#'
+#'
 get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,
@@ -67,6 +77,8 @@ get_gene_expression = function(these_samples_metadata,
                                engine="grep",
                                format="wide",
                                lazy_join = FALSE,
+                               arbitrarily_pick = FALSE,
+                               HGNC = FALSE,
                                ...){
   if(missing(these_samples_metadata)){
     warning("Missing these_samples_metadata. Results will contain data from all available samples. ")
@@ -118,7 +130,13 @@ get_gene_expression = function(these_samples_metadata,
     tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
     tidy_expression_path = str_remove(tidy_expression_path,".gz$")
     base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-    tidy_expression_file = paste0(base_path,tidy_expression_path)
+    #automatically default to file in tempfs if available
+    tidy_expression_file = "/dev/shm/vst-matrix-Hugo_Symbol_tidy.tsv"
+    if(file.exists(tidy_expression_file)){
+      message(paste("using file in tempfs:",tidy_expression_file))
+    }else{
+      tidy_expression_file = paste0(base_path,tidy_expression_path)
+    }
       if(engine=="grep"){
         if(id_type=="hugo" || id_type == "ensembl"){
           gene_ids = genes
@@ -166,11 +184,25 @@ get_gene_expression = function(these_samples_metadata,
                                                verbose=verbose,
                                                engine=engine) %>%
       left_join(sample_details,.)
-    expression_wide = filter(expression_long,!is.na(expression)) %>% 
+      if(arbitrarily_pick){
+        if(verbose){
+          message("if any hugo_symbols mapping to >1 ENSG are identified, the first one encountered will be arbitrarily used")
+        }
+        expression_wide = filter(expression_long,!is.na(expression)) %>% 
+          group_by(Hugo_Symbol,mrna_sample_id,biopsy_id,patient_id) %>% 
+          slice_head(n=1) %>%
+          pivot_wider(.,
+                      id_cols=-ensembl_gene_id,
+                      names_from="Hugo_Symbol",
+                      values_from="expression")
+      }else{
+        expression_wide = filter(expression_long,!is.na(expression)) %>% 
                                pivot_wider(.,
                                   id_cols=-ensembl_gene_id,
                                   names_from="Hugo_Symbol",
                                   values_from="expression")
+      }
+    
   }else if(!missing(ensembl_gene_ids)){
     expression_long = load_expression(genes=ensembl_gene_ids,
                                       id_type="ensembl",
@@ -201,28 +233,39 @@ get_gene_expression = function(these_samples_metadata,
     nc = ncol(expression_wide) - 3
     message(paste("kept",nc,"columns"))
     if(lazy_join){
-     
-      message("transposing, setting ensembl_gene_id as column name")
-      expression_wide = select(expression_wide,-gene_id,-hgnc_symbol) %>% 
-        column_to_rownames("ensembl_gene_id") %>%
-        t() %>%
-        as.data.table(keep.rownames=T) %>% 
-        dplyr::rename("sample_id"="rn") %>%
-        left_join(sample_details,.,by="sample_id")
+      if(HGNC){
+        message("transposing, setting hgnc_id as column name")
+        if(arbitrarily_pick){
+          expression_wide = expression_wide %>% 
+            group_by(hgnc_symbol) %>% 
+            slice_head(n=1) %>%
+            ungroup() %>%
+            filter(!is.na(hgnc_symbol))
+        }
+        expression_wide = select(expression_wide,-gene_id,-ensembl_gene_id) %>% 
+          column_to_rownames("hgnc_symbol") %>%
+          t() %>%
+          as.data.table(keep.rownames=T) %>% 
+          dplyr::rename("sample_id"="rn") %>%
+          left_join(sample_details,.,by="sample_id")
+      }else{
+        message("transposing, setting ensembl_gene_id as column name")
+        expression_wide = select(expression_wide,-gene_id,-hgnc_symbol) %>% 
+          column_to_rownames("ensembl_gene_id") %>%
+          t() %>%
+          as.data.table(keep.rownames=T) %>% 
+          dplyr::rename("sample_id"="rn") %>%
+          left_join(sample_details,.,by="sample_id")
+      }
+      
       return(expression_wide)
     }else{
         return(expression_wide)
     }
   }
   if(format == "long") {
-    #if(lazy_join){
-    #  expression_long = left_join(sample_details,expression_long,by="mrna_sample_id")  
-    #}
     return(expression_long)
   }else{
-    #if(lazy_join){
-    #  expression_wide = left_join(sample_details,expression_wide)  
-    #}
     return(expression_wide)
   }
 }
