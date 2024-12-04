@@ -319,7 +319,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       pairing_status = case_when(
         is.na(normal_sample_id) ~ "unmatched",
         TRUE ~ "matched"
-      ))
+      ),
+      Tumor_Sample_Barcode = sample_id
+      )
   
   if(also_normals){
     #add missing normals to the data frame by calling the function again
