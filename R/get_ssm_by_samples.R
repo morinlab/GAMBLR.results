@@ -79,6 +79,12 @@ get_ssm_by_samples = function(these_sample_ids,
   to_exclude = get_excluded_samples(tool_name)
 
   if(missing(these_samples_metadata)){
+    warning(
+        "CAUTION! The option `these_sample_ids` may behave unexpectedly if a mix of seq_types is expected."
+    )
+    warning(
+        "Please use the `these_samples_metadata` option instead of `these_sample_ids`."
+    )
     these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
       dplyr::filter(sample_id %in% these_sample_ids) %>%
       dplyr::filter(!sample_id %in% to_exclude)
