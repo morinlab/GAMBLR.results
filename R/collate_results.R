@@ -105,6 +105,9 @@ collate_results = function(sample_table,
         these_samples_metadata = sample_table,
         this_seq_type = seq_type_filter
     )
+    sample_table <- collate_dlbclass(
+        sample_table
+    )
   }
   if(write_to_file){
     #write results from "slow option" to new cached results file
