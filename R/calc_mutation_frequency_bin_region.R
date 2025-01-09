@@ -133,7 +133,7 @@ calc_mutation_frequency_bin_region <- function(region,
     message("Using GAMBLR.results::get_ssm_by_region...")
     region_ssm <- list()
     for (st in unique(metadata$seq_type)) {
-      this_seq_type <- GAMBLR.results::get_ssm_by_region(
+      this_seq_type <- GAMBLR.results:::get_ssm_by_region(
         region = region,
         projection = projection,
         streamlined = FALSE,
