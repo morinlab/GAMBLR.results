@@ -30,7 +30,7 @@ Imports:
     grid,
     IRanges,
     lubridate,
-    msigdb,
+    msigdbr,
     purrr,
     readr,
     RMariaDB,
