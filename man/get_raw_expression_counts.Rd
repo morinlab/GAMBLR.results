@@ -6,6 +6,8 @@
 \usage{
 get_raw_expression_counts(
   these_samples_metadata,
+  existing_sample_id_column,
+  new_sample_id_column,
   all_samples = FALSE,
   check = FALSE,
   from_flatfile = TRUE,

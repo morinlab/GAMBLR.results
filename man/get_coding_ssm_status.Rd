@@ -21,7 +21,8 @@ get_coding_ssm_status(
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
   genome_build = "hg19",
   include_silent = FALSE,
-  include_silent_genes
+  include_silent_genes,
+  suffix
 )
 }
 \arguments{

@@ -7,6 +7,7 @@
 get_cnv_and_ssm_status(
   genes_and_cn_threshs,
   these_samples_metadata,
+  maf_df,
   this_seq_type = "genome",
   only_cnv = "none",
   genome_build = "grch37",
@@ -30,6 +31,8 @@ CNV to return status.}
 
 \item{these_samples_metadata}{The metadata for samples of interest to be included in the returned matrix.
 Can be created with \code{get_gambl_metadata} function.}
+
+\item{maf_df}{Optional data frame containing the coding variants for your samples (i.e. output from \code{get_all_coding_ssm})}
 
 \item{this_seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
 

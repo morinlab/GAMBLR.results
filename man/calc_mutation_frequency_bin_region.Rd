@@ -19,9 +19,7 @@ calc_mutation_frequency_bin_region(
   return_format = "long",
   min_count_per_bin = 0,
   return_count = TRUE,
-  drop_unmutated = FALSE,
-  from_indexed_flatfile = TRUE,
-  mode = "slms-3"
+  drop_unmutated = FALSE
 )
 }
 \arguments{

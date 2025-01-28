@@ -52,7 +52,6 @@ calc_mutation_frequency_bin_regions <- function(
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
   this_seq_type = c("genome", "capture"),
-  maf_data = NULL,
   projection = "grch37",
   region_padding = 1000,
   drop_unmutated = FALSE,
@@ -60,9 +59,7 @@ calc_mutation_frequency_bin_regions <- function(
   only_regions = NULL,
   slide_by = 100,
   window_size = 500,
-  return_format = "wide",
-  from_indexed_flatfile = TRUE,
-  mode = "slms-3"
+  return_format = "wide"
 ) {
   regions <- process_regions(
     regions_list = regions_list,
@@ -81,28 +78,20 @@ calc_mutation_frequency_bin_regions <- function(
     stop("chr prefixing status of provided regions and specified projection don't match. ")
   }
   # Harmonize metadata and sample IDs
-  get_meta <- id_ease(
-    these_samples_metadata,
-    these_sample_ids,
-    this_seq_type
-  )
-  metadata <- get_meta
-  these_sample_ids <- get_meta$sample_id %>% unique
+
+  these_sample_ids <- these_samples_metadata$sample_id
 
   # Obtain sliding window mutation frequencies for all regions
   dfs <- parallel::mclapply(names(regions), function(x) {
     df <- calc_mutation_frequency_bin_region(
       region = regions[x],
-      these_samples_metadata = metadata,
-      maf_data = maf_data,
+      these_samples_metadata = these_samples_metadata,
       projection = projection,
       drop_unmutated = drop_unmutated,
       slide_by = slide_by,
       window_size = window_size,
       min_count_per_bin = 0,
-      return_count = TRUE,
-      from_indexed_flatfile = from_indexed_flatfile,
-      mode = mode
+      return_count = TRUE
     ) %>%
       dplyr::mutate(name = x)
     return(df)

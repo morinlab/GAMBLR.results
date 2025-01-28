@@ -50,9 +50,8 @@ calc_mutation_frequency_bin_region <- function(region,
                                           return_format = "long",
                                           min_count_per_bin = 0,
                                           return_count = TRUE,
-                                          drop_unmutated = FALSE,
-                                          from_indexed_flatfile = TRUE,
-                                          mode = "slms-3") {
+                                          drop_unmutated = FALSE
+                                          ) {
   # Create objects to describe region both as string and individual objects
   try(if (missing(region) & missing(chromosome)) {
     stop("No region information provided. Please provide a region as a string in the chrom:start-end format, or as individual arguments. ")
@@ -133,13 +132,11 @@ calc_mutation_frequency_bin_region <- function(region,
     message("Using GAMBLR.results::get_ssm_by_region...")
     region_ssm <- list()
     for (st in unique(metadata$seq_type)) {
-      this_seq_type <- GAMBLR.results::get_ssm_by_region(
+      this_seq_type <- GAMBLR.results:::get_ssm_by_region(
         region = region,
         projection = projection,
         streamlined = FALSE,
-        this_seq_type = st,
-        from_indexed_flatfile = TRUE,
-        mode = "slms-3"
+        this_seq_type = st
       ) %>%
         dplyr::mutate(end = Start_Position + 1) %>%
         dplyr::select(

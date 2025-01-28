@@ -22,6 +22,7 @@
 #'   CNV to return status.
 #' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix.
 #'   Can be created with `get_gambl_metadata` function.
+#' @param maf_df Optional data frame containing the coding variants for your samples (i.e. output from `get_all_coding_ssm`)
 #' @param this_seq_type The seq type to get results for. Possible values are "genome" (default) or "capture".
 #' @param only_cnv A vector of gene names indicating the genes for which only CNV status should be considered, 
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
@@ -86,6 +87,7 @@
 #' 
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   these_samples_metadata,
+                                  maf_df,
                                   this_seq_type = "genome",
                                   only_cnv = "none",
                                   genome_build = "grch37",
@@ -206,15 +208,18 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   }
   
   # get maf data
-  my_maf = get_ssm_by_samples(
-    these_samples_metadata = these_samples_metadata,
-    projection = genome_build,
-    this_seq_type = this_seq_type,
-    min_read_support = min_read_support_ssm,
-    these_genes = genes_to_check_ssm,
-    subset_from_merge = subset_from_merge,
-    augmented = augmented
-  )
+  if(missing(maf_df)){
+    my_maf = get_coding_ssm(
+      these_samples_metadata = these_samples_metadata,
+      projection = genome_build,
+      this_seq_type = this_seq_type,
+      min_read_support = min_read_support_ssm
+    ) %>%
+      dplyr::filter(Hugo_Symbol %in% genes_to_check_ssm)
+  }else{
+    my_maf = maf_df
+  }
+  
   
   # get ssm status
   ssm_status = get_coding_ssm_status(
@@ -228,7 +233,9 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     include_hotspots = include_hotspots,
     include_silent = FALSE,
     augmented = augmented
-  ) %>% column_to_rownames("sample_id")
+  ) 
+ 
+  ssm_status = ssm_status %>% column_to_rownames("sample_id")
   
   # add missing regions to ssm_status as zero statuses
   missing_regions = !(genes_and_cn_threshs$gene_id %in% names(ssm_status))

@@ -92,7 +92,8 @@ get_coding_ssm_status = function(
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
     genome_build = "hg19",
     include_silent = FALSE,
-    include_silent_genes
+    include_silent_genes,
+    suffix
 ){
   
   message(
@@ -140,15 +141,12 @@ get_coding_ssm_status = function(
   }
 
   if(missing(maf_data) & is.null(maf_path)){
-    coding_ssm = get_coding_ssm(
-        projection = projection,
-        this_seq_type = this_seq_type,
-        from_flatfile = from_flatfile,
-        augmented = augmented,
-        min_read_support = 3,
-        basic_columns = FALSE,
-        include_silent = include_silent
-    )
+      coding_ssm = get_all_coding_ssm(projection = projection,
+                                      these_samples_metadata = these_samples_metadata,
+                                      augmented = augmented,
+                                      basic_columns = FALSE,
+                                      include_silent = include_silent)
+  
   }
 
   if(missing(include_silent_genes)){
@@ -280,6 +278,10 @@ get_coding_ssm_status = function(
 
     }
 
+  }
+  if(!missing(suffix)){
+    colnames(all_tabulated) = unlist(lapply(colnames(all_tabulated),function(x){paste(x,suffix,sep="_")}))
+    colnames(all_tabulated)[1]="sample_id"
   }
   return(all_tabulated)
 }

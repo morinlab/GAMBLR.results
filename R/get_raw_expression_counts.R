@@ -7,6 +7,7 @@
 #' For examples and more info, refer to the parameter descriptions as well as vignette examples.
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
+#' @sample_id_column Specify which column in your metadata contains the sample_id you want used instead of the mrna sample_id
 #' @param from_flatfile Set to FALSE to use the database instead of reading from flatfiles
 #' @param check For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available 
 #' @param all_samples Set to TRUE to force the function to return all available data (should rarely be necessary)
@@ -51,6 +52,8 @@
 #' 
 #'
 get_raw_expression_counts = function(these_samples_metadata,
+                                     existing_sample_id_column,
+                                     new_sample_id_column,
                                      all_samples=FALSE,
                                      check=FALSE,
                                      from_flatfile=TRUE,
@@ -68,7 +71,12 @@ get_raw_expression_counts = function(these_samples_metadata,
       dplyr::filter(seq_type == "mrna")
     
   }
-  sample_ids = pull(these_samples_metadata,sample_id)
+  if(!missing(existing_sample_id_column)){
+    sample_ids = pull(these_samples_metadata,{{existing_sample_id_column}}) 
+  }else{
+    sample_ids = pull(these_samples_metadata,sample_id)
+  }
+  
   
   if(from_flatfile){
     files_dir = paste0(config::get("project_base"),
@@ -104,16 +112,45 @@ get_raw_expression_counts = function(these_samples_metadata,
         column_to_rownames("gene")
     }else{
       expression_long = expression_long %>% dplyr::select(-TPM)
-      message("transposing")
-      expression_wide = pivot_wider(expression_long,
-                                    names_from="sample_id",
-                                    values_from="count") %>%
-        column_to_rownames("gene")
+      
+      if(!missing(new_sample_id_column)){
+
+        #swap the sample_id before transposing
+        if(any(duplicated(these_samples_metadata[,new_sample_id_column]))){
+          stop("new sample ids must all be unique")
+        }
+        message("ID substitution")
+        expression_long = left_join(expression_long,select(these_samples_metadata,
+                                                           {{existing_sample_id_column}},
+                                                           {{new_sample_id_column}}),
+                                    by=c("sample_id"={{existing_sample_id_column}})) %>%
+          select(-sample_id)
+        message("transposing")
+        expression_wide = pivot_wider(expression_long,
+                                      names_from=new_sample_id_column,
+                                      values_from="count") %>%
+          column_to_rownames("gene")
+
+        expression_metadata =  dplyr::filter(these_samples_metadata, 
+                                             .data[[new_sample_id_column]] %in% colnames(expression_wide)) %>%
+          mutate(sample_id=.data[[new_sample_id_column]] ) %>%
+          column_to_rownames({{new_sample_id_column}})
+        expression_metadata = expression_metadata[colnames(expression_wide),]
+      }else{
+        expression_wide = pivot_wider(expression_long,
+                                      names_from="sample_id",
+                                      values_from="count") %>%
+          column_to_rownames("gene")
+        expression_metadata = these_samples_metadata %>%
+          dplyr::filter(sample_id %in% colnames(expression_wide)) %>%
+          column_to_rownames("sample_id")
+        #expression_metadata = expression_metadata[colnames(expression_wide),]
+      }
+      
+      
     }
     
-    expression_metadata = dplyr::filter(these_samples_metadata,sample_id %in% colnames(expression_wide)) %>%
-      column_to_rownames("sample_id")
-    expression_metadata = expression_metadata[colnames(expression_wide),]
+    
     
   }else{
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = "gambl_test")

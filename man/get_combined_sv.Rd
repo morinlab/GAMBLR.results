@@ -7,6 +7,7 @@
 get_combined_sv(
   min_vaf = 0,
   these_sample_ids,
+  these_samples_metadata,
   with_chr_prefix = FALSE,
   projection = "grch37",
   oncogenes,
@@ -17,6 +18,8 @@ get_combined_sv(
 \item{min_vaf}{The minimum tumour VAF for a SV to be returned. Recommended: 0. (default: 0)}
 
 \item{these_sample_ids}{A character vector of tumour sample IDs you wish to retrieve SVs for.}
+
+\item{these_samples_metadata}{a GAMBL metadata frame containing only the samples you want returned}
 
 \item{with_chr_prefix}{Prepend all chromosome names with chr (required by some downstream analyses). Default is FALSE.}
 
