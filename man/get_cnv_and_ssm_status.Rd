@@ -68,19 +68,9 @@ In the case of returning NA values, this is due to the \code{get_cn_segments} fu
 return any copy number segments from the specified chromosome region.
 }
 \examples{
-# Define samples
-these_sample_ids = c(
-  "BLGSP-71-06-00160-01A-03D",
-  "BLGSP-71-06-00252-01A-01D",
-  "BLGSP-71-19-00122-09A.1-01D",
-  "BLGSP-71-19-00523-09A-01D",
-  "BLGSP-71-21-00187-01A-01E",
-  "BLGSP-71-21-00188-01A-04E"
-)
 
 # Get sample meta data
-this_meta = get_gambl_metadata()
-this_meta = dplyr::filter(this_meta, sample_id \%in\% these_sample_ids)
+this_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology == "BL")
 
 # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 # return only CNV status; for CCND3 return only SSM status
@@ -88,21 +78,22 @@ genes_and_cn_threshs = data.frame(
   gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
   cn_thresh=c(3, 3, 2, 1)
 )
-get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
-  only_cnv = "MIR17HG",
-)
+genome_cnv_ssm_status = get_cnv_and_ssm_status(
+                           genes_and_cn_threshs,
+                           this_meta,
+                           only_cnv = "MIR17HG", 
+                           this_seq_type = "genome")
+                           
+exome_cnv_ssm_status = get_cnv_and_ssm_status(
+                           genes_and_cn_threshs,
+                           this_meta,
+                           only_cnv = "MIR17HG", 
+                           this_seq_type = "capture")
 
-# For all genes, return only CNV status
-genes_and_cn_threshs = data.frame(
-  gene_id=c("MYC", "MIR17HG", "SYNCRIP"),
-  cn_thresh=c(3, 3, 1)
-)
-get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
-  only_cnv = "all",
-)
+
+genome_cnv_without_ssm_status = get_cnv_and_ssm_status(
+                                  genes_and_cn_threshs,
+                                  this_meta,
+                                  only_cnv = "all")
 
 }
