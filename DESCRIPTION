@@ -1,7 +1,7 @@
 Type: Package
 Package: GAMBLR.results
 Title: Access results of the Genomic Analysis of Mature B-cell Lymphomas
-Version: 1.1.1
+Version: 1.2
 Authors@R:
     person("Vladimir", "Souza", , "vsouza@bcgsc.ca", role = c("aut", "cre"))
 Description: This package is part of the Genomic Analysis of Mature B-cell
@@ -22,6 +22,7 @@ Imports:
     GAMBLR.helpers,
     GAMBLR.utils,
     GAMBLR.viz,
+    GenomicDistributions,
     GenomicRanges,
     ggplot2,
     ggsci,
@@ -29,6 +30,8 @@ Imports:
     grid,
     IRanges,
     lubridate,
+    msigdbr,
+    org.Hs.eg.db,
     purrr,
     readr,
     RMariaDB,
