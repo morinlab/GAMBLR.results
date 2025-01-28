@@ -28,20 +28,12 @@
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
 #' @param genome_build Reference genome build. Possible values are "grch37" (default) or "hg38".
-#' @param from_flatfile Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE 
-#' to use database instead. Default is TRUE.
+
 #' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
 #' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include 
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
-#' @param subset_from_merge Argument to internally pass to `get_ssm_by_samples` function. If set to TRUE, 
-#'   the data will be subset from a pre-merged MAF of samples with the specified this_seq_type, Instead of merging 
-#'   individual MAFs. Default is FALSE.
-#' @param augmented Argument to internally pass to the functions `get_ssm_by_samples` and `get_coding_ssm_status`. 
-#'   A logical parameter (default: TRUE). Set to FALSE to use multi-sample patients, instead of the original MAF 
-#'   from each sample.
-#' @param min_read_support_ssm Only consider SSMs with at least this many reads in t_alt_count (for cleaning 
-#'   up augmented MAFs).
 #' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
+#' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
 #' @return A data frame with CNV and SSM combined status.
 #' 
 #' @import dplyr
@@ -91,14 +83,11 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   this_seq_type = "genome",
                                   only_cnv = "none",
                                   genome_build = "grch37",
-                                  from_flatfile = TRUE,
                                   include_hotspots = TRUE,
                                   review_hotspots = TRUE,
-                                  subset_from_merge = FALSE,
-                                  augmented = TRUE,
-                                  min_read_support_ssm = 3,
                                   seg_data,
-                                  adjust_for_ploidy=FALSE){
+                                  adjust_for_ploidy=FALSE,
+                                  include_silent=FALSE){
   
   # check parameters
   stopifnot('`genes_and_cn_threshs` argument is missing.' = !missing(genes_and_cn_threshs))
@@ -212,8 +201,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     my_maf = get_coding_ssm(
       these_samples_metadata = these_samples_metadata,
       projection = genome_build,
-      this_seq_type = this_seq_type,
-      min_read_support = min_read_support_ssm
+      this_seq_type = this_seq_type,include_silent = include_silent
     ) %>%
       dplyr::filter(Hugo_Symbol %in% genes_to_check_ssm)
   }else{

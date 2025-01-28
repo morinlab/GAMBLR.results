@@ -11,14 +11,11 @@ get_cnv_and_ssm_status(
   this_seq_type = "genome",
   only_cnv = "none",
   genome_build = "grch37",
-  from_flatfile = TRUE,
   include_hotspots = TRUE,
   review_hotspots = TRUE,
-  subset_from_merge = FALSE,
-  augmented = TRUE,
-  min_read_support_ssm = 3,
   seg_data,
-  adjust_for_ploidy = FALSE
+  adjust_for_ploidy = FALSE,
+  include_silent = FALSE
 )
 }
 \arguments{
@@ -42,26 +39,14 @@ of the genes, respectively.}
 
 \item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
 
-\item{from_flatfile}{Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE
-to use database instead. Default is TRUE.}
-
 \item{include_hotspots}{Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.}
 
 \item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
-\item{subset_from_merge}{Argument to internally pass to \code{get_ssm_by_samples} function. If set to TRUE,
-the data will be subset from a pre-merged MAF of samples with the specified this_seq_type, Instead of merging
-individual MAFs. Default is FALSE.}
-
-\item{augmented}{Argument to internally pass to the functions \code{get_ssm_by_samples} and \code{get_coding_ssm_status}.
-A logical parameter (default: TRUE). Set to FALSE to use multi-sample patients, instead of the original MAF
-from each sample.}
-
-\item{min_read_support_ssm}{Only consider SSMs with at least this many reads in t_alt_count (for cleaning
-up augmented MAFs).}
-
 \item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+
+\item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
 }
 \value{
 A data frame with CNV and SSM combined status.
