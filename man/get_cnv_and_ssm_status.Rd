@@ -8,14 +8,14 @@ get_cnv_and_ssm_status(
   genes_and_cn_threshs,
   these_samples_metadata,
   maf_df,
-  this_seq_type = "genome",
+  seg_data,
   only_cnv = "none",
   genome_build = "grch37",
   include_hotspots = TRUE,
   review_hotspots = TRUE,
-  seg_data,
   adjust_for_ploidy = FALSE,
-  include_silent = FALSE
+  include_silent = FALSE,
+  this_seq_type
 )
 }
 \arguments{
@@ -31,7 +31,7 @@ Can be created with \code{get_gambl_metadata} function.}
 
 \item{maf_df}{Optional data frame containing the coding variants for your samples (i.e. output from \code{get_all_coding_ssm})}
 
-\item{this_seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
 
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
@@ -44,9 +44,9 @@ of the genes, respectively.}
 \item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
-\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
-
 \item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
+
+\item{this_seq_type}{Deprecated}
 }
 \value{
 A data frame with CNV and SSM combined status.
@@ -81,14 +81,12 @@ genes_and_cn_threshs = data.frame(
 genome_cnv_ssm_status = get_cnv_and_ssm_status(
                            genes_and_cn_threshs,
                            this_meta,
-                           only_cnv = "MIR17HG", 
-                           this_seq_type = "genome")
+                           only_cnv = "MIR17HG")
                            
 exome_cnv_ssm_status = get_cnv_and_ssm_status(
                            genes_and_cn_threshs,
                            this_meta,
-                           only_cnv = "MIR17HG", 
-                           this_seq_type = "capture")
+                           only_cnv = "MIR17HG")
 
 
 genome_cnv_without_ssm_status = get_cnv_and_ssm_status(

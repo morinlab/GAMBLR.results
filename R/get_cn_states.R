@@ -2,169 +2,61 @@
 #'
 #' @description Get a copy number matrix for all samples based on segmented data in the database.
 #'
-#' @details This function returns CN states for the specified regions.
-#' For how to specify regions, refer to the parameter descriptions and function examples.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_sample_cn_segments]
+#' @details This function returns CN states for the specified regions using the CN data from GAMBLR.results and (optionally) assumes regions with no data are diploid.
+#' For how to determine/specify the coordinates of each region, refer to the parameter descriptions and examples.
 #'
-#' @param regions_list A vector of regions in the format chrom:start-end.
-#' @param regions_bed A bed file with one row for each region you want to determine the CN state from.
-#' @param region_names Subset CN states on specific regions (gene symbols e.g FCGR2B).
-#' @param these_samples_metadata A metadata table to auto-subset the data to samples in that table before returning.
-#' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
-#' @param all_cytobands Include all cytobands, default is set to FALSE. Currently only supports hg19.
+#' @param seg_data A data frame of segments that will be used to infer the copy number state of each region
+#' @param strategy The general strategy to define regions. Available options are: 'custom_regions','auto_split','cytobands','GISTIC' 
+#' @param regions Required when strategy is set to 'custom_regions'. A data frame in bed-like format or a vector of regions in the format "chrom:start-end"
+#' @param these_samples_metadata Optional metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.
 #' @param n_bins_split Split genome into N equally sized bins
 #' @param use_cytoband_name Use cytoband names instead of region names, e.g p36.33.
 #' @param missing_data_as_diploid Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.
-#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
+#' @param genome_build Specify the genome build (usually not required)
 #'
-#' @return Copy number matrix.
+#' @return Copy number matrix with sample_id as rows and regions as columns.
 #'
-#' @import dplyr circlize tibble stringr tidyr GenomicDistributions
+#' @import dplyr
 #' @export
 #'
 #' @examples
 #' #basic usage, generic lymphoma gene list
 #' cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 #'
-#' myc_region <- GAMBLR.utils::gene_to_region(
-#'  gene_symbol = "MYC",
-#'  projection = "grch37",
-#'  return_as = "region"
-#' )
 #'
-#' single_gene_cn <- get_cn_states(
-#'  regions_list = myc_region,
-#'  region_names = "MYC"
-#' )
-#'
-#' # For capture
-#' single_gene_cn <- get_cn_states(
-#'  regions_list = myc_region,
-#'  region_names = "MYC",
-#'  this_seq_type = "capture"
-#' )
-#'
-get_cn_states = function(regions_list,
-                         regions_bed,
-                         region_names,
+get_cn_states = function(strategy,
+                         regions,
                          seg_data,
                          these_samples_metadata,
-                         this_seq_type,
-                         all_cytobands = FALSE,
+                         n_bins_split = 1000,
                          use_cytoband_name = FALSE,
                          missing_data_as_diploid = FALSE,
-                         n_bins_split,
-                         adjust_for_ploidy=FALSE){
-
-  if(missing(seg_data)){
-    if(missing(this_seq_type) & missing(these_samples_metadata)){
-      stop("when not supplying seg_data, you must specify the samples with either this_seq_type or these_samples_metadata")
-    }else{
-      if(missing(this_seq_type)){
-        #metadata was provided, seq_type is not needed
-      }else{
-         these_samples_metadata = get_gambl_metadata() %>% dplyr::filter(seq_type == this_seq_type)
-      }
-      
-    }
-    
-  }
+                         adjust_for_ploidy=FALSE,
+                         projection="grch37"){
 
   
-  if(adjust_for_ploidy & !missing(seg_data)){
-   
-    seg_data = mutate(seg_data,size=end-start,CN=ifelse(CN>5,5,CN),weighted = CN*size) %>% 
-      group_by(ID) %>% mutate(average=sum(weighted)/sum(size)) %>% 
-      mutate(CN=round(CN-average+2))
-    
-  }
-  if(all_cytobands){
-    message("Currently, only grch37 is supported")
-  }
-  #retrieve the CN value for this region for every segment that overlaps it
-  bed2region=function(x){
-    paste0(x[1], ":", as.integer(x[2]), "-", as.integer(x[3]))
-  }
-  if(all_cytobands){
-    message("Cytobands are in respect to hg19. This will take awhile but it does work, trust me!")
-    regions_bed = circlize::read.cytoband(species = "hg19")$df
-    colnames(regions_bed) = c("chromosome_name", "start_position", "end_position", "name", "dunno")
-    if(use_cytoband_name){
-      regions_bed = mutate(regions_bed, region_name = paste0(str_remove(chromosome_name, pattern = "chr"), name))
-      region_names = pull(regions_bed, region_name)
-    }else{
-      #region_names = pull(regions_bed, region_name)
-    }
-    regions = apply(regions_bed, 1, bed2region)
-    #use the cytobands from the circlize package (currently hg19 but can extend to hg38 once GAMBLR handles it) Has this been updated?
-  }else if(!missing(n_bins_split)){
-    all_len = circlize::read.chromInfo()$chr.len
-    bin_df = GenomicDistributions::binChroms(binCount = n_bins_split,chromSizes=all_len[c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX")])
-    regions = apply(bin_df, 1, bed2region)
-  }else if(missing(regions_list)){
-    if(!missing(regions_bed)){
-      regions = apply(regions_bed, 1, bed2region)
-    }else{
-      warning("You must supply either regions_list or regions_df")
-    }
+  seg_data = get_cn_segments(these_samples_metadata = these_samples_metadata)
+  
+  if(missing(regions)){
+    cn_matrix = segmented_data_to_cn_matrix(strategy=strategy,
+                                            seg_data=seg_data,
+                                            these_samples_metadata = these_samples_metadata,
+                                            n_bins_split = n_bins_split,
+                                            use_cytoband_name = use_cytoband_name,
+                                            missing_data_as_diploid = missing_data_as_diploid,
+                                            adjust_for_ploidy = adjust_for_ploidy,
+                                            genome_build = projection)
   }else{
-    regions = regions_list
+    cn_matrix = segmented_data_to_cn_matrix(strategy=strategy,
+                                            seg_data=seg_data,
+                                            regions=regions,
+                                            these_samples_metadata = these_samples_metadata,
+                                            n_bins_split = n_bins_split,
+                                            use_cytoband_name = use_cytoband_name,
+                                            missing_data_as_diploid = missing_data_as_diploid,
+                                            adjust_for_ploidy = adjust_for_ploidy,
+                                            genome_build = projection)
   }
-  if(missing(region_names) & !use_cytoband_name){
-    region_names = regions
-  }
-  if(missing(seg_data)){
-    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, these_samples_metadata = these_samples_metadata)})
-  }else{
-    if(!missing(these_samples_metadata)){
-      #subset to the samples in the provided
-      seg_data = dplyr::filter(seg_data,ID %in% these_samples_metadata$sample_id) 
-    }
-    
-    region_segs = lapply(regions,function(x){get_cn_segments(region = x, streamlined = TRUE, weighted_average = T, seg_data = seg_data)})
-  }
-  tibbled_data = tibble(region_segs, region_name = region_names)
-  unnested_df = tibbled_data %>%
-    unnest_longer(region_segs)
-
-  seg_df = data.frame(ID = unnested_df$region_segs$ID, CN = unnested_df$region_segs$CN,region_name = unnested_df$region_name)
-  if(missing(seg_data)){
-    #arbitrarily take the first segment for each region/ID combination
-    seg_df = seg_df %>%
-      dplyr::group_by(ID, region_name) %>%
-      dplyr::slice(1) %>%
-      dplyr::rename("sample_id" = "ID")
-  }else{
-    seg_df = dplyr::rename(seg_df,sample_id=ID) 
-  }
-
-  if(missing(these_samples_metadata) & !missing(seg_data)){
-    eg = expand_grid(sample_id = unique(seg_data$ID), region_name = as.character(unique(seg_df$region_name)))
-  }else{
-    meta_arranged = these_samples_metadata %>%
-      dplyr::select(sample_id, pathology, lymphgen) %>%
-      arrange(pathology, lymphgen)
-    eg = expand_grid(sample_id = pull(meta_arranged, sample_id), region_name = as.character(unique(seg_df$region_name)))
-    
-  }
-  all_cn = left_join(eg, seg_df, by = c("sample_id" = "sample_id", "region_name" = "region_name"))
-
-  #fill in any sample/region combinations with missing data as diploid
-  if(missing_data_as_diploid){
-    all_cn = mutate(all_cn, CN = replace_na(CN, 2))
-  }
-
-  cn_matrix = pivot_wider(all_cn, id_cols = "sample_id", names_from = "region_name", values_from = "CN") %>%
-    column_to_rownames("sample_id")
-
-  #order the regions the same way the user provided them for convenience
-  if(any(!region_names %in% colnames(cn_matrix))){
-    missing = region_names[!region_names %in% colnames(cn_matrix)]
-    nmissing = length(missing)
-    region_names = region_names[!region_names %in% missing]
-    message(paste("missing data for",nmissing,"regions"))
-  }
-  cn_matrix = cn_matrix[,region_names, drop=FALSE]
-
+  
   return(cn_matrix)
 }

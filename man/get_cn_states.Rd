@@ -5,71 +5,47 @@
 \title{Get CN States.}
 \usage{
 get_cn_states(
-  regions_list,
-  regions_bed,
-  region_names,
+  strategy,
+  regions,
   seg_data,
   these_samples_metadata,
-  this_seq_type,
-  all_cytobands = FALSE,
+  n_bins_split = 1000,
   use_cytoband_name = FALSE,
   missing_data_as_diploid = FALSE,
-  n_bins_split,
-  adjust_for_ploidy = FALSE
+  adjust_for_ploidy = FALSE,
+  projection = "grch37"
 )
 }
 \arguments{
-\item{regions_list}{A vector of regions in the format chrom:start-end.}
+\item{strategy}{The general strategy to define regions. Available options are: 'custom_regions','auto_split','cytobands','GISTIC'}
 
-\item{regions_bed}{A bed file with one row for each region you want to determine the CN state from.}
+\item{regions}{Required when strategy is set to 'custom_regions'. A data frame in bed-like format or a vector of regions in the format "chrom:start-end"}
 
-\item{region_names}{Subset CN states on specific regions (gene symbols e.g FCGR2B).}
+\item{seg_data}{A data frame of segments that will be used to infer the copy number state of each region}
 
-\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+\item{these_samples_metadata}{Optional metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.}
 
-\item{these_samples_metadata}{A metadata table to auto-subset the data to samples in that table before returning.}
-
-\item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
-
-\item{all_cytobands}{Include all cytobands, default is set to FALSE. Currently only supports hg19.}
+\item{n_bins_split}{Split genome into N equally sized bins}
 
 \item{use_cytoband_name}{Use cytoband names instead of region names, e.g p36.33.}
 
 \item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
 
-\item{n_bins_split}{Split genome into N equally sized bins}
+\item{genome_build}{Specify the genome build (usually not required)}
 }
 \value{
-Copy number matrix.
+Copy number matrix with sample_id as rows and regions as columns.
 }
 \description{
 Get a copy number matrix for all samples based on segmented data in the database.
 }
 \details{
-This function returns CN states for the specified regions.
-For how to specify regions, refer to the parameter descriptions and function examples.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{assign_cn_to_ssm}, \link{get_cn_segments}, \link{get_sample_cn_segments}
+This function returns CN states for the specified regions using the CN data from GAMBLR.results and (optionally) assumes regions with no data are diploid.
+For how to determine/specify the coordinates of each region, refer to the parameter descriptions and examples.
 }
 \examples{
 #basic usage, generic lymphoma gene list
 cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 
-myc_region <- GAMBLR.utils::gene_to_region(
- gene_symbol = "MYC",
- projection = "grch37",
- return_as = "region"
-)
-
-single_gene_cn <- get_cn_states(
- regions_list = myc_region,
- region_names = "MYC"
-)
-
-# For capture
-single_gene_cn <- get_cn_states(
- regions_list = myc_region,
- region_names = "MYC",
- this_seq_type = "capture"
-)
 
 }

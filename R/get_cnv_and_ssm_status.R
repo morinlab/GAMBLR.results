@@ -23,7 +23,6 @@
 #' @param these_samples_metadata The metadata for samples of interest to be included in the returned matrix.
 #'   Can be created with `get_gambl_metadata` function.
 #' @param maf_df Optional data frame containing the coding variants for your samples (i.e. output from `get_all_coding_ssm`)
-#' @param this_seq_type The seq type to get results for. Possible values are "genome" (default) or "capture".
 #' @param only_cnv A vector of gene names indicating the genes for which only CNV status should be considered, 
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
@@ -34,6 +33,8 @@
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
+#' @param this_seq_type Deprecated
+#' 
 #' @return A data frame with CNV and SSM combined status.
 #' 
 #' @import dplyr
@@ -53,14 +54,12 @@
 #' genome_cnv_ssm_status = get_cnv_and_ssm_status(
 #'                            genes_and_cn_threshs,
 #'                            this_meta,
-#'                            only_cnv = "MIR17HG", 
-#'                            this_seq_type = "genome")
+#'                            only_cnv = "MIR17HG")
 #'                            
 #' exome_cnv_ssm_status = get_cnv_and_ssm_status(
 #'                            genes_and_cn_threshs,
 #'                            this_meta,
-#'                            only_cnv = "MIR17HG", 
-#'                            this_seq_type = "capture")
+#'                            only_cnv = "MIR17HG")
 #' 
 #' 
 #' genome_cnv_without_ssm_status = get_cnv_and_ssm_status(
@@ -71,18 +70,20 @@
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   these_samples_metadata,
                                   maf_df,
-                                  this_seq_type = "genome",
+                                  seg_data,
                                   only_cnv = "none",
                                   genome_build = "grch37",
                                   include_hotspots = TRUE,
                                   review_hotspots = TRUE,
-                                  seg_data,
                                   adjust_for_ploidy=FALSE,
-                                  include_silent=FALSE){
+                                  include_silent=FALSE,
+                                  this_seq_type){
   
   # check parameters
   stopifnot('`genes_and_cn_threshs` argument is missing.' = !missing(genes_and_cn_threshs))
-  
+  if(!missing(this_seq_type)){
+    stop("this_seq_type has been deprecated. Please subset the rows of these_samples_metadata to limit to one seq_type")
+  }
   stopifnot('`genes_and_cn_threshs` argument must be a data frame with columns "gene_id" (characters) and "cn_thresh" (integers).' = {
     k = class(genes_and_cn_threshs) == "data.frame" &
       all( c("gene_id", "cn_thresh") %in% names(genes_and_cn_threshs) )
@@ -95,20 +96,12 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   stopifnot('`genome_build` argument must be "grch37" or "hg38."' = genome_build %in% c("grch37", "hg38"))
   
-  stopifnot('`this_seq_type` argument must be "genome" or "capture."' = this_seq_type %in% c("genome", "capture"))
   
   stopifnot('`only_cnv` argument must be "none", "all", or a subset of `genes_and_cn_threshs$gene_id`' = {
     only_cnv == "none" |
       only_cnv == "all" |
       all(only_cnv %in% genes_and_cn_threshs$gene_id)
   })
-  
-  # define variables
-  if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter=this_seq_type)
-  }else{
-    these_samples_metadata = dplyr::filter(these_samples_metadata, seq_type==this_seq_type)
-  }
   
   # get gene regions
   my_regions = GAMBLR.utils::gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
@@ -126,20 +119,22 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   if(check_cnv){
     # get cn states
+    regions=my_regions[genes_and_cn_threshs_non_neutral$gene_id]
+    
+    names(regions)=genes_and_cn_threshs_non_neutral$gene_id
     if(missing(seg_data)){
       cn_matrix = get_cn_states(
-        regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
-        region_names = genes_and_cn_threshs_non_neutral$gene_id,
+        regions = regions,
+        strategy="custom_regions",
         these_samples_metadata = these_samples_metadata,
-        this_seq_type = this_seq_type
+        adjust_for_ploidy = adjust_for_ploidy
       )
     }else{
-     
-      cn_matrix = get_cn_states(
-        regions_list = my_regions[genes_and_cn_threshs_non_neutral$gene_id],
-        region_names = genes_and_cn_threshs_non_neutral$gene_id,
+      print(regions)
+      cn_matrix = segmented_data_to_cn_matrix(
+        regions=regions,
+        strategy="custom_regions",
         these_samples_metadata = these_samples_metadata,
-        this_seq_type = this_seq_type,
         seg_data = seg_data,
         adjust_for_ploidy=adjust_for_ploidy
       )
@@ -176,6 +171,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
         { matrix(0, nrow = nrow(cnv_status), ncol = length(.), dimnames = list(NULL, .)) } %>% 
         cbind(cnv_status)
     }
+    print(head(cnv_status))
     cnv_status = dplyr::select(cnv_status, genes_and_cn_threshs$gene_id)
   }
   
@@ -189,10 +185,10 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   # get maf data
   if(missing(maf_df)){
-    my_maf = get_coding_ssm(
+    my_maf = get_all_coding_ssm(
       these_samples_metadata = these_samples_metadata,
       projection = genome_build,
-      this_seq_type = this_seq_type,include_silent = include_silent
+      include_silent = include_silent
     ) %>%
       dplyr::filter(Hugo_Symbol %in% genes_to_check_ssm)
   }else{
