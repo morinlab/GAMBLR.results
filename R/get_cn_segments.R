@@ -13,6 +13,70 @@ get_genome_build.seg_data <- function(data) {
   attr(data, "genome_build")
 }
 
+# Merger function to preserve metadata and protect against accidental mixing across genome_builds
+
+#' Bind seg data together
+#'
+#' @description Combine multiple seg_data objects and retain metadata such as genome_build. This function
+#' will not allow you to combine seg_data objects that have different genome_build values. An error will also
+#' be thrown if the same sample id is found in more than one of the inputs
+#'
+#' @param ... 
+#' @param id_col Specify the name of the column containing the sample_id (default: ID)
+#'
+#' @return data.frame
+#' @export
+#'
+#' @examples
+#' 
+#' all_seg_data_genome = get_cn_segments(projection = "hg38",
+#'                                       these_samples_metadata = 
+#'                                       get_gambl_metadata() %>% 
+#'                                       dplyr::filter(seq_type=="genome"))
+#'                                       
+#' all_seg_data_exome = get_cn_segments(projection = "hg38",
+#'                                       these_samples_metadata = 
+#'                                       get_gambl_metadata() %>% 
+#'                                       dplyr::filter(seq_type=="genome"))
+#' all_seg = bind_rows(seg_data_genome,seg_data_exome)
+#' 
+bind_seg_data <- function(..., id_col = "ID") {
+  seg_list <- list(...)
+  
+  # Ensure all inputs are seg_data objects
+  if (!all(sapply(seg_list, inherits, "seg_data"))) {
+    stop("All inputs must be seg_data objects.")
+  }
+  
+  # Extract genome builds
+  genome_builds <- unique(sapply(seg_list, get_genome_build.seg_data))
+  
+  if (length(genome_builds) > 1) {
+    stop("Cannot bind seg_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
+  }
+  
+  # Collect unique sample IDs from each dataset
+  id_sets <- lapply(seg_list, function(df) {
+    if (!(id_col %in% colnames(df))) {
+      stop("ID column '", id_col, "' not found in input data.")
+    }
+    unique(df[[id_col]])  # Get unique IDs from each data frame
+  })
+  
+  # Flatten the list and count occurrences of each ID
+  all_ids <- unlist(id_sets)
+  duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
+  
+  # If any ID is found in multiple datasets, throw an error
+  if (length(duplicate_ids) > 0) {
+    stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
+  }
+  
+  combined <- bind_rows(seg_list)
+  attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
+  class(combined) <- c("seg_data", class(combined))  # Preserve class
+  return(combined)
+}
 
 
 #' @title Get CN Segments.
@@ -164,7 +228,7 @@ get_cn_segments = function(region,
       message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
-    df_list <- map(full_cnv_path, read_tsv)
+    df_list <- suppressMessages(map(full_cnv_path, read_tsv))
     all_segs = bind_rows(df_list) %>%  as.data.frame()
     if(missing(qstart) & missing(qend) & missing(region)){
       if(missing(chromosome)){
