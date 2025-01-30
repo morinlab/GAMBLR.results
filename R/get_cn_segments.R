@@ -1,3 +1,20 @@
+# Constructor function for segmented data
+create_seg_data <- function(seg_df, genome_build) {
+  if (!inherits(seg_df, "data.frame")) stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
+  
+  structure(seg_df, 
+            class = c("seg_data", class(seg_df)), 
+            genome_build = genome_build)
+}
+
+# Accessor function to retrieve genome_build
+get_genome_build.seg_data <- function(data) {
+  attr(data, "genome_build")
+}
+
+
+
 #' @title Get CN Segments.
 #'
 #' @description Retrieve all copy number segments from the GAMBL database that overlap with a single genomic coordinate range.
@@ -189,6 +206,8 @@ get_cn_segments = function(region,
     these_samples = pull(these_samples_metadata,sample_id)
     all_segs = dplyr::filter(all_segs,ID %in% these_samples)
   }
-  #return data frame with CN segments
+  #return S3 class with CN segments and genome_build 
+  print(class(all_segs))
+  all_segs = create_seg_data(all_segs,projection)
   return(all_segs)
 }

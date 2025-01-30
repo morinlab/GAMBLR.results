@@ -116,7 +116,7 @@ tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour
 
 non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
                                                        seq_type_priority = "genome")
-                                                       
+
 absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
 
 }
