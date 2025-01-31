@@ -16,7 +16,7 @@ get_coding_ssm(
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
   include_silent = TRUE,
-  engine = "fread_maf",
+  engine,
   verbose = TRUE,
   limit_cohort,
   exclude_cohort,
@@ -48,7 +48,7 @@ get_coding_ssm(
 
 \item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.}
 
-\item{engine}{Currently, only fread_maf (default) is supported.}
+\item{engine}{Deprecated. Ignored}
 
 \item{verbose}{Controls the "verboseness" of this function (and internally called helpers).}
 

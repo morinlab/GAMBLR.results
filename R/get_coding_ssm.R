@@ -1,3 +1,76 @@
+# Constructor function for MAF data
+create_maf_data <- function(maf_df, genome_build) {
+  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
+  
+  structure(maf_df, 
+            class = c("maf_data", class(maf_df)), 
+            genome_build = genome_build)
+}
+
+# Accessor function to retrieve genome_build
+get_genome_build.maf_data <- function(data) {
+  attr(data, "genome_build")
+}
+
+# Merger function to preserve metadata and protect against accidental mixing across genome_builds
+
+#' Bind maf data together
+#'
+#' @description Combine multiple maf_data objects and retain metadata such as genome_build. This function
+#' will not allow you to combine maf_data objects that have different genome_build values. An error will also
+#' be thrown if the same sample id is found in more than one of the inputs
+#'
+#' @param ... 
+#' @param id_col Specify the name of the column containing the sample_id (default: Tumor_Sample_Barcode)
+#'
+#' @return data.frame
+#' @export
+#'
+#' @examples
+#' 
+#' 
+bind_maf_data <- function(..., id_col = "Tumor_Sample_Barcode") {
+  maf_list <- list(...)
+  print(maf_list)
+  # Ensure all inputs are seg_data objects
+  if (!all(sapply(maf_list, inherits, "maf_data"))) {
+    stop("All inputs must be maf_list objects.")
+  }
+  
+  # Extract genome builds
+  genome_builds <- unique(sapply(maf_list, get_genome_build.maf_data))
+  
+  if (length(genome_builds) > 1) {
+    stop("Cannot bind seg_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
+  }
+  
+  # Collect unique sample IDs from each dataset
+  id_sets <- lapply(maf_list, function(df) {
+    if (!(id_col %in% colnames(df))) {
+      stop("ID column '", id_col, "' not found in input data.")
+    }
+    unique(df[[id_col]])  # Get unique IDs from each data frame
+  })
+  
+  # Flatten the list and count occurrences of each ID
+  all_ids <- unlist(id_sets)
+  duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
+  
+  # If any ID is found in multiple datasets, throw an error
+  if (length(duplicate_ids) > 0) {
+    stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
+  }
+  
+  combined <- bind_rows(maf_list)
+  attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
+  if(!"maf_data" %in% class(combined)){
+    class(combined) <- c("maf_data", class(combined))  # Preserve class
+  }
+  return(combined)
+}
+
+
 #' @title Get Coding SSM.
 #'
 #' @description Retrieve all coding SSMs from one seq_type in GAMBL in MAF-like format.
@@ -18,9 +91,9 @@
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs)
 #' @param include_silent Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.
-#' @param engine Currently, only fread_maf (default) is supported.
 #' @param verbose Controls the "verboseness" of this function (and internally called helpers).
 #' @param from_flatfile Deprecated. Ignored
+#' @param engine Deprecated. Ignored
 #' @param groups Deprecated. Use either these_samples_metadata or these_sample_ids instead 
 #' @param limit_cohort Deprecated. Use either these_samples_metadata or these_sample_ids instead 
 #' @param exclude_cohort  Deprecated. Use either these_samples_metadata or these_sample_ids instead 
@@ -50,7 +123,7 @@ get_coding_ssm = function(
                           min_read_support = 3,
                           groups = c("gambl", "icgc_dart"),
                           include_silent = TRUE,
-                          engine = "fread_maf",
+                          engine,
                           verbose = TRUE,
                           limit_cohort,
                           exclude_cohort,
@@ -99,21 +172,19 @@ get_coding_ssm = function(
     message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
   }
 
-  if(engine=='fread_maf'){
-    if(basic_columns){
-      #subset to basic columns during read to save time and memory with lazy loading (in theory)
-      select_cols = c(1:45)
-      muts = fread_maf(full_maf_path,select_cols=select_cols) %>%
+
+  if(basic_columns){
+    #subset to basic columns during read to save time and memory with lazy loading (in theory)
+    select_cols = c(1:45)
+    muts = fread_maf(full_maf_path,select_cols=select_cols) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
-    }else{
-      muts = fread_maf(full_maf_path) %>%
-        dplyr::filter(Variant_Classification %in% coding_class) %>%
-        as.data.frame()
-    }
   }else{
-    stop("Currently, only fread_maf is the only supported read engine...")
+    muts = fread_maf(full_maf_path) %>%
+        dplyr::filter(Variant_Classification %in% coding_class) %>%
+        as.data.frame()
   }
+
 
   if(verbose){
     mutated_samples = length(unique(muts$Tumor_Sample_Barcode))
@@ -158,5 +229,6 @@ get_coding_ssm = function(
     fu_muts = get_ssm_by_samples(these_sample_ids = force_unmatched_samples)
     muts = bind_rows(muts, fu_muts)
   }
+  muts = create_maf_data(muts,projection)
   return(muts)
 }

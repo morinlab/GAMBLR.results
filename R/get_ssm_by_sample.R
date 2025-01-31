@@ -52,28 +52,36 @@ get_ssm_by_sample = function(this_sample_id,
                              verbose = FALSE
                              ){
   remote_session = check_remote_configuration(auto_connect = TRUE)
-  if(missing(this_seq_type) & missing(these_samples_metadata)){
-    stop("Must provide both a sample_id and seq_type for that sample via this_sample_id and this_seq_type")
+  if(missing(this_sample_id) & missing(these_samples_metadata)){
+    stop("Must provide a sample_id or a single row of metadata")
+  }else if(missing(these_samples_metadata)){
+    these_samples_metadata = get_gambl_metadata() %>%
+      dplyr::filter(sample_id == this_sample_id) %>% 
+      dplyr::filter(seq_type != "mrna") 
+  }else{
+    #just in case more than our row was provided
+    if(nrow(these_samples_metadata)>1){
+      these_samples_metadata = these_samples_metadata %>%
+        dplyr::filter(seq_type != "mrna") %>%
+        dplyr::filter(sample_id == this_sample_id)
+    }
+  }
+  if(nrow(these_samples_metadata) > 1 | nrow(these_samples_metadata)==0){
+    print(nrow(these_samples_metadata))
+    print(these_samples_metadata)
+    stop("problem!")
   }
   if(missing(this_seq_type)){
     #get it from the metadata
-    this_seq_type = dplyr::filter(these_samples_metadata,sample_id==this_sample_id) %>% pull(seq_type)
-  }
-  #figure out which unix_group this sample belongs to
-  if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
-      dplyr::filter(sample_id == this_sample_id)
-
+    seq_type = pull(these_samples_metadata,seq_type)
   }else{
-    these_samples_metadata = these_samples_metadata %>%
-      dplyr::filter(sample_id == this_sample_id)
+    seq_type = this_seq_type #maybe we don't want this? 
   }
   sample_id = this_sample_id
   tumour_sample_id = sample_id
   unix_group = pull(these_samples_metadata, unix_group)
   genome_build = pull(these_samples_metadata, genome_build)
   target_builds = projection
-  seq_type = pull(these_samples_metadata, seq_type)
   pair_status = pull(these_samples_metadata, pairing_status)
   if(verbose){
     print(paste("group:", unix_group, "genome:", genome_build))
@@ -207,6 +215,6 @@ get_ssm_by_sample = function(this_sample_id,
   if(!is.null(maf_cols) && !basic_columns){
     sample_ssm = dplyr::select(sample_ssm, all_of(maf_cols))
     }
-
+  sample_ssm = create_maf_data(sample_ssm,projection)
   return(sample_ssm)
 }
