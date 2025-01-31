@@ -21,7 +21,7 @@ get_cn_states(
 
 \item{regions}{Required when strategy is set to 'custom_regions'. A data frame in bed-like format or a vector of regions in the format "chrom:start-end"}
 
-\item{these_samples_metadata}{Optional metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.}
+\item{these_samples_metadata}{Optional (but highly recommended) metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.}
 
 \item{n_bins_split}{Split genome into N equally sized bins}
 
@@ -42,8 +42,15 @@ This function returns CN states for the specified regions using the CN data from
 For how to determine/specify the coordinates of each region, refer to the parameter descriptions and examples.
 }
 \examples{
-#basic usage, generic lymphoma gene list
-cn_matrix = get_cn_states(regions_bed=GAMBLR.data::grch37_lymphoma_genes_bed)
 
+these_samples_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
+
+# basic usage with 500 approximately equal-sized bins across the genome
+cn_matrix = get_cn_states(strategy="auto_split",
+                          n_bins_split=500)
+
+# get the CN state of every lymphoma gene instead
+
+these_samples_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
 
 }

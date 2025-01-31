@@ -6,9 +6,6 @@
 \usage{
 get_cn_segments(
   region,
-  chromosome,
-  qstart,
-  qend,
   projection = "grch37",
   weighted_average = FALSE,
   seg_data,
@@ -21,12 +18,6 @@ get_cn_segments(
 }
 \arguments{
 \item{region}{Region formatted like chrX:1234-5678 or X:1234-56789.}
-
-\item{chromosome}{The chromosome you are restricting to. Required parameter if region is not specified.}
-
-\item{qstart}{Start coordinate of the range you are restricting to. Required parameter if region is not specified.}
-
-\item{qend}{End coordinate of the range you are restricting to. Required parameter if region is not specified.}
 
 \item{projection}{Selected genome projection for returned CN segments. Default is "grch37".}
 
@@ -43,6 +34,12 @@ get_cn_segments(
 \item{from_flatfile}{Set to TRUE by default.}
 
 \item{these_samples_metadata}{Provide a metadata table to restrict the data to the samples in your table}
+
+\item{chromosome}{The chromosome you are restricting to. Required parameter if region is not specified.}
+
+\item{qstart}{Start coordinate of the range you are restricting to. Required parameter if region is not specified.}
+
+\item{qend}{End coordinate of the range you are restricting to. Required parameter if region is not specified.}
 }
 \value{
 A data frame with CN segments for the specified region.
