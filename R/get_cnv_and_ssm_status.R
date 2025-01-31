@@ -130,7 +130,6 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
         adjust_for_ploidy = adjust_for_ploidy
       )
     }else{
-      print(regions)
       cn_matrix = segmented_data_to_cn_matrix(
         regions=regions,
         strategy="custom_regions",

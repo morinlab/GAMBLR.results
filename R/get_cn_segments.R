@@ -1,4 +1,5 @@
 # Constructor function for segmented data
+#' @export
 create_seg_data <- function(seg_df, genome_build) {
   if (!inherits(seg_df, "data.frame")) stop("data must be a data frame")
   if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
@@ -6,76 +7,6 @@ create_seg_data <- function(seg_df, genome_build) {
   structure(seg_df, 
             class = c("seg_data", class(seg_df)), 
             genome_build = genome_build)
-}
-
-# Accessor function to retrieve genome_build
-get_genome_build.seg_data <- function(data) {
-  attr(data, "genome_build")
-}
-
-# Merger function to preserve metadata and protect against accidental mixing across genome_builds
-
-#' Bind seg data together
-#'
-#' @description Combine multiple seg_data objects and retain metadata such as genome_build. This function
-#' will not allow you to combine seg_data objects that have different genome_build values. An error will also
-#' be thrown if the same sample id is found in more than one of the inputs
-#'
-#' @param ... 
-#' @param id_col Specify the name of the column containing the sample_id (default: ID)
-#'
-#' @return data.frame
-#' @export
-#'
-#' @examples
-#' 
-#' all_seg_data_genome = get_cn_segments(projection = "hg38",
-#'                                       these_samples_metadata = 
-#'                                       get_gambl_metadata() %>% 
-#'                                       dplyr::filter(seq_type=="genome"))
-#'                                       
-#' all_seg_data_exome = get_cn_segments(projection = "hg38",
-#'                                       these_samples_metadata = 
-#'                                       get_gambl_metadata() %>% 
-#'                                       dplyr::filter(seq_type=="genome"))
-#' all_seg = bind_rows(seg_data_genome,seg_data_exome)
-#' 
-bind_seg_data <- function(..., id_col = "ID") {
-  seg_list <- list(...)
-  
-  # Ensure all inputs are seg_data objects
-  if (!all(sapply(seg_list, inherits, "seg_data"))) {
-    stop("All inputs must be seg_data objects.")
-  }
-  
-  # Extract genome builds
-  genome_builds <- unique(sapply(seg_list, get_genome_build.seg_data))
-  
-  if (length(genome_builds) > 1) {
-    stop("Cannot bind seg_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
-  }
-  
-  # Collect unique sample IDs from each dataset
-  id_sets <- lapply(seg_list, function(df) {
-    if (!(id_col %in% colnames(df))) {
-      stop("ID column '", id_col, "' not found in input data.")
-    }
-    unique(df[[id_col]])  # Get unique IDs from each data frame
-  })
-  
-  # Flatten the list and count occurrences of each ID
-  all_ids <- unlist(id_sets)
-  duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
-  
-  # If any ID is found in multiple datasets, throw an error
-  if (length(duplicate_ids) > 0) {
-    stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
-  }
-  
-  combined <- bind_rows(seg_list)
-  attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
-  class(combined) <- c("seg_data", class(combined))  # Preserve class
-  return(combined)
 }
 
 
@@ -211,7 +142,7 @@ get_cn_segments = function(region,
     cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
     cnv_path =  glue::glue(cnv_flatfile_template)
     full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
-
+    print(full_cnv_path)
     #check permissions to ICGC data.
     permissions = file.access(full_cnv_path[1], 4)
     if(permissions == -1){

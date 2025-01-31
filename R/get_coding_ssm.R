@@ -1,18 +1,64 @@
 # Constructor function for MAF data
-create_maf_data <- function(maf_df, genome_build) {
-  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
-  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
+#' @export
+create_maf_data <- function(maf_df, genome_build) {  
+  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")  
+  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")  
   
-  structure(maf_df, 
-            class = c("maf_data", class(maf_df)), 
+  structure(maf_df,  
+            class = c("maf_data", "genomic_data", class(maf_df)),  #  "genomic_data" for generic methods
             genome_build = genome_build)
 }
 
 # Accessor function to retrieve genome_build
-get_genome_build.maf_data <- function(data) {
+#' @export
+get_genome_build <- function(data) {
   attr(data, "genome_build")
 }
 
+# Helper function to preserve attributes and class after dplyr operations
+#' @export
+preserve_genomic_attributes <- function(new_data, old_data) {
+  attr(new_data, "genome_build") <- attr(old_data, "genome_build")
+  class(new_data) <- class(old_data)
+  return(new_data)
+}
+
+# S3 methods for genomic_data class
+#' @export
+mutate.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::mutate(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+filter.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::filter(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+select.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::select(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+rename.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::rename(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+arrange.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::arrange(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+group_by.genomic_data <- function(.data, ..., .add = FALSE) {
+  new_data <- dplyr::group_by(as.data.frame(.data), ..., .add = .add)  
+  preserve_genomic_attributes(new_data, .data)
+}
+#' @export
+ungroup.genomic_data <- function(.data, ...) {
+  new_data <- dplyr::ungroup(as.data.frame(.data), ...)  
+  preserve_genomic_attributes(new_data, .data)
+}
 # Merger function to preserve metadata and protect against accidental mixing across genome_builds
 
 #' Bind maf data together
@@ -30,23 +76,32 @@ get_genome_build.maf_data <- function(data) {
 #' @examples
 #' 
 #' 
-bind_maf_data <- function(..., id_col = "Tumor_Sample_Barcode") {
-  maf_list <- list(...)
-  print(maf_list)
-  # Ensure all inputs are seg_data objects
-  if (!all(sapply(maf_list, inherits, "maf_data"))) {
-    stop("All inputs must be maf_list objects.")
+bind_genomic_data <- function(...) {
+  
+  in_list <- list(...)
+  if("maf_data" %in% class(in_list[[1]])){
+    #MAF format, ID column is Tumor_Sample_Barcode
+    id_col = "Tumor_Sample_Barcode"
+  }else if("seg_data" %in% class(in_list[[1]])){
+    #SEG format, ID column is ID
+    id_col = "ID"
+  }else{
+    stop(paste("unsure how to merge:",class(in_list[[1]])))
+  }
+  # Ensure all inputs are seg_data or maf_data objects
+  if (!all(sapply(in_list, inherits, "maf_data")) & !all(sapply(in_list, inherits, "seg_data"))) {
+    stop("All inputs must be maf_data objects or seg_data objects.")
   }
   
   # Extract genome builds
-  genome_builds <- unique(sapply(maf_list, get_genome_build.maf_data))
+  genome_builds <- unique(sapply(in_list, get_genome_build))
   
   if (length(genome_builds) > 1) {
-    stop("Cannot bind seg_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
+    stop("Cannot bind seg_data or maf_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
   }
   
   # Collect unique sample IDs from each dataset
-  id_sets <- lapply(maf_list, function(df) {
+  id_sets <- lapply(in_list, function(df) {
     if (!(id_col %in% colnames(df))) {
       stop("ID column '", id_col, "' not found in input data.")
     }
@@ -62,10 +117,10 @@ bind_maf_data <- function(..., id_col = "Tumor_Sample_Barcode") {
     stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
   }
   
-  combined <- bind_rows(maf_list)
+  combined <- bind_rows(in_list)
   attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
   if(!"maf_data" %in% class(combined)){
-    class(combined) <- c("maf_data", class(combined))  # Preserve class
+    class(combined) <- c("maf_data","genomic_data", class(combined))  # Preserve class
   }
   return(combined)
 }
@@ -204,6 +259,7 @@ get_coding_ssm = function(
 
   if(verbose){
     if(!missing(these_samples_metadata)){
+      muts = dplyr::filter(muts,Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
       mutated_samples = length(unique(muts$Tumor_Sample_Barcode))
       message(paste("after linking with metadata, we have mutations from exactly", mutated_samples, "samples")) 
     }
@@ -229,6 +285,9 @@ get_coding_ssm = function(
     fu_muts = get_ssm_by_samples(these_sample_ids = force_unmatched_samples)
     muts = bind_rows(muts, fu_muts)
   }
+  
   muts = create_maf_data(muts,projection)
+  # use S3-safe version of dplyr function
+  muts = mutate.genomic_data(muts,maf_seq_type = this_seq_type)
   return(muts)
 }

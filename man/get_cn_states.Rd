@@ -21,8 +21,6 @@ get_cn_states(
 
 \item{regions}{Required when strategy is set to 'custom_regions'. A data frame in bed-like format or a vector of regions in the format "chrom:start-end"}
 
-\item{seg_data}{A data frame of segments that will be used to infer the copy number state of each region}
-
 \item{these_samples_metadata}{Optional metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.}
 
 \item{n_bins_split}{Split genome into N equally sized bins}
@@ -31,7 +29,7 @@ get_cn_states(
 
 \item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
 
-\item{genome_build}{Specify the genome build (usually not required)}
+\item{genome_build}{Specify the genome build you want. Default is grch37.}
 }
 \value{
 Copy number matrix with sample_id as rows and regions as columns.

@@ -227,9 +227,7 @@ get_ssm_by_samples = function(these_sample_ids,
         verbose = FALSE
         )},mc.cores = 12)
       }
-      #maf_df_merge = bind_rows(maf_df_list)
-      #maf_df_merge = bind_maf_data(unlist(maf_df_list))
-      maf_df_merge <- do.call(bind_maf_data, maf_df_list)
+      maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
     }
   }
 
