@@ -120,7 +120,6 @@ get_cn_segments = function(region,
         dplyr::mutate(chrom = gsub("chr", "", chrom))
     }
   }else{
-    print("add prefix")
     if(all(!str_detect(all_segs$chrom, "chr"))){
       all_segs = all_segs %>%
         dplyr::mutate(chrom = paste0("chr", chrom))
@@ -133,9 +132,7 @@ get_cn_segments = function(region,
     all_segs = dplyr::filter(all_segs,ID %in% these_samples)
   }
 
-  print(head(all_segs))
   #return S3 class with CN segments and genome_build 
-  print(class(all_segs))
   all_segs = create_seg_data(all_segs,projection)
   return(all_segs)
 }

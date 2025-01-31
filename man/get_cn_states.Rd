@@ -7,7 +7,6 @@
 get_cn_states(
   strategy,
   regions,
-  seg_data,
   these_samples_metadata,
   n_bins_split = 1000,
   use_cytoband_name = FALSE,
@@ -43,14 +42,28 @@ For how to determine/specify the coordinates of each region, refer to the parame
 }
 \examples{
 
-these_samples_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
+my_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
 
 # basic usage with 500 approximately equal-sized bins across the genome
+# Use the hg38 projection (all coordinates will be relative to hg38)
 cn_matrix = get_cn_states(strategy="auto_split",
+                          projection="hg38",
+                          these_samples_metadata = my_metadata
                           n_bins_split=500)
 
 # get the CN state of every lymphoma gene instead
 
-these_samples_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
+gene_cn = get_cn_states(strategy="custom_regions",
+                        these_samples_metadata = metadata,
+                        regions=GAMBLR.data::grch37_lymphoma_genes_bed)
+                        
+                        
+# get the CN state per cytoband using hg38 projection.
+# adjust CN values to correct for high ploidy
+cytoband_cn = get_cn_states(strategy="cytobands",
+                            projection="hg38",
+                            use_cytoband_name=TRUE,
+                            these_samples_metadata=metadata,
+                            adjust_for_ploidy=TRUE)
 
 }
