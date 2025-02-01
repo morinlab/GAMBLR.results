@@ -19,6 +19,10 @@ get_raw_expression_counts(
 \arguments{
 \item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
 
+\item{existing_sample_id_column}{Specify which column contains the sample_id you want replaced with the contents of new_sample_id_column}
+
+\item{new_sample_id_column}{Specify which column in your metadata contains the sample_id you want used instead of the existing_sample_id}
+
 \item{all_samples}{Set to TRUE to force the function to return all available data (should rarely be necessary)}
 
 \item{check}{For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available}
@@ -27,9 +31,9 @@ get_raw_expression_counts(
 
 \item{map_to_symbol}{Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias}
 
-\item{TPM}{Set to TRUE to get TPM estimates instead of counts}
+\item{verbose}{Set to TRUE for more print statements and such}
 
-\item{sample_id_column}{Specify which column in your metadata contains the sample_id you want used instead of the mrna sample_id}
+\item{TPM}{Set to TRUE to get TPM estimates instead of counts}
 }
 \value{
 A list containing a counts matrix and the associated metadata for DESeq2

@@ -11,7 +11,6 @@ Depends:
     R (>= 4.1)
 Imports:
     BSgenome,
-    circlize,
     ComplexHeatmap,
     config,
     data.table,
@@ -22,7 +21,6 @@ Imports:
     GAMBLR.helpers,
     GAMBLR.utils,
     GAMBLR.viz,
-    GenomicDistributions,
     GenomicRanges,
     ggplot2,
     ggsci,
@@ -36,8 +34,6 @@ Imports:
     readr,
     RMariaDB,
     Rsamtools,
-    rtracklayer,
-    S4Vectors,
     ssh,
     stringi,
     stringr,
