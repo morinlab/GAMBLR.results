@@ -7,7 +7,7 @@
 #' For examples and more info, refer to the parameter descriptions as well as vignette examples.
 #'
 #' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
-#' @sample_id_column Specify which column in your metadata contains the sample_id you want used instead of the mrna sample_id
+#' @param sample_id_column Specify which column in your metadata contains the sample_id you want used instead of the mrna sample_id
 #' @param from_flatfile Set to FALSE to use the database instead of reading from flatfiles
 #' @param check For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available 
 #' @param all_samples Set to TRUE to force the function to return all available data (should rarely be necessary)

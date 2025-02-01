@@ -6,6 +6,7 @@
 
 #' @param these_samples_metadata Supply a metadata table containing the sample/seq_type combinations you want. 
 #' @param include_silent If set to TRUE, silent/synonymous mutations in the coding regions will also be returned. 
+#' @param ... Additional arguments passed to get_coding_ssm
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'

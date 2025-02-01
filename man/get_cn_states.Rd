@@ -28,7 +28,9 @@ get_cn_states(
 
 \item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
 
-\item{genome_build}{Specify the genome build you want. Default is grch37.}
+\item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
+
+\item{projection}{Specify the genome build you want. Default is grch37.}
 }
 \value{
 Copy number matrix with sample_id as rows and regions as columns.
@@ -48,7 +50,7 @@ my_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
 # Use the hg38 projection (all coordinates will be relative to hg38)
 cn_matrix = get_cn_states(strategy="auto_split",
                           projection="hg38",
-                          these_samples_metadata = my_metadata
+                          these_samples_metadata = my_metadata,
                           n_bins_split=500)
 
 # get the CN state of every lymphoma gene instead

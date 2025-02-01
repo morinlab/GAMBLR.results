@@ -1,13 +1,55 @@
-# Constructor function for segmented data
+#' Create Segmented Data Object
+#'
+#' This function constructs an S3 object for segmented genomic data by augmenting a
+#' standard data frame with a custom class and a genome build attribute. The returned
+#' object inherits from \code{data.frame} and is assigned the class \code{"seg_data"}.
+#'
+#' @param seg_df A data frame containing segmented data. This data frame should include
+#'   the necessary columns that describe segments (for example, chromosome, start, end, and
+#'   segment mean values). There is no formal check on column names; however, downstream
+#'   methods may expect certain column names.
+#' @param genome_build A character string specifying the genome build. Valid values are
+#'   \code{"grch37"} and \code{"hg38"}. An error is thrown if an invalid genome build is provided.
+#'
+#' @return An object of class \code{"seg_data"} (in addition to its inherited classes) with
+#'   an attached attribute \code{genome_build} containing the specified genome build.
+#'
+#' @details The \code{create_seg_data} function is designed to encapsulate segmented data along
+#'   with its metadata, making it easier to work with such objects in downstream analyses.
+#'   The function performs basic checks to ensure that the input data is a data frame and that
+#'   the genome build is valid. Further processing or validations (e.g., ensuring the presence
+#'   of specific columns) should be handled prior to calling this constructor if needed.
+#'
+#' @examples
+#' \dontrun{
+#' # Example segmented data
+#' seg_df <- data.frame(
+#'   chrom = c("chr1", "chr1", "chr2"),
+#'   start = c(100000, 200000, 150000),
+#'   end = c(150000, 250000, 200000),
+#'   seg_mean = c(0.5, -0.3, 0.2)
+#' )
+#'
+#' # Create a seg_data object using the hg38 genome build
+#' seg_obj <- create_seg_data(seg_df, genome_build = "hg38")
+#'
+#' # Print the object and check its genome build attribute
+#' print(seg_obj)
+#' attr(seg_obj, "genome_build")
+#' }
+#'
 #' @export
 create_seg_data <- function(seg_df, genome_build) {
-  if (!inherits(seg_df, "data.frame")) stop("data must be a data frame")
-  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
+  if (!inherits(seg_df, "data.frame"))
+    stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38"))
+    stop("Invalid genome build")
   
-  structure(seg_df, 
-            class = c("seg_data", class(seg_df)), 
+  structure(seg_df,
+            class = c("seg_data", class(seg_df)),
             genome_build = genome_build)
 }
+
 
 
 #' @title Get CN Segments.

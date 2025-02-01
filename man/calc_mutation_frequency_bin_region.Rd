@@ -52,10 +52,6 @@ calc_mutation_frequency_bin_region(
 \item{return_count}{Boolean statement to return mutation count per window (TRUE) or binary mutated/unmutated status (FALSE). Default is TRUE.}
 
 \item{drop_unmutated}{Boolean for whether to drop windows with 0 mutations. Only effective with "long" return format.}
-
-\item{from_indexed_flatfile}{Set to TRUE to avoid using the database and instead rely on flat-files (only works for streamlined data, not full MAF details). Default is TRUE.}
-
-\item{mode}{Only works with indexed flat-files. Accepts 2 options of "slms-3" and "strelka2" to indicate which variant caller to use. Default is "slms-3".}
 }
 \value{
 Either a matrix or a long tidy table of counts per window.

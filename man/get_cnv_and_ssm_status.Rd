@@ -44,6 +44,8 @@ of the genes, respectively.}
 \item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
+\item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
+
 \item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
 
 \item{this_seq_type}{Deprecated}

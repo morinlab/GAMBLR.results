@@ -15,9 +15,31 @@ get_gene_fusions(
   harmonize_immunoglobulin_partners = FALSE
 )
 }
+\arguments{
+\item{projection}{Which genome build}
+
+\item{verbose}{How chatty you want this experience}
+
+\item{keep_genes}{Vector of genes to restrict to}
+
+\item{drop_genes}{Vector of genes to drop (i.e. bad/artifacts)}
+
+\item{remove_adjacent_pairs}{Set to TRUE to drop genes that are already in close proximity}
+
+\item{these_samples_metadata}{The metadata to link to your fusion table}
+
+\item{join_with_metadata}{Set to TRUE to get fusions along with the sample metadata in one data frame}
+
+\item{harmonize_immunoglobulin_partners}{Attempt to clean up IG names so they are all consistently one of IGH, IGK or IGL}
+}
 \value{
 A data frame in a bedpe-like format
 }
 \description{
 Retrieve fusions identified by FusionCatcher
+}
+\examples{
+
+all_fusions = get_gene_fusions()
+
 }

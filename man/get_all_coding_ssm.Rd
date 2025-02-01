@@ -10,6 +10,8 @@ get_all_coding_ssm(these_samples_metadata = NULL, include_silent = FALSE, ...)
 \item{these_samples_metadata}{Supply a metadata table containing the sample/seq_type combinations you want.}
 
 \item{include_silent}{If set to TRUE, silent/synonymous mutations in the coding regions will also be returned.}
+
+\item{...}{Additional arguments passed to get_coding_ssm}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).

@@ -2,6 +2,14 @@
 #'
 #' @description Retrieve fusions identified by FusionCatcher
 #'
+#' @param projection Which genome build 
+#' @param verbose How chatty you want this experience
+#' @param keep_genes Vector of genes to restrict to
+#' @param drop_genes Vector of genes to drop (i.e. bad/artifacts)
+#' @param remove_adjacent_pairs Set to TRUE to drop genes that are already in close proximity
+#' @param these_samples_metadata The metadata to link to your fusion table
+#' @param join_with_metadata Set to TRUE to get fusions along with the sample metadata in one data frame
+#' @param harmonize_immunoglobulin_partners Attempt to clean up IG names so they are all consistently one of IGH, IGK or IGL
 #'
 #' @return A data frame in a bedpe-like format 
 #'
@@ -9,6 +17,8 @@
 #' @export
 #'
 #' @examples
+#' 
+#' all_fusions = get_gene_fusions()
 #'
 get_gene_fusions = function(projection = "grch37",
                        verbose=F,

@@ -28,6 +28,8 @@ get_raw_expression_counts(
 \item{map_to_symbol}{Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias}
 
 \item{TPM}{Set to TRUE to get TPM estimates instead of counts}
+
+\item{sample_id_column}{Specify which column in your metadata contains the sample_id you want used instead of the mrna sample_id}
 }
 \value{
 A list containing a counts matrix and the associated metadata for DESeq2

@@ -2,20 +2,26 @@
 % Please edit documentation in R/get_coding_ssm.R
 \name{bind_genomic_data}
 \alias{bind_genomic_data}
-\title{Bind maf data together}
+\title{Bind maf or other genomic data together}
 \usage{
-bind_genomic_data(...)
+bind_genomic_data(..., check_id = TRUE)
 }
 \arguments{
-\item{...}{}
+\item{...}{All maf_data or seg_data objects to be combined.}
 
-\item{id_col}{Specify the name of the column containing the sample_id (default: Tumor_Sample_Barcode)}
+\item{check_id}{Logical. If TRUE (the default), the function will check for the presence of the expected ID column
+and for duplicate sample IDs across the inputs. Set to FALSE to skip this check.}
 }
 \value{
-data.frame
+data.frame with combined data and preserved genome_build metadata.
 }
 \description{
-Combine multiple maf_data objects and retain metadata such as genome_build. This function
-will not allow you to combine maf_data objects that have different genome_build values. An error will also
-be thrown if the same sample id is found in more than one of the inputs
+Combine multiple maf_data objects and retain metadata such as genome_build.
+This function will not allow you to combine maf_data objects that have different genome_build values.
+An error will also be thrown if the same sample id is found in more than one of the inputs (if check_id is TRUE).
+}
+\examples{
+
+merged_maf = bind_genomic_data(maf1, maf2,check_id=FALSE)
+
 }

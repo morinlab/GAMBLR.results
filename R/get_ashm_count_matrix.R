@@ -14,6 +14,7 @@
 #'      sample_id for all samples if you are using non-GAMBL data.
 #' @param this_seq_type The seq_type to return results for. Must be a single value. Only used if no
 #'      metadata is provided with these_samples_metadata.
+#' @param projection The genome build we are working with
 #'
 #' @return A data frame with a row for every sample in these_samples_metadata and a column for every region in regions_bed
 #'

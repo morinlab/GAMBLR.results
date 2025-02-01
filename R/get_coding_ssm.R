@@ -1,21 +1,39 @@
-# Constructor function for MAF data
+
+#' Create MAF Data
+#'
+#' This function creates MAF (Mutation Annotation Format) data from the given input.
+#'
+#' @param maf_df A data frame containing the MAF data.
+#' @param genome_build A string specifying the genome build ("grch37" or "hg38").
+#' @return A data frame with class attributes for MAF data.
 #' @export
-create_maf_data <- function(maf_df, genome_build) {  
-  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")  
-  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")  
+create_maf_data <- function(maf_df, genome_build) {
+  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
   
-  structure(maf_df,  
+  structure(maf_df,
             class = c("maf_data", "genomic_data", class(maf_df)),  #  "genomic_data" for generic methods
             genome_build = genome_build)
 }
 
-# Accessor function to retrieve genome_build
+#' Get Genome Build
+#'
+#' This function retrieves the genome build attribute from the data.
+#'
+#' @param data A data frame with genome build attribute.
+#' @return A string specifying the genome build.
 #' @export
 get_genome_build <- function(data) {
   attr(data, "genome_build")
 }
 
-# Helper function to preserve attributes and class after dplyr operations
+#' Preserve Genomic Attributes
+#'
+#' This function preserves the genomic attributes and class after dplyr operations.
+#'
+#' @param new_data A data frame resulting from dplyr operations.
+#' @param old_data The original data frame with genomic attributes.
+#' @return A data frame with preserved genomic attributes.
 #' @export
 preserve_genomic_attributes <- function(new_data, old_data) {
   attr(new_data, "genome_build") <- attr(old_data, "genome_build")
@@ -55,41 +73,45 @@ group_by.genomic_data <- function(.data, ..., .add = FALSE) {
   preserve_genomic_attributes(new_data, .data)
 }
 #' @export
-ungroup.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::ungroup(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
+ungroup.genomic_data <- function(x, ...) {
+  new_data <- dplyr::ungroup(as.data.frame(x), ...)
+  preserve_genomic_attributes(new_data, x)
 }
 # Merger function to preserve metadata and protect against accidental mixing across genome_builds
 
-#' Bind maf data together
+#' Bind maf or other genomic data together
 #'
-#' @description Combine multiple maf_data objects and retain metadata such as genome_build. This function
-#' will not allow you to combine maf_data objects that have different genome_build values. An error will also
-#' be thrown if the same sample id is found in more than one of the inputs
+#' @description Combine multiple maf_data objects and retain metadata such as genome_build.
+#' This function will not allow you to combine maf_data objects that have different genome_build values.
+#' An error will also be thrown if the same sample id is found in more than one of the inputs (if check_id is TRUE).
 #'
-#' @param ... 
-#' @param id_col Specify the name of the column containing the sample_id (default: Tumor_Sample_Barcode)
+#' @param ... All maf_data or seg_data objects to be combined.
+#' @param check_id Logical. If TRUE (the default), the function will check for the presence of the expected ID column
+#'        and for duplicate sample IDs across the inputs. Set to FALSE to skip this check.
 #'
-#' @return data.frame
+#' @return data.frame with combined data and preserved genome_build metadata.
 #' @export
 #'
 #' @examples
-#' 
-#' 
-bind_genomic_data <- function(...) {
+#'
+#' merged_maf = bind_genomic_data(maf1, maf2,check_id=FALSE)
+#'
+bind_genomic_data <- function(..., check_id = TRUE) {
   
   in_list <- list(...)
-  if("maf_data" %in% class(in_list[[1]])){
-    #MAF format, ID column is Tumor_Sample_Barcode
-    id_col = "Tumor_Sample_Barcode"
-  }else if("seg_data" %in% class(in_list[[1]])){
-    #SEG format, ID column is ID
-    id_col = "ID"
-  }else{
-    stop(paste("unsure how to merge:",class(in_list[[1]])))
+  
+  if ("maf_data" %in% class(in_list[[1]])) {
+    # MAF format, ID column is Tumor_Sample_Barcode
+    id_col <- "Tumor_Sample_Barcode"
+  } else if ("seg_data" %in% class(in_list[[1]])) {
+    # SEG format, ID column is ID
+    id_col <- "ID"
+  } else {
+    stop(paste("Unsure how to merge:", class(in_list[[1]])))
   }
-  # Ensure all inputs are seg_data or maf_data objects
-  if (!all(sapply(in_list, inherits, "maf_data")) & !all(sapply(in_list, inherits, "seg_data"))) {
+  
+  # Ensure all inputs are either maf_data or seg_data objects
+  if (!all(sapply(in_list, inherits, "maf_data")) && !all(sapply(in_list, inherits, "seg_data"))) {
     stop("All inputs must be maf_data objects or seg_data objects.")
   }
   
@@ -97,31 +119,37 @@ bind_genomic_data <- function(...) {
   genome_builds <- unique(sapply(in_list, get_genome_build))
   
   if (length(genome_builds) > 1) {
-    stop("Cannot bind seg_data or maf_data objects with different genome builds: ", paste(genome_builds, collapse = ", "))
+    stop("Cannot bind seg_data or maf_data objects with different genome builds: ", 
+         paste(genome_builds, collapse = ", "))
   }
   
-  # Collect unique sample IDs from each dataset
-  id_sets <- lapply(in_list, function(df) {
-    if (!(id_col %in% colnames(df))) {
-      stop("ID column '", id_col, "' not found in input data.")
+  # If check_id is TRUE, verify that the expected ID column exists and that IDs are unique.
+  if (check_id) {
+    # Collect unique sample IDs from each dataset
+    id_sets <- lapply(in_list, function(df) {
+      if (!(id_col %in% colnames(df))) {
+        stop("ID column '", id_col, "' not found in input data.")
+      }
+      unique(df[[id_col]])
+    })
+    
+    # Flatten the list and count occurrences of each ID
+    all_ids <- unlist(id_sets)
+    duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
+    
+    # If any ID is found in multiple datasets, throw an error
+    if (length(duplicate_ids) > 0) {
+      stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
     }
-    unique(df[[id_col]])  # Get unique IDs from each data frame
-  })
-  
-  # Flatten the list and count occurrences of each ID
-  all_ids <- unlist(id_sets)
-  duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
-  
-  # If any ID is found in multiple datasets, throw an error
-  if (length(duplicate_ids) > 0) {
-    stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
   }
   
-  combined <- bind_rows(in_list)
+  combined <- dplyr::bind_rows(in_list)
   attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
-  if(!"maf_data" %in% class(combined)){
-    class(combined) <- c("maf_data","genomic_data", class(combined))  # Preserve class
+  
+  if (!"maf_data" %in% class(combined)) {
+    class(combined) <- c("maf_data", "genomic_data", class(combined))  # Preserve class
   }
+  
   return(combined)
 }
 

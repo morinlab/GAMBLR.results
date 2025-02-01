@@ -60,6 +60,7 @@
 #' @param include_silent_genes Optionally, provide a list of genes for which the
 #'      Silent variants to be considered. If provided, the Silent variants for
 #'      these genes will be included regardless of the include_silent argument.
+#' @param suffix Optionally provide a character that will be appended to the end of each name
 #'
 #' @return A data frame with tabulated mutation status.
 #'

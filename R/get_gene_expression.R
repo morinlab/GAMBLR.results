@@ -22,6 +22,7 @@
 #' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
 #' @param arbitrarily_pick A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."
 #' @param HGNC When you request the wide matrix and all genes, this forces the columns to contain hgnc_id rather than ensembl_gene_id
+#' @param verbose Set to TRUE for a more chatty output
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 

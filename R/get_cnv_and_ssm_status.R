@@ -33,6 +33,7 @@
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
+#' @param adjust_for_ploidy Set to TRUE to scale CN values by the genome-wide average per sample
 #' @param this_seq_type Deprecated
 #' 
 #' @return A data frame with CNV and SSM combined status.

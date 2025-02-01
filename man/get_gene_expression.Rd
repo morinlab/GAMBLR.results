@@ -27,6 +27,8 @@ get_gene_expression(
 
 \item{all_genes}{Set to TRUE to return the full expression data frame without any subsetting (see warnings below).}
 
+\item{verbose}{Set to TRUE for a more chatty output}
+
 \item{engine}{Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.}
 
 \item{format}{Either \code{wide} or \code{long}. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column.}

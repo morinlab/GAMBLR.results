@@ -11,7 +11,8 @@
 #' @param n_bins_split Split genome into N equally sized bins
 #' @param use_cytoband_name Use cytoband names instead of region names, e.g p36.33.
 #' @param missing_data_as_diploid Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.
-#' @param genome_build Specify the genome build you want. Default is grch37.
+#' @param projection Specify the genome build you want. Default is grch37.
+#' @param adjust_for_ploidy Set to TRUE to scale CN values by the genome-wide average per sample
 #'
 #' @return Copy number matrix with sample_id as rows and regions as columns.
 #'
@@ -26,7 +27,7 @@
 #' # Use the hg38 projection (all coordinates will be relative to hg38)
 #' cn_matrix = get_cn_states(strategy="auto_split",
 #'                           projection="hg38",
-#'                           these_samples_metadata = my_metadata
+#'                           these_samples_metadata = my_metadata,
 #'                           n_bins_split=500)
 #'
 #' # get the CN state of every lymphoma gene instead
