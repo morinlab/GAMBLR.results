@@ -50,6 +50,15 @@ create_seg_data <- function(seg_df, genome_build) {
             genome_build = genome_build)
 }
 
+#' @export
+print.seg_data <- function(x, ...) {
+  cat("SEG Data Object\n")
+  cat("Genome Build:", attr(x, "genome_build"), "\n")
+  cat("Showing first 10 rows:\n")
+  # Convert to a plain data.frame (if not already) so that printing uses the default
+  # data.frame print method rather than printing as a list.
+  print(utils::head(as.data.frame(x), 10))
+}
 
 
 #' @title Get CN Segments.

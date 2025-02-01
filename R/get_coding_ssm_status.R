@@ -88,10 +88,9 @@ get_coding_ssm_status = function(
     keep_multihit_hotspot = FALSE,
     recurrence_min = 5,
     this_seq_type = "genome",
-    projection = "grch37",
     review_hotspots = TRUE,
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
-    genome_build = "hg19",
+    genome_build,
     include_silent = FALSE,
     include_silent_genes,
     suffix
@@ -135,14 +134,22 @@ get_coding_ssm_status = function(
 
   # call it once so the object can be reused if user wants to annotate hotspots
   if(!missing(maf_data)){
+    if(!missing(genome_build) & "maf_data" %in% class(maf_data)){
+      if(!genome_build == get_genome_build(maf_data)){
+        stop("you have specified a genome_build that doesn't match the genome_build attached to maf_data")
+      }
+    }else if("maf_data" %in% class(maf_data)){
+      genome_build = get_genome_build(maf_data)
+    }
     coding_ssm = maf_data
 
   }else if (!is.null(maf_path)){
-    coding_ssm = fread_maf(maf_path)
+    message(paste("setting genome_build for MAF to:",genome_build))
+    coding_ssm = create_maf_data(fread_maf(maf_path,genome_build))
   }
 
   if(missing(maf_data) & is.null(maf_path)){
-      coding_ssm = get_all_coding_ssm(projection = projection,
+      coding_ssm = get_all_coding_ssm(projection = genome_build,
                                       these_samples_metadata = these_samples_metadata,
                                       augmented = augmented,
                                       basic_columns = FALSE,
