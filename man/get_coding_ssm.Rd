@@ -5,10 +5,6 @@
 \title{Get Coding SSM.}
 \usage{
 get_coding_ssm(
-  limit_cohort,
-  exclude_cohort,
-  limit_pathology,
-  limit_samples,
   these_sample_ids = NULL,
   these_samples_metadata = NULL,
   force_unmatched_samples,
@@ -16,24 +12,20 @@ get_coding_ssm(
   this_seq_type = "genome",
   basic_columns = TRUE,
   maf_cols = NULL,
-  from_flatfile = TRUE,
   augmented = TRUE,
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
   include_silent = TRUE,
-  engine = "fread_maf",
-  verbose = TRUE
+  engine,
+  verbose = TRUE,
+  limit_cohort,
+  exclude_cohort,
+  limit_pathology,
+  limit_samples,
+  from_flatfile
 )
 }
 \arguments{
-\item{limit_cohort}{Supply this to restrict mutations to one or more cohorts in a vector.}
-
-\item{exclude_cohort}{Supply this to exclude mutations from one or more cohorts in a vector.}
-
-\item{limit_pathology}{Supply this to restrict mutations to one pathology.}
-
-\item{limit_samples}{This parameter is deprecated, use \code{these_sample_ids} instead.}
-
 \item{these_sample_ids}{Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the \code{limit_samples} parameter).}
 
 \item{these_samples_metadata}{Supply a metadata table to auto-subset the data to samples in that table before returning.}
@@ -48,25 +40,33 @@ get_coding_ssm(
 
 \item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters (matching columns in MAF).}
 
-\item{from_flatfile}{Set to TRUE to obtain mutations from a local flatfile instead of the database. This can be more efficient and is currently the only option for users who do not have ICGC data access.}
-
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF}
 
 \item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs)}
 
-\item{groups}{Unix groups for the samples to be included. Default is both gambl and icgc_dart samples.}
+\item{groups}{Deprecated. Use either these_samples_metadata or these_sample_ids instead}
 
 \item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.}
 
-\item{engine}{Currently, only fread_maf (default) is supported.}
+\item{engine}{Deprecated. Ignored}
 
 \item{verbose}{Controls the "verboseness" of this function (and internally called helpers).}
+
+\item{limit_cohort}{Deprecated. Use either these_samples_metadata or these_sample_ids instead}
+
+\item{exclude_cohort}{Deprecated. Use either these_samples_metadata or these_sample_ids instead}
+
+\item{limit_pathology}{Deprecated. Use either these_samples_metadata or these_sample_ids instead}
+
+\item{limit_samples}{Deprecated. Use either these_samples_metadata or these_sample_ids instead}
+
+\item{from_flatfile}{Deprecated. Ignored}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
 }
 \description{
-Retrieve all coding SSMs from the GAMBL database in MAF-like format.
+Retrieve all coding SSMs from one seq_type in GAMBL in MAF-like format.
 }
 \details{
 Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.

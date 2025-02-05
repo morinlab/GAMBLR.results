@@ -7,17 +7,15 @@
 get_cnv_and_ssm_status(
   genes_and_cn_threshs,
   these_samples_metadata,
-  this_seq_type = "genome",
+  maf_df,
+  seg_data,
   only_cnv = "none",
   genome_build = "grch37",
-  from_flatfile = TRUE,
   include_hotspots = TRUE,
   review_hotspots = TRUE,
-  subset_from_merge = FALSE,
-  augmented = TRUE,
-  min_read_support_ssm = 3,
-  seg_data,
-  adjust_for_ploidy = FALSE
+  adjust_for_ploidy = FALSE,
+  include_silent = FALSE,
+  this_seq_type
 )
 }
 \arguments{
@@ -31,7 +29,9 @@ CNV to return status.}
 \item{these_samples_metadata}{The metadata for samples of interest to be included in the returned matrix.
 Can be created with \code{get_gambl_metadata} function.}
 
-\item{this_seq_type}{The seq type to get results for. Possible values are "genome" (default) or "capture".}
+\item{maf_df}{Optional data frame containing the coding variants for your samples (i.e. output from \code{get_all_coding_ssm})}
+
+\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
 
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
@@ -39,26 +39,16 @@ of the genes, respectively.}
 
 \item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
 
-\item{from_flatfile}{Logical parameter indicating whether to use flat file to retrieve mutations. Set to FALSE
-to use database instead. Default is TRUE.}
-
 \item{include_hotspots}{Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.}
 
 \item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
-\item{subset_from_merge}{Argument to internally pass to \code{get_ssm_by_samples} function. If set to TRUE,
-the data will be subset from a pre-merged MAF of samples with the specified this_seq_type, Instead of merging
-individual MAFs. Default is FALSE.}
+\item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
 
-\item{augmented}{Argument to internally pass to the functions \code{get_ssm_by_samples} and \code{get_coding_ssm_status}.
-A logical parameter (default: TRUE). Set to FALSE to use multi-sample patients, instead of the original MAF
-from each sample.}
+\item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
 
-\item{min_read_support_ssm}{Only consider SSMs with at least this many reads in t_alt_count (for cleaning
-up augmented MAFs).}
-
-\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+\item{this_seq_type}{Deprecated}
 }
 \value{
 A data frame with CNV and SSM combined status.
@@ -80,19 +70,9 @@ In the case of returning NA values, this is due to the \code{get_cn_segments} fu
 return any copy number segments from the specified chromosome region.
 }
 \examples{
-# Define samples
-these_sample_ids = c(
-  "BLGSP-71-06-00160-01A-03D",
-  "BLGSP-71-06-00252-01A-01D",
-  "BLGSP-71-19-00122-09A.1-01D",
-  "BLGSP-71-19-00523-09A-01D",
-  "BLGSP-71-21-00187-01A-01E",
-  "BLGSP-71-21-00188-01A-04E"
-)
 
 # Get sample meta data
-this_meta = get_gambl_metadata()
-this_meta = dplyr::filter(this_meta, sample_id \%in\% these_sample_ids)
+this_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology == "BL")
 
 # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 # return only CNV status; for CCND3 return only SSM status
@@ -100,21 +80,20 @@ genes_and_cn_threshs = data.frame(
   gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
   cn_thresh=c(3, 3, 2, 1)
 )
-get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
-  only_cnv = "MIR17HG",
-)
+genome_cnv_ssm_status = get_cnv_and_ssm_status(
+                           genes_and_cn_threshs,
+                           this_meta,
+                           only_cnv = "MIR17HG")
+                           
+exome_cnv_ssm_status = get_cnv_and_ssm_status(
+                           genes_and_cn_threshs,
+                           this_meta,
+                           only_cnv = "MIR17HG")
 
-# For all genes, return only CNV status
-genes_and_cn_threshs = data.frame(
-  gene_id=c("MYC", "MIR17HG", "SYNCRIP"),
-  cn_thresh=c(3, 3, 1)
-)
-get_cnv_and_ssm_status(
-  genes_and_cn_threshs,
-  this_meta,
-  only_cnv = "all",
-)
+
+genome_cnv_without_ssm_status = get_cnv_and_ssm_status(
+                                  genes_and_cn_threshs,
+                                  this_meta,
+                                  only_cnv = "all")
 
 }

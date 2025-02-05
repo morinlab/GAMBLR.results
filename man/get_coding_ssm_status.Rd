@@ -16,12 +16,12 @@ get_coding_ssm_status(
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
   this_seq_type = "genome",
-  projection = "grch37",
   review_hotspots = TRUE,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
-  genome_build = "hg19",
+  genome_build,
   include_silent = FALSE,
-  include_silent_genes
+  include_silent_genes,
+  suffix
 )
 }
 \arguments{
@@ -64,9 +64,6 @@ presence.}
 
 \item{this_seq_type}{The seq_type you want back, default is genome.}
 
-\item{projection}{Specify projection (grch37 or hg38) of mutations. Default
-is grch37.}
-
 \item{review_hotspots}{Logical parameter indicating whether hotspots object
 should be reviewed to include functionally relevant mutations or rare
 lymphoma-related genes. Default is TRUE.}
@@ -83,6 +80,11 @@ mutations into coding mutations. Default is FALSE.}
 \item{include_silent_genes}{Optionally, provide a list of genes for which the
 Silent variants to be considered. If provided, the Silent variants for
 these genes will be included regardless of the include_silent argument.}
+
+\item{suffix}{Optionally provide a character that will be appended to the end of each name}
+
+\item{projection}{Specify projection (grch37 or hg38) of mutations. Default
+is grch37.}
 }
 \value{
 A data frame with tabulated mutation status.

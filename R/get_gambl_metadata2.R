@@ -10,11 +10,13 @@
 #' @param dna_seq_type_priority The default is "genome" and the only other option is "capture". For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param capture_protocol_priority For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param exome_capture_space_priority A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available
+#' @param dna_preservation_priority Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
 #' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
+#' @param ... Additional arguments
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #'

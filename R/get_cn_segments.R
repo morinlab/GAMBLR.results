@@ -1,138 +1,119 @@
+#' Create Segmented Data Object
+#'
+#' This function constructs an S3 object for segmented genomic data by augmenting a
+#' standard data frame with a custom class and a genome build attribute. The returned
+#' object inherits from \code{data.frame} and is assigned the class \code{"seg_data"}.
+#'
+#' @param seg_df A data frame containing segmented data. This data frame should include
+#'   the necessary columns that describe segments (for example, chromosome, start, end, and
+#'   segment mean values). There is no formal check on column names; however, downstream
+#'   methods may expect certain column names.
+#' @param genome_build A character string specifying the genome build. Valid values are
+#'   \code{"grch37"} and \code{"hg38"}. An error is thrown if an invalid genome build is provided.
+#'
+#' @return An object of class \code{"seg_data"} (in addition to its inherited classes) with
+#'   an attached attribute \code{genome_build} containing the specified genome build.
+#'
+#' @details The \code{create_seg_data} function is designed to encapsulate segmented data along
+#'   with its metadata, making it easier to work with such objects in downstream analyses.
+#'   The function performs basic checks to ensure that the input data is a data frame and that
+#'   the genome build is valid. Further processing or validations (e.g., ensuring the presence
+#'   of specific columns) should be handled prior to calling this constructor if needed.
+#'
+#' @examples
+#' \dontrun{
+#' # Example segmented data
+#' seg_df <- data.frame(
+#'   chrom = c("chr1", "chr1", "chr2"),
+#'   start = c(100000, 200000, 150000),
+#'   end = c(150000, 250000, 200000),
+#'   seg_mean = c(0.5, -0.3, 0.2)
+#' )
+#'
+#' # Create a seg_data object using the hg38 genome build
+#' seg_obj <- create_seg_data(seg_df, genome_build = "hg38")
+#'
+#' # Print the object and check its genome build attribute
+#' print(seg_obj)
+#' attr(seg_obj, "genome_build")
+#' }
+#'
+#' @export
+create_seg_data <- function(seg_df, genome_build) {
+  if (!inherits(seg_df, "data.frame"))
+    stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38"))
+    stop("Invalid genome build")
+  
+  structure(seg_df,
+            class = c("seg_data", class(seg_df)),
+            genome_build = genome_build)
+}
+
+#' @export
+print.seg_data <- function(x, ...) {
+  cat("SEG Data Object\n")
+  cat("Genome Build:", attr(x, "genome_build"), "\n")
+  cat("Showing first 10 rows:\n")
+  # Convert to a plain data.frame (if not already) so that printing uses the default
+  # data.frame print method rather than printing as a list.
+  print(utils::head(as.data.frame(x), 10))
+}
+
+
 #' @title Get CN Segments.
 #'
-#' @description Retrieve all copy number segments from the GAMBL database that overlap with a single genomic coordinate range.
+#' @description Retrieve all copy number segments from the GAMBL outputs
 #'
-#' @details This function returns CN segments for s specified region, chromosome, or with no filtering on region (i.e. everything).
-#' There are multiple ways a region can be specified.
-#' For example, the user can provide the full region in a "region" format (chr:start-end) to the `region` parameter.
-#' Or, the user can provide chromosome, start and end coordinates individually with `chr`, `start`, and `end` parameters.
-#' For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::assign_cn_to_ssm], [GAMBLR.results::get_cn_states], [GAMBLR.results::get_sample_cn_segments]
-#'
-#' @param region Region formatted like chrX:1234-5678 or X:1234-56789.
-#' @param chromosome The chromosome you are restricting to. Required parameter if region is not specified.
-#' @param qstart Start coordinate of the range you are restricting to. Required parameter if region is not specified.
-#' @param qend End coordinate of the range you are restricting to. Required parameter if region is not specified.
-#' @param projection Selected genome projection for returned CN segments. Default is "grch37".
-#' @param weighted_average Enable a more accurate estimation of the copy number for a region that uses a weighted average of all overlapping/contained segments.
-#' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
-#' @param with_chr_prefix Boolean parameter for toggling if chr prefixes should be present in the return, default is FALSE.
-#' @param streamlined Return a basic rather than full MAF format. Default is FALSE.
-#' @param from_flatfile Set to TRUE by default.
-#' @param these_samples_metadata Provide a metadata table to restrict the data to the samples in your table
-#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
+#' @details This function merely loads and returns all the seg_data available for a projection (genome build)
+#' @param these_samples_metadata User must provide a metadata table to restrict the data to the samples in your table. 
+#' The metadata also ensures the proper handling of duplicate sample_id across seq_types and ensures the 
+#' seq_type in the metadata faithfully represents the seq_type of the data
+#' @param projection Desired genome coordinate system for returned CN segments. Default is "grch37".
+#' @param this_seq_type Deprecated.
 #'
 #' @return A data frame with CN segments for the specified region.
 #'
-#' @import dplyr readr RMariaDB DBI glue GAMBLR.helpers
+#' @import dplyr readr glue
 #' @export
 #'
 #' @examples
-#' #Example using chromosome, qstart and qend parameters:
-#' segments_region_grch37 = get_cn_segments(chromosome = "chr8",
-#'                                          qstart = 128723128,
-#'                                          qend = 128774067)
 #' # Example for the capture samples:
-#' capture_segments_region_grch37 = get_cn_segments(
-#'  chromosome = "chr8",
-#'  qstart = 128723128,
-#'  qend = 128774067,
-#'  this_seq_type = "capture"
-#' )
+#' 
+#' capture_metadata = get_gambl_metadata() %>%
+#'                       dplyr::filter(seq_type=="capture")
+#' capture_segments_hg38 = get_cn_segments(
+#'                              these_samples_metadata = capture_metadata,
+#'                              projection="hg38")
 #'
-#' #Example using the regions parameter:
-#' segments_region_hg38 = get_cn_segments(region = "chr8:128,723,128-128,774,067",
-#'                                        projection = "hg38",
-#'                                        with_chr_prefix = TRUE)
 #'
-get_cn_segments = function(region,
-                           chromosome,
-                           qstart,
-                           qend,
+get_cn_segments = function(these_samples_metadata,
                            projection = "grch37",
-                           weighted_average=FALSE,
-                           seg_data,
-                           this_seq_type,
-                           with_chr_prefix = FALSE,
-                           streamlined = FALSE,
-                           from_flatfile = TRUE,
-                           these_samples_metadata){
+                           this_seq_type){
 
-  
   if(!missing(this_seq_type)){
-    message("this_seq_type has been deprecated in get_cn_segments")
+    stop("this_seq_type has been deprecated in get_cn_segments. Subset your metadata instead.")
   }
-  if(missing(these_samples_metadata) & missing(seg_data)){
+  if(missing(these_samples_metadata)){
       message("no metadata provided, will get segments for every genome and capture sample")
       these_samples_metadata = get_gambl_metadata() %>% filter(seq_type %in% c("genome","capture"))
-      seq_type = pull(these_samples_metadata,seq_type) %>% unique()
-  }else if(!missing(these_samples_metadata)){
-    seq_type = pull(these_samples_metadata,seq_type) %>% unique()
-  }
-  
-  
-  #perform wrangling on the region to have it in the correct format.
-  if(!missing(region)){
-    region = gsub(",", "", region)
-    split_chunks = unlist(strsplit(region, ":"))
-    chromosome = split_chunks[1]
-    startend = unlist(strsplit(split_chunks[2], "-"))
-    qstart = startend[1]
-    qend = startend[2]
-  }
-  if(!missing(chromosome)){
-    #deal with chr prefixes for region, based on selected genome projection.
-    if(projection == "grch37"){
-      if(grepl("chr", chromosome)){
-        chromosome = gsub("chr", "", chromosome)
-      }
-    }else{
-      if(!grepl("chr", chromosome)){
-        chromosome = paste0("chr", chromosome)
-      }
-    }
-  }
-  
-  if(!missing(qstart)){
-    qstart = as.numeric(qstart)
-  }
-  #enforce data type for qend and qstart coordiantes.
-  if(!missing(qend)){
-    qend = as.numeric(qend)
-  }
-  
-  if(!missing(seg_data)){
-
-    #work directly from the data provided
-    all_segs = 
-      dplyr::filter(seg_data, (chrom == chromosome & start >= qstart & start <= qend)|
-                               (chrom == chromosome & end > qstart & end < qend)|
-                               (chrom == chromosome & end > qend & start < qstart)) %>%
-      mutate(start=ifelse(start < qstart,qstart,start),end=ifelse(end>qend,qend,end)) %>% 
-      mutate(length=end-start)
-    
-    all_segs = all_segs %>% mutate(CN_L = length * CN,logr_L = length*log.ratio) 
-    if(weighted_average){
-      all_segs = all_segs %>% 
-        group_by(ID) %>%
-        summarise(total_L = sum(length), log.ratio = sum(logr_L)/sum(length), 
-                  CN = sum(CN_L)/sum(length)) %>% ungroup() 
-      
-    }else{
-      all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
-    }
-    if(streamlined){
-      all_segs = dplyr::select(all_segs, ID, CN)
-    }
-    return(all_segs)
-    
+      seq_types = pull(these_samples_metadata,seq_type) %>% unique()
   }else{
-    cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
+    these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type %in% c("genome","capture"))
+    seq_types = pull(these_samples_metadata,seq_type) %>% unique()
+  }
+  
+  genome_ids = dplyr::filter(these_samples_metadata,seq_type=="genome") %>% pull(sample_id)
+  capture_ids = dplyr::filter(these_samples_metadata,seq_type=="capture") %>% pull(sample_id)
+  
+  cnv_flatfile_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$icgc_dart)
+  df_list = list()
+  for(seq_type in seq_types){
     cnv_path =  glue::glue(cnv_flatfile_template)
     full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
-
+    
     #check permissions to ICGC data.
-    permissions = file.access(full_cnv_path[1], 4)
+    permissions = file.access(full_cnv_path, 4)
     if(permissions == -1){
       message(paste("failed loading from",full_cnv_path[1]))
       message("restricting to non-ICGC data")
@@ -140,36 +121,32 @@ get_cn_segments = function(region,
       cnv_path =  glue::glue(cnv_flatfile_template)
       full_cnv_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
     }
-
+    
     #check for missingness.
-    if(!file.exists(full_cnv_path[1])){
-      print(paste("missing: ", full_cnv_path[1]))
+    if(!file.exists(full_cnv_path)){
+      print(paste("missing: ", full_cnv_path))
       message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
-    df_list <- map(full_cnv_path, read_tsv)
-    all_segs = bind_rows(df_list) %>%  as.data.frame()
-    if(missing(qstart) & missing(qend) & missing(region)){
-      if(missing(chromosome)){
 
-      }else{
-        all_segs = all_segs %>%
-          dplyr::filter(chrom == chromosome) 
-      }
+    if(seq_type=="capture"){
+      seg = read_tsv(full_cnv_path) %>% dplyr::filter(ID %in% capture_ids)
+    }else{
+      seg = read_tsv(full_cnv_path) %>% dplyr::filter(ID %in% genome_ids)
     }
-    else{
-      all_segs = all_segs %>%
-        dplyr::filter((chrom == chromosome & start <= qstart & end >= qend) | (chrom == chromosome & start >= qstart & end <= qend)) 
-    }
-    
-    all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
+    df_list[[seq_type]]=seg
+
+  }
+  if(any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))){
+    stop("overlapping IDs found!")
   }
 
-  #mutate CN states.
+  all_segs = do.call("bind_rows",df_list)
   
-
-  #deal with chr prefixes
-  if(!with_chr_prefix){
+  all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
+  
+  #ensure chr prefixes are there when necessary 
+  if(projection=="grch37"){
     if(all(str_detect(all_segs$chrom, "chr"))){
       all_segs = all_segs %>%
         dplyr::mutate(chrom = gsub("chr", "", chrom))
@@ -181,14 +158,7 @@ get_cn_segments = function(region,
     }
   }
 
-  #subset to only a few columns with streamlined = TRUE.
-  if(streamlined){
-    all_segs = dplyr::select(all_segs, ID, CN)
-  }
-  if(!missing(these_samples_metadata)){
-    these_samples = pull(these_samples_metadata,sample_id)
-    all_segs = dplyr::filter(all_segs,ID %in% these_samples)
-  }
-  #return data frame with CN segments
+  #return S3 class with CN segments and genome_build 
+  all_segs = create_seg_data(all_segs,projection)
   return(all_segs)
 }

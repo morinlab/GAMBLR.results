@@ -20,36 +20,37 @@
 get_gene_cn_and_expression = function(gene_symbol,
                                       ensembl_id,
                                       this_seq_type = "genome"){
+    stop("this function is currently disabled until someone fixes it")
+    #if(!missing(gene_symbol)){
+    #  this_row = GAMBLR.data::grch37_gene_coordinates %>%
+    #    dplyr::filter(hugo_symbol == gene_symbol)
 
-    if(!missing(gene_symbol)){
-      this_row = GAMBLR.data::grch37_gene_coordinates %>%
-        dplyr::filter(hugo_symbol == gene_symbol)
+    #  this_region = paste0(this_row$chromosome, ":", this_row$start, "-", this_row$end)
+    #  gene_name = gene_symbol
+    #  }
 
-      this_region = paste0(this_row$chromosome, ":", this_row$start, "-", this_row$end)
-      gene_name = gene_symbol
-      }
+    #else{
+    #  this_row = GAMBLR.data::grch37_gene_coordinates %>%
+    #    dplyr::filter(ensembl_gene_id == ensembl_id)
 
-    else{
-      this_row = GAMBLR.data::grch37_gene_coordinates %>%
-        dplyr::filter(ensembl_gene_id == ensembl_id)
+    #  this_region = paste0(this_row$chromosome, ":", this_row$start, "-",this_row$end)
+    #  gene_name = ensembl_id
+    #  gene_symbol = pull(this_row, hugo_symbol)
+    #}
+  #did this ever work for more than one gene?
+  #gene_cn = get_cn_states(
+  #    regions_list = c(this_region),
+  #    region_names = c(gene_name),
+  #    this_seq_type = this_seq_type) %>%
+  #  as.data.frame()
 
-      this_region = paste0(this_row$chromosome, ":", this_row$start, "-",this_row$end)
-      gene_name = ensembl_id
-      gene_symbol = pull(this_row, hugo_symbol)
-    }
-  gene_cn = get_cn_states(
-      regions_list = c(this_region),
-      region_names = c(gene_name),
-      this_seq_type = this_seq_type) %>%
-    as.data.frame()
+  #colnames(gene_cn)[1] = paste(colnames(gene_cn)[1], "CN", sep = "_")
+  #gene_cn = gene_cn %>%
+  #  rownames_to_column("sample_id")
 
-  colnames(gene_cn)[1] = paste(colnames(gene_cn)[1], "CN", sep = "_")
-  gene_cn = gene_cn %>%
-    rownames_to_column("sample_id")
-
-  gene_exp = get_gene_expression(hugo_symbols = c(gene_symbol), join_with = "genome")
-  exp_copy = left_join(gene_cn, gene_exp, by = "sample_id")
-  all_meta = get_gambl_metadata()
-  exp_copy_meta = left_join(all_meta, exp_copy, by = "sample_id")
-  return(exp_copy_meta)
+  #gene_exp = get_gene_expression(hugo_symbols = c(gene_symbol), join_with = "genome")
+  #exp_copy = left_join(gene_cn, gene_exp, by = "sample_id")
+  #all_meta = get_gambl_metadata()
+  #exp_copy_meta = left_join(all_meta, exp_copy, by = "sample_id")
+  #return(exp_copy_meta)
 }

@@ -6,6 +6,7 @@
 
 #' @param these_samples_metadata Supply a metadata table containing the sample/seq_type combinations you want. 
 #' @param include_silent If set to TRUE, silent/synonymous mutations in the coding regions will also be returned. 
+#' @param ... Additional arguments passed to get_coding_ssm
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
@@ -20,7 +21,18 @@
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               ...){
-  capture_ssm = get_coding_ssm(these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type=="capture"),this_seq_type = "capture", ...) %>% mutate(seq_type="capture")
-  genome_ssm = get_coding_ssm(these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type=="genome"),this_seq_type = "genome", ...) %>% mutate(seq_type="genome")
-  return(bind_rows(capture_ssm,genome_ssm))
+  these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type!="mrna")
+  capture_ssm = get_coding_ssm(these_samples_metadata = 
+                                 dplyr::filter(these_samples_metadata,
+                                               seq_type=="capture"),
+                               this_seq_type = "capture", ...) 
+
+  genome_ssm = get_coding_ssm(these_samples_metadata = 
+                                dplyr::filter(these_samples_metadata,
+                                              seq_type=="genome"),
+                              this_seq_type = "genome", ...) 
+
+  merged_ssm = bind_genomic_data(capture_ssm,genome_ssm)
+  
+  return(merged_ssm)
 }

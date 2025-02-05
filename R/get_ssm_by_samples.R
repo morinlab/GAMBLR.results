@@ -1,15 +1,15 @@
 #' @title Get SSM By Samples.
 #'
-#' @description Get MAF-format data frame for more than one sample and combine them together.
+#' @description Get all mutations for one or more sample including coding and non-coding mutations.
 #'
-#' @details This function internally runs [GAMBLR.results::get_ssm_by_sample].
-#' The user can either give the function a vector of sample IDs of interest with `these_sample_ids`,
-#' or use a metadata table (`these_samples_metadata`), already subset to the sample IDs of interest.
+#' @details 
+#' The user can specify a vector of sample IDs of interest with `these_sample_ids`,
+#' and/or a metadata table (`these_samples_metadata`), already subset to the sample IDs of interest.
 #' In most situations, this should never need to be run with subset_from_merge = TRUE.
-#' Instead use one of [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
+#' This function does not scale well to many samples. In most cases, users will actually need either [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
 #' See [GAMBLR.results::get_ssm_by_sample] for more information.
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.results::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_sample_ids A vector of sample_id that you want results for.
 #' @param these_samples_metadata Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.
@@ -85,10 +85,19 @@ get_ssm_by_samples = function(these_sample_ids,
     warning(
         "Please use the `these_samples_metadata` option instead of `these_sample_ids`."
     )
-    these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
+    these_samples_metadata = get_gambl_metadata() %>%
       dplyr::filter(sample_id %in% these_sample_ids) %>%
       dplyr::filter(!sample_id %in% to_exclude)
+      n_samp = nrow(these_samples_metadata)
+      n_orig = length(these_sample_ids)
+      if(n_orig > n_samp){
+        lost = n_orig - n_samp
+        print(paste(lost,"of",n_orig,"samples have been dropped!"))
+      }
   }else{
+    print("HERE")
+    
+    
     if(missing(these_sample_ids)){
       #assume the user just wants the data for all the sample ids in this data frame
       these_sample_ids = pull(these_samples_metadata,sample_id)
@@ -97,6 +106,10 @@ get_ssm_by_samples = function(these_sample_ids,
       these_samples_metadata = these_samples_metadata %>%
         dplyr::filter(sample_id %in% these_sample_ids) %>%
         dplyr::filter(!sample_id %in% to_exclude)
+    }
+    if(length(unique(these_samples_metadata$seq_type))>1){
+      message("metadata provided contained more than one seq_type.")
+      print("The value of this_seq_type was ignored and all samples in these_samples_metadata and these_sample_ids (if provided) were included")
     }
   }
   #ensure we only have sample_id that are in the remaining metadata (no excluded/unavailable samples)
@@ -214,7 +227,7 @@ get_ssm_by_samples = function(these_sample_ids,
         verbose = FALSE
         )},mc.cores = 12)
       }
-      maf_df_merge = bind_rows(maf_df_list)
+      maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
     }
   }
 

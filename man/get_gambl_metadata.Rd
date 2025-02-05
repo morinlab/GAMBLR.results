@@ -24,6 +24,8 @@ get_gambl_metadata(
 
 \item{capture_protocol_priority}{For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.}
 
+\item{dna_preservation_priority}{Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")}
+
 \item{exome_capture_space_priority}{A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available}
 
 \item{mrna_collapse_redundancy}{Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.}
@@ -35,6 +37,8 @@ get_gambl_metadata(
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
 \item{invert}{Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)}
+
+\item{...}{Additional arguments}
 }
 \value{
 A data frame with metadata for each biopsy in GAMBL
@@ -116,7 +120,7 @@ tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour
 
 non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
                                                        seq_type_priority = "genome")
-                                                       
+
 absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
 
 }
