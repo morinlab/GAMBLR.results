@@ -40,7 +40,6 @@ calc_mutation_frequency_bin_region <- function(region,
                                           end_pos,
                                           these_samples_metadata = NULL,
                                           these_sample_ids = NULL,
-                                          this_seq_type = c("genome", "capture"),
                                           maf_data = NULL,
                                           projection = "grch37",
                                           slide_by = 100,
@@ -50,6 +49,7 @@ calc_mutation_frequency_bin_region <- function(region,
                                           return_count = TRUE,
                                           drop_unmutated = FALSE
                                           ) {
+  
   # Create objects to describe region both as string and individual objects
   try(if (missing(region) & missing(chromosome)) {
     stop("No region information provided. Please provide a region as a string in the chrom:start-end format, or as individual arguments. ")
@@ -70,15 +70,12 @@ calc_mutation_frequency_bin_region <- function(region,
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)
   }
-
-  # Harmonize metadata and sample IDs
-  get_meta <- id_ease(
-    these_samples_metadata,
-    these_sample_ids,
-    this_seq_type
-  )
-  metadata <- get_meta
-  these_sample_ids <- get_meta$sample_id %>% unique
+  
+  metadata <- these_samples_metadata
+  if(!missing(these_sample_ids)){
+    stop("deprecated agrument these_sample_ids was provided. Please use these_samples_metadata instead")
+  }
+  these_sample_ids <- pull(metadata,sample_id) %>% unique
 
 
   if (
@@ -152,7 +149,9 @@ calc_mutation_frequency_bin_region <- function(region,
         dplyr::filter(!is.na(mutated)) %>%
         dplyr::select(-seq_type)
     }
+
     region_ssm <- dplyr::bind_rows(region_ssm)
+
   } else {
     #  Subset provided maf to specified region
     message("Using provided maf...")

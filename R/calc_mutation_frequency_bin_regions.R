@@ -48,7 +48,7 @@ calc_mutation_frequency_bin_regions <- function(
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
   this_seq_type = c("genome", "capture"),
-  projection = "grch37",
+  projection,
   region_padding = 1000,
   drop_unmutated = FALSE,
   skip_regions = NULL,
@@ -57,6 +57,14 @@ calc_mutation_frequency_bin_regions <- function(
   window_size = 500,
   return_format = "wide"
 ) {
+  if(!missing(regions_bed)){
+    if("genomic_data" %in% class(regions_bed)){
+      projection = get_genome_build(regions_bed)
+    }
+  }
+  if(missing(projection)){
+    stop("Supply the desired genome_build using the projection argument or via regions_bed")
+  }
   regions <- process_regions(
     regions_list = regions_list,
     regions_bed = regions_bed,
@@ -74,11 +82,16 @@ calc_mutation_frequency_bin_regions <- function(
     stop("chr prefixing status of provided regions and specified projection don't match. ")
   }
   # Harmonize metadata and sample IDs
-
-  these_sample_ids <- these_samples_metadata$sample_id
-
+  if(missing(these_samples_metadata)){
+    stop("these_samples_metadata is required")
+  }else{
+    #drop seq_type that don't have mutations
+    these_samples_metadata = dplyr::filter(these_samples_metadata,!seq_type=="mrna")
+    these_sample_ids <- these_samples_metadata$sample_id
+  }
+  
   # Obtain sliding window mutation frequencies for all regions
-  dfs <- parallel::mclapply(names(regions), function(x) {
+  dfs <- lapply(names(regions), function(x) {
     df <- calc_mutation_frequency_bin_region(
       region = regions[x],
       these_samples_metadata = these_samples_metadata,
