@@ -5,70 +5,89 @@
 \title{Assign CN to SSM.}
 \usage{
 assign_cn_to_ssm(
-  this_sample_id,
+  these_samples_metadata,
+  maf_data,
+  seg_data,
+  projection,
   coding_only = FALSE,
-  from_flatfile = TRUE,
-  use_augmented_maf = TRUE,
-  tool_name = "battenberg",
-  maf_file,
-  maf_df,
-  seg_file,
-  seg_file_source = "battenberg",
   assume_diploid = FALSE,
-  genes,
   include_silent = FALSE,
-  this_seq_type = "genome",
-  projection = "grch37"
+  ...
 )
 }
 \arguments{
-\item{this_sample_id}{Sample ID of the sample you want to annotate.}
+\item{these_samples_metadata}{Metadata table with one or more rows to specify
+the samples to process.}
 
-\item{coding_only}{Optional. set to TRUE to restrict to only coding variants.}
+\item{maf_data}{A data frame of mutations in MAF format or maf_data object
+(e.g. from \code{get_coding_ssm} or \code{get_ssm_by_sample}).}
 
-\item{from_flatfile}{Optional. Instead of the database, load the data from a local MAF and seg file.}
+\item{seg_data}{A data frame of segmented copy number data or seg_data object}
 
-\item{use_augmented_maf}{Boolean statement if to use augmented maf, default is FALSE.}
+\item{projection}{Specified genome projection that returned data is relative to.
+This is only required when it cannot be inferred from maf_df or seg_df
+(or they are not provided).}
 
-\item{tool_name}{name of tool to be used, default is "battenberg".}
+\item{coding_only}{Optional. Set to TRUE to restrict to only variants in coding space
+Default is to work with genome-wide variants.}
 
-\item{maf_file}{Path to maf file.}
+\item{assume_diploid}{Optional, this parameter annotates every mutation as
+copy neutral. Default is FALSE.}
 
-\item{maf_df}{Optional. Use a maf dataframe instead of a path.}
+\item{include_silent}{Logical parameter indicating whether to include silent
+mutations in coding space. Default is FALSE. This parameter only
+makes sense if \code{coding_only} is set to TRUE.}
 
-\item{seg_file}{path to seq file.}
-
-\item{seg_file_source}{Specify what copy number calling program the input seg file is from, as it handles ichorCNA differently than WisecondorX, Battenberg, etc.}
-
-\item{assume_diploid}{Optional. If no local seg file is provided, instead of defaulting to a GAMBL sample, this parameter annotates every mutation as copy neutral.}
-
-\item{genes}{Genes of interest.}
-
-\item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is FALSE}
-
-\item{this_seq_type}{Specified seq type for returned data.}
-
-\item{projection}{specified genome projection that returned data is in reference to.}
+\item{...}{Any additional parameters.}
 }
 \value{
-A list containing a data frame (MAF-like format) with two extra columns:
-log.ratio is the log ratio from the seg file (NA when no overlap was found)
-as well as the segmented copy number data with the same copy number information
-CN is the rounded absolute copy number estimate of the region based on log.ratio (NA when no overlap was found)
+A list containing a data frame (MAF-like format) with three extra
+columns:
+- log.ratio is the log ratio from the seg file (NA when no overlap).
+- LOH
+- CN (the rounded absolute copy number estimate of the region based on
+log.ratio, NA when no overlap was found).
 }
 \description{
 Annotate mutations with their copy number information.
 }
 \details{
-This function takes a sample ID with the \code{this_sample_id} parameter and annotates mutations with copy number information.
-A variety of parameters are at hand for a customized workflow. For example, the user can specify if only coding mutations are of interest.
-To do so, set \code{coding_only = TRUE}. It is also possible to point the function to already loaded maf/seq files, or a path to these files.
-See parameters; \code{maf_file}, \code{maf_path}, \code{seq_file} and \code{seg_path} for more information on how to use these parameters.
-This function can also take a vector with genes of interest (\code{genes}) that the returned data frame will be restricted to.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_cn_segments}, \link{get_cn_states}, \link{get_sample_cn_segments}
+This function takes a metadata table and returns all mutations
+for the samples in that metadata. Each mutation is annotated with the
+local copy number state of each mutated site. The user can specify if
+only coding mutations are of interest. To do so,
+set \code{coding_only = TRUE}. When necessary, this function relies on
+\code{get_ssm_by_samples} and \code{get_cn_segments} to obtain the required data.
 }
 \examples{
-cn_list = assign_cn_to_ssm(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-                           coding_only = TRUE)
+# long-handed way
+# 1. get some metadata for a collection of samples
+some_meta = get_gambl_metadata() \%>\%
+        dplyr::filter(cohort=="DLBCL_ICGC")
+
+# 2. Get the SSMs for these samples
+
+ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
+                                  these_samples_metadata = some_meta)
+# peek at the results
+ssm_genomes_grch37 \%>\% dplyr::select(1:8)
+
+# 3. Lazily let this function obtain the corresponding seg_data for the right genome_build
+cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
+
+cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
+
+# This works in GAMBLR.results
+ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
+                                  these_samples_metadata = some_meta)
+cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
+cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
+
+# Easiest/laziest way:
+cn_list = assign_cn_to_ssm(projection = "grch37")
+
+
+cn_list$maf \%>\% dplyr::group_by(Tumor_Sample_Barcode,CN) \%>\%
+  dplyr::count()
 
 }
