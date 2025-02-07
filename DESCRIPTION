@@ -28,6 +28,7 @@ Imports:
     grid,
     IRanges,
     lubridate,
+    magrittr,
     msigdbr,
     org.Hs.eg.db,
     purrr,
