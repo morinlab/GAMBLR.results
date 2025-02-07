@@ -80,9 +80,8 @@ get_ssm_by_regions = function(regions_list,
     print(regions)
   }
   if(missing(maf_data)){
-    
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
-                                                                these_sample_ids = these_sample_ids,
+          
                                                                 these_samples_metadata = these_samples_metadata,
                                                                 streamlined = streamlined,
                                                                 from_indexed_flatfile = from_indexed_flatfile,
@@ -93,7 +92,7 @@ get_ssm_by_regions = function(regions_list,
                                                                 basic_columns = basic_columns)})
   }else{
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
-                                                                these_sample_ids = these_sample_ids,
+                    
                                                                 these_samples_metadata = these_samples_metadata,
                                                                 this_seq_type = this_seq_type,
                                                                 streamlined = streamlined,

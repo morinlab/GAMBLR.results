@@ -26,21 +26,23 @@
 #' @export
 #'
 #' @examples
-#' #load metadata.
-#' metadata = get_gambl_metadata()
-#' dlbcl_bl_meta = dplyr::filter(metadata, pathology %in% c("DLBCL", "BL"))
+#' \dontrun{
+#'  #load metadata.
+#'  metadata = get_gambl_metadata()
+#'  dlbcl_bl_meta = dplyr::filter(metadata, pathology %in% c("DLBCL", "BL"))
 #'
-#' #bring together all derived sample-level results from many GAMBL pipelines.
-#' dlbcl_bl_meta = collate_results(join_with_full_metadata = TRUE,
+#'  #bring together all derived sample-level results from many GAMBL pipelines.
+#'  dlbcl_bl_meta = collate_results(join_with_full_metadata = TRUE,
 #'                                 these_samples_metadata = dlbcl_bl_meta)
 #'
-#' #get ashm regions
-#' some_regions = GAMBLR.data::grch37_ashm_regions
+#'  #get ashm regions
+#'  some_regions = GAMBLR.data::grch37_ashm_regions
 #'
-#' mut_count_matrix <- calc_mutation_frequency_bin_region(
+#'  mut_count_matrix <- calc_mutation_frequency_bin_region(
 #'    these_samples_metadata = dlbcl_bl_meta,
 #'    regions_bed = some_regions
-#' )
+#'  )
+#' }
 #'
 calc_mutation_frequency_bin_regions <- function(
   regions_list = NULL,

@@ -15,8 +15,8 @@
 #'      specifying any specific ref and alt alleles (default is TRUE)
 #' @param ref Reference allele
 #' @param alt Alternative allele
-#' @param projection The genome build projection for the variants you are
-#'      working with (default is grch37)
+#' @param genome_build The genome build for the variants you are
+#'      working with (default is to infer it from the MAF)
 #' @param fastaPath Can be a path to a FASTA file on a disk. When on GSC,
 #'      this is first attempted to be inferred from the gambl reference through
 #'      path specified in config. Local files are also accepted as value here.
@@ -48,27 +48,36 @@ annotate_maf_triplet = function(maf,
                                 all_SNVs = TRUE,
                                 ref,
                                 alt,
-                                projection = "grch37",
+                                genome_build,
                                 fastaPath,
                                 bsgenome_name,
                                 pyrimidine_collapse = FALSE){
   genome = ""
   bsgenome_loaded = FALSE
-  if (projection == "grch37") {
-    maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-  } else {
-    # If there is a mix of prefixed and non-prefixed options
-    maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-    maf$Chromosome <- paste0("chr", maf$Chromosome)
-  }
+
+  # Were these lines ever necessary/useful? Shouldn't our MAF already have the right prefixing?
+  #if (genome_build == "grch37") {
+  #  maf$Chromosome <- gsub("chr", "", maf$Chromosome)
+  #} else {
+  #  # If there is a mix of prefixed and non-prefixed options
+  #  maf$Chromosome <- gsub("chr", "", maf$Chromosome)
+  #  maf$Chromosome <- paste0("chr", maf$Chromosome)
+  #}
   # If there is no fastaPath, it will read it from config key
-  # Based on the projection the fasta file which will be loaded is different
+
+  # Based on the genome_build the fasta file which will be loaded is different
   if (missing(fastaPath)){
+    if("maf_data" %in% class(maf)){
+      genome_build = get_genome_build(maf)
+    }
+    if(missing(genome_build)){
+      stop("no genome_build information provided or present in maf")
+    }
     base <- check_config_value(config::get("repo_base"))
     fastaPath <- paste0(
       base,
       "ref/lcr-modules-references-STABLE/genomes/",
-      projection,
+      genome_build,
       "/genome_fasta/genome.fa"
     )
     if(!file.exists(fastaPath)){

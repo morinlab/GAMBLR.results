@@ -10,7 +10,7 @@
 #' @param maf MAF data frame (required columns: Reference_Allele, Chromosome, Start_Position, End_Position)
 #' @param motif The motif sequence (default is WRCY)
 #' @param index Position of the mutated allele in the motif
-#' @param projection The genome build projection for the variants you are working with (default is grch37)
+#' @param genome_build The genome build for the variants you are working with (default is grch37)
 #' @param fastaPath Can be a path to a FASTA file
 #'
 #' @return A data frame with two extra columns (seq and motif).
@@ -27,24 +27,31 @@
 annotate_ssm_motif_context <- function(maf,
                                        motif = "WRCY",
                                        index = 3,
-                                       projection = "grch37",
+                                       genome_build,
                                        fastaPath
 ){
-    if (projection == "grch37") {
-        maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-    } else {
-        # If there is a mix of prefixed and non-prefixed options
-        maf$Chromosome <- gsub("chr", "", maf$Chromosome) 
-        maf$Chromosome <- paste0("chr", maf$Chromosome)
-    }
+
+  #  if (projection == "grch37") {
+   #     maf$Chromosome <- gsub("chr", "", maf$Chromosome)
+  #  } else {
+  #      # If there is a mix of prefixed and non-prefixed options
+  #      maf$Chromosome <- gsub("chr", "", maf$Chromosome) 
+  #      maf$Chromosome <- paste0("chr", maf$Chromosome)
+  #  }
     # If there is no fastaPath, it will read it from config key 
     # Based on the projection the fasta file which will be loaded is different
     if (missing(fastaPath)){
+      if("maf_data" %in% class(maf)){
+        genome_build = get_genome_build(maf)
+      }
+      if(missing(genome_build)){
+        stop("no genome_build information provided or present in maf")
+      }
         base <- check_config_value(config::get("repo_base"))
         fastaPath <- paste0(
             base,
             "ref/lcr-modules-references-STABLE/genomes/",
-            projection,
+            genome_build,
             "/genome_fasta/genome.fa"
         )
     }
