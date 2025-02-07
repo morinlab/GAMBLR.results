@@ -10,22 +10,28 @@
 #' the MAF data frame and provide triple sequences for them (reverse complement
 #' sequence for the - strand).
 #'
-#' @param maf MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2)
-#' @param all_SNVs To give us all the triplet sequences of SNVs and not
-#'      specifying any specific ref and alt alleles (default is TRUE)
-#' @param ref Reference allele
-#' @param alt Alternative allele
-#' @param projection The genome build projection for the variants you are
-#'      working with (default is grch37)
-#' @param fastaPath Can be a path to a FASTA file on a disk. When on GSC,
-#'      this is first attempted to be inferred from the gambl reference through
-#'      path specified in config. Local files are also accepted as value here.
-#' @param bsgenome_name Name of a BSgenome data package (It has 4 or 5 parts,
-#'      separated by dot: 1st(BSgenome) . 2nd:name of organism(Hsapiens) .
-#'      3rd:name of genome provider (UCSC, NCBI, TAIR,...) . 4th:name of NCBI
-#'      assembly (e.g. GRCh38) or UCSC genome (e.g. hg38) . 5th(optional): If
-#'      the package contains masked sequences (masked))
-#' @param pyrimidine_collapse Estimate mutation_strand and
+#' @param maf MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2, NCBI_Build)
+#' @param all_SNVs If TRUE, all triplet sequences of single nucleotide 
+#'        variants (SNVs) are returned without filtering for specific reference (ref) or 
+#'        alternative (alt) alleles. (Default is TRUE). 
+#'        When all_SNVs is TRUE, the ref and alt parameters are ignored.
+#' @param ref Reference allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)
+#' @param alt Alternative allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)
+#' @param fastaPath The path to the genome FASTA file corresponding 
+#'        to the specified genome build. This file is used to extract sequence context 
+#'        when no BSgenome package is provided via bsgenome_name. 
+#'        - On GSC systems: If not specified, the function attempts to automatically 
+#'          infer the FASTA path from the GAMBL configuration.
+#'        - On local systems: A valid local path to a FASTA file must be provided.
+#' @param bsgenome_name Specifies the name of a BSgenome data package 
+#'        to be used for sequence extraction. This parameter overrides fastaPath if provided.
+#'        - Format: `BSgenome.<organism>.<provider>.<assembly>[.<masked>]`.
+#'        - Example: `"BSgenome.Hsapiens.UCSC.hg38"` for the human UCSC genome build hg38.
+#'        - If a masked genome is required, use a name like `"BSgenome.Hsapiens.UCSC.hg38.masked"`.
+#' @param pyrimidine_collapse estimates the mutation strand 
+#'        using a pyrimidine collapse strategy:
+#'        - Reference alleles C or T are interpreted as mutations on the + strand.
+#'        - Reference alleles A or G are interpreted as mutations on the - strand.
 #'
 #' @return A data frame with two to three extra columns, in case
 #'      pyrimidine_collapse = FALSE, it will add triple sequence (seq) and the
@@ -42,17 +48,30 @@
 #' annotate_maf_triplet(maf)
 #' annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
 #' annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+#' 
+#' Use bsgenome_name as an alternative if you lack GSC access or a FASTA file.
+#' annotate_maf_triplet(maf, bsgenome_name = "BSgenome.Hsapiens.UCSC.grch37")
 #'
 #This function gives triple sequence of provided mutated base
 annotate_maf_triplet = function(maf,
                                 all_SNVs = TRUE,
                                 ref,
                                 alt,
-                                projection = "grch37",
                                 fastaPath,
                                 bsgenome_name,
                                 pyrimidine_collapse = FALSE){
   genome = ""
+  # Get projection from NCBI_Build column of the maf
+  if ("NCBI_Build" %in% colnames(maf)) {
+    projection = tolower(maf$NCBI_Build[1])
+  } # If it is not in the maf, look for it in bsgenome_name
+  else if (!missing(bsgenome_name)) {
+    bsgenome_parts = unlist(strsplit(bsgenome_name, "\\."))
+    projection = bsgenome_parts[4]
+  } # Cannot find it ask for mutating it
+  else{
+    stop("Please add the 'NCBI_Build' column to your MAF file to specify the genome build.")
+  }
   bsgenome_loaded = FALSE
   if (projection == "grch37") {
     maf$Chromosome <- gsub("chr", "", maf$Chromosome)

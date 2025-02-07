@@ -9,36 +9,40 @@ annotate_maf_triplet(
   all_SNVs = TRUE,
   ref,
   alt,
-  projection = "grch37",
   fastaPath,
   bsgenome_name,
   pyrimidine_collapse = FALSE
 )
 }
 \arguments{
-\item{maf}{MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2)}
+\item{maf}{MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2, NCBI_Build)}
 
-\item{all_SNVs}{To give us all the triplet sequences of SNVs and not
-specifying any specific ref and alt alleles (default is TRUE)}
+\item{all_SNVs}{If TRUE, all triplet sequences of single nucleotide
+variants (SNVs) are returned without filtering for specific reference (ref) or
+alternative (alt) alleles. (Default is TRUE).
+When all_SNVs is TRUE, the ref and alt parameters are ignored.}
 
-\item{ref}{Reference allele}
+\item{ref}{Reference allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)}
 
-\item{alt}{Alternative allele}
+\item{alt}{Alternative allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)}
 
-\item{projection}{The genome build projection for the variants you are
-working with (default is grch37)}
+\item{fastaPath}{The path to the genome FASTA file corresponding
+to the specified genome build. This file is used to extract sequence context
+when no BSgenome package is provided via bsgenome_name.
+- On GSC systems: If not specified, the function attempts to automatically
+infer the FASTA path from the GAMBL configuration.
+- On local systems: A valid local path to a FASTA file must be provided.}
 
-\item{fastaPath}{Can be a path to a FASTA file on a disk. When on GSC,
-this is first attempted to be inferred from the gambl reference through
-path specified in config. Local files are also accepted as value here.}
+\item{bsgenome_name}{Specifies the name of a BSgenome data package
+to be used for sequence extraction. This parameter overrides fastaPath if provided.
+- Format: \verb{BSgenome.<organism>.<provider>.<assembly>[.<masked>]}.
+- Example: \code{"BSgenome.Hsapiens.UCSC.hg38"} for the human UCSC genome build hg38.
+- If a masked genome is required, use a name like \code{"BSgenome.Hsapiens.UCSC.hg38.masked"}.}
 
-\item{bsgenome_name}{Name of a BSgenome data package (It has 4 or 5 parts,
-separated by dot: 1st(BSgenome) . 2nd:name of organism(Hsapiens) .
-3rd:name of genome provider (UCSC, NCBI, TAIR,...) . 4th:name of NCBI
-assembly (e.g. GRCh38) or UCSC genome (e.g. hg38) . 5th(optional): If
-the package contains masked sequences (masked))}
-
-\item{pyrimidine_collapse}{Estimate mutation_strand and}
+\item{pyrimidine_collapse}{estimates the mutation strand
+using a pyrimidine collapse strategy:
+- Reference alleles C or T are interpreted as mutations on the + strand.
+- Reference alleles A or G are interpreted as mutations on the - strand.}
 }
 \value{
 A data frame with two to three extra columns, in case
@@ -65,5 +69,8 @@ maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
 annotate_maf_triplet(maf)
 annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
 annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+
+Use bsgenome_name as an alternative if you lack GSC access or a FASTA file.
+annotate_maf_triplet(maf, bsgenome_name = "BSgenome.Hsapiens.UCSC.grch37")
 
 }
