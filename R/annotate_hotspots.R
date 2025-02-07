@@ -18,12 +18,18 @@
 #' @export
 #'
 #' @examples
-#' my_metadata = get_gambl_metadata()
-#' all_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
+#' my_metadata = suppressMessages(get_gambl_metadata())
+#' # get a few SSMs to annotate
+#' some_coding_ssm = GAMBLR.data::get_coding_ssm(these_samples_metadata = my_metadata,
 #'                                 projection = "grch37",
-#'                                 this_seq_type = "genome")
+#'                                 this_seq_type = "genome") %>% 
+#'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
+#'                   arrange(Hugo_Symbol)
+#' # peek at the data
+#' dplyr::select(some_coding_ssm,1:10,37) %>% head()
 #'
-#' hot_ssms = annotate_hotspots(all_coding_ssm)
+#' hot_ssms = annotate_hotspots(some_coding_ssm)
+#' filter(hot_ssms,!is.na(hot_spot)) %>% dplyr::select(1:10,37,hot_spot) 
 #'
 annotate_hotspots = function(mutation_maf,
                              recurrence_min = 5,

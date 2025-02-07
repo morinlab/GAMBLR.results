@@ -68,14 +68,15 @@
 #' @export
 #'
 #' @examples
-#' coding_tabulated_df = get_coding_ssm_status(
-#'  maf_data = GAMBLR.data::sample_data$grch37$maf,
-#'  gene_symbols = "EGFR"
-#' )
+#' \dontrun{
+#'  coding_tabulated_df = get_coding_ssm_status(
+#'   maf_data = GAMBLR.data::sample_data$grch37$maf,
+#'   gene_symbols = c("EZH2","KMT2D","CREBBP","MYC")
+#'  )
 #'
-#' #all lymphoma genes from bundled NHL gene list
-#' coding_tabulated_df = get_coding_ssm_status()
-#'
+#'  #all lymphoma genes from bundled NHL gene list
+#'  coding_tabulated_df = get_coding_ssm_status()
+#' }
 get_coding_ssm_status = function(
     gene_symbols,
     these_samples_metadata,

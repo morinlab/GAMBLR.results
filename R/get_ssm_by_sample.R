@@ -8,8 +8,6 @@
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
-#' @param this_sample_id Required. The sample_id you want the data from.
-#' @param this_seq_type Required if not specifying these_samples_metadata. The seq_type of the sample you want data from.
 #' @param these_samples_metadata Required if not specifying both this_sample_id and this_seq_type a single row or entire metadata table containing your sample_id.
 #' @param tool_name The name of the variant calling pipeline (currently only slms-3 is supported).
 #' @param projection The projection genome build. Supports hg38 and grch37.
@@ -20,27 +18,28 @@
 #' @param basic_columns Return first 43 columns of MAF rather than full details. Default is TRUE.
 #' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.
 #' @param verbose Enable for debugging/noisier output.
+#' @param this_sample_id Deprecated. Inferred from these_samples_metadata
+#' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #'
 #' @return data frame in MAF format.
 #'
 #' @import dplyr tidyr glue GAMBLR.helpers
 #'
 #' @examples
-#' this_sample_df = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00485-01A-01D",
-#'                                    this_seq_type = "genome",
-#'                                    tool_name = "slims-3",
+#' 
+#' \dontrun{
+#'  this_sample_df = get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() %>%
+#'  dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",seq_type == "genome"),
 #'                                    projection = "grch37")
 #'
-#' capture_meta = get_gambl_metadata(seq_type_filter = "capture")
+#'  capture_meta = get_gambl_metadata() %>% dplyr::filter(seq_type == "capture")
 #'
-#' ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
+#'  ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
 #'                                projection = "grch37",
 #'                                augmented = T,
 #'                                these_samples_metadata = capture_meta)
-#'
-get_ssm_by_sample = function(this_sample_id,
-                             this_seq_type,
-                             these_samples_metadata,
+#' }
+get_ssm_by_sample = function(these_samples_metadata,
                              tool_name = "slms-3",
                              projection = "grch37",
                              these_genes,
@@ -49,7 +48,9 @@ get_ssm_by_sample = function(this_sample_id,
                              min_read_support = 3,
                              basic_columns = TRUE,
                              maf_cols = NULL,
-                             verbose = FALSE
+                             verbose = FALSE,
+                             this_sample_id,
+                             this_seq_type
                              ){
   remote_session = check_remote_configuration(auto_connect = TRUE)
   if(missing(this_sample_id) & missing(these_samples_metadata)){
@@ -71,13 +72,10 @@ get_ssm_by_sample = function(this_sample_id,
     print(these_samples_metadata)
     stop("problem!")
   }
-  if(missing(this_seq_type)){
-    #get it from the metadata
-    seq_type = pull(these_samples_metadata,seq_type)
-  }else{
-    seq_type = this_seq_type #maybe we don't want this? 
-  }
-  sample_id = this_sample_id
+  
+  seq_type = pull(these_samples_metadata,seq_type)
+
+  sample_id = pull(these_samples_metadata,sample_id)
   tumour_sample_id = sample_id
   unix_group = pull(these_samples_metadata, unix_group)
   genome_build = pull(these_samples_metadata, genome_build)
@@ -119,11 +117,6 @@ get_ssm_by_sample = function(this_sample_id,
   if(remote_session){
     #check if file exists
     status = ssh::ssh_exec_internal(ssh_session,command=paste("stat",aug_maf_path),error=F)$status
-    #aug_maf_path = paste0(aug_maf_path,".gz")
-    #local_aug_maf_path = paste0(local_aug_maf_path,".gz")
-    #full_maf_path = paste0(full_maf_path,".gz")
-    #local_full_maf_path = paste0(local_full_maf_path,".gz")
-    #deprecate the usage of gzipped MAF for now
 
     # first check if we already have a local copy
     # Load data from local copy or get a local copy from the remote path first
@@ -136,7 +129,7 @@ get_ssm_by_sample = function(this_sample_id,
 
       suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
       if(!file.exists(local_aug_maf_path)){
-
+        print(paste("DOWNLOADING:",aug_maf_path))
         ssh::scp_download(ssh_session,aug_maf_path,dirN)
       }
 
@@ -158,7 +151,7 @@ get_ssm_by_sample = function(this_sample_id,
 
       suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
       if(!file.exists(local_full_maf_path)){
-
+        print(paste("DOWNLOADING:",aug_maf_path))
         ssh::scp_download(ssh_session,full_maf_path,dirN)
       }
       #check for missingness
@@ -216,5 +209,8 @@ get_ssm_by_sample = function(this_sample_id,
     sample_ssm = dplyr::select(sample_ssm, all_of(maf_cols))
     }
   sample_ssm = create_maf_data(sample_ssm,projection)
+  # use S3-safe version of dplyr function
+  sample_ssm = mutate.genomic_data(sample_ssm,maf_seq_type = seq_type)
+
   return(sample_ssm)
 }
