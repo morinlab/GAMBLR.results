@@ -26,6 +26,7 @@
 #'                              this_seq_type = "capture",
 #'                              build = "hg38")
 #'
+#' @keywords internal
 fetch_output_files = function(tool,
                               unix_group,
                               base_path,

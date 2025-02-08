@@ -98,6 +98,7 @@
 #' )
 #' }
 #' 
+#' @keywords internal
 build_browser_hub = function(maf_data,
                              regions_bed,
                              these_sample_ids = NULL,

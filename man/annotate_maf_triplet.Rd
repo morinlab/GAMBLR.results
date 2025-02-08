@@ -9,9 +9,8 @@ annotate_maf_triplet(
   all_SNVs = TRUE,
   ref,
   alt,
-  projection = "grch37",
+  genome_build,
   fastaPath,
-  bsgenome_name,
   pyrimidine_collapse = FALSE
 )
 }
@@ -25,18 +24,12 @@ specifying any specific ref and alt alleles (default is TRUE)}
 
 \item{alt}{Alternative allele}
 
-\item{projection}{The genome build projection for the variants you are
-working with (default is grch37)}
+\item{genome_build}{The genome build for the variants you are
+working with (default is to infer it from the MAF)}
 
 \item{fastaPath}{Can be a path to a FASTA file on a disk. When on GSC,
 this is first attempted to be inferred from the gambl reference through
 path specified in config. Local files are also accepted as value here.}
-
-\item{bsgenome_name}{Name of a BSgenome data package (It has 4 or 5 parts,
-separated by dot: 1st(BSgenome) . 2nd:name of organism(Hsapiens) .
-3rd:name of genome provider (UCSC, NCBI, TAIR,...) . 4th:name of NCBI
-assembly (e.g. GRCh38) or UCSC genome (e.g. hg38) . 5th(optional): If
-the package contains masked sequences (masked))}
 
 \item{pyrimidine_collapse}{Estimate mutation_strand and}
 }
@@ -60,10 +53,15 @@ the MAF data frame and provide triple sequences for them (reverse complement
 sequence for the - strand).
 }
 \examples{
-maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
+maf <- GAMBLR.data::get_coding_ssm(projection="hg38") \%>\% head(n=500)
+# peek at the data
+dplyr::select(maf,1:12) \%>\% head()
 
-annotate_maf_triplet(maf)
-annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
-annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
-
+maf_anno <- annotate_maf_triplet(maf)
+dplyr::select(maf_anno,1:12,seq) \%>\% head()
+#Each mutation is now associated with it's sequence context in the reference genome in a column named seq
+\dontrun{
+  annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+  annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+}
 }

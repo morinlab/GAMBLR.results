@@ -49,3 +49,4 @@ Note that the \code{project_name} has to match what is specified for the previou
 samples_not_in_clinical = cbio_study_check(out_dir = "GAMBLR/cBioPortal/instance01/")
 }
 }
+\keyword{internal}

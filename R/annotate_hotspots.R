@@ -33,11 +33,25 @@
 #'    dplyr::filter(!is.na(hot_spot)) %>% 
 #'    dplyr::select(1:10,37,hot_spot) 
 #'
+#' #This example will raise an error due to the user supplying an unsupported genome build:
+#' more_coding_ssm = GAMBLR.data::get_coding_ssm(these_samples_metadata = my_metadata,
+#'                                 projection = "hg38",
+#'                                 this_seq_type = "capture") %>% 
+#'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
+#'                   dplyr::arrange(Hugo_Symbol)
+#' # peek at the data
+#' dplyr::select(more_coding_ssm,1:10,37) %>% head()
+#'
+#' more_hot_ssms = annotate_hotspots(more_coding_ssm)
+#' more_hot_ssms %>% 
+#'    dplyr::filter(!is.na(hot_spot)) %>% 
+#'    dplyr::select(1:10,37,hot_spot) 
 annotate_hotspots = function(mutation_maf,
                              recurrence_min = 5,
                              analysis_base = c("FL--DLBCL", "BL--DLBCL"),
                              p_thresh = 0.05){
-
+  genome_build = check_get_projection(list(this_maf=mutation_maf),"grch37",
+                                      custom_error="This function currently only supports grch37")
   hotspot_info = list()
   for(abase in analysis_base){
     base_path = GAMBLR.helpers::check_config_value(config::get("repo_base"))

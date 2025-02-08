@@ -41,3 +41,4 @@ file_details_manta = find_files_extract_wildcards(tool_name = "manta",
                                                   search_pattern = ".bed")
 
 }
+\keyword{internal}

@@ -48,6 +48,7 @@
 #'                     metacol_prior = c("2", "1"))
 #' }
 #'
+#' @keywords internal
 cbio_finalize_study = function(seq_type_filter = "genome",
                                short_name = "GAMBL",
                                human_friendly_name = "GAMBL data",

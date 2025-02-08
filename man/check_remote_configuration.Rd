@@ -23,3 +23,4 @@ check if their config is loaded properly and ssh_session is available.
 check_remote_configuration()
 
 }
+\keyword{internal}

@@ -37,3 +37,4 @@ This is done with setting \code{include_silent = TRUE} (default is FALSE).
 tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
 
 }
+\keyword{internal}

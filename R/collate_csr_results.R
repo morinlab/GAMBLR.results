@@ -16,6 +16,7 @@
 #' @examples
 #' gambl_results_derived = collate_csr_results(gambl_results_derived)
 #'
+#' @keywords internal
 collate_csr_results = function(sample_table,
                                seq_type_filter = "genome"){
 

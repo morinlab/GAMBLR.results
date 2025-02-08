@@ -30,3 +30,4 @@ bam_details = get_bams(this_sample_id = "HTMCP-01-06-00422-01A-01D")
 bam_details = get_bams(this_patient_id = "HTMCP-01-06-00422")
 
 }
+\keyword{internal}

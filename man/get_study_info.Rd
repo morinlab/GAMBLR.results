@@ -35,3 +35,4 @@ get_study_info(dir = "path/to/study/", list_to_global = TRUE)
 }
 
 }
+\keyword{internal}

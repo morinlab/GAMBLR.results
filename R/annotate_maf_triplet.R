@@ -20,11 +20,6 @@
 #' @param fastaPath Can be a path to a FASTA file on a disk. When on GSC,
 #'      this is first attempted to be inferred from the gambl reference through
 #'      path specified in config. Local files are also accepted as value here.
-#' @param bsgenome_name Name of a BSgenome data package (It has 4 or 5 parts,
-#'      separated by dot: 1st(BSgenome) . 2nd:name of organism(Hsapiens) .
-#'      3rd:name of genome provider (UCSC, NCBI, TAIR,...) . 4th:name of NCBI
-#'      assembly (e.g. GRCh38) or UCSC genome (e.g. hg38) . 5th(optional): If
-#'      the package contains masked sequences (masked))
 #' @param pyrimidine_collapse Estimate mutation_strand and
 #'
 #' @return A data frame with two to three extra columns, in case
@@ -37,32 +32,28 @@
 #' @export
 #'
 #' @examples
-#' maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
-#'
-#' annotate_maf_triplet(maf)
-#' annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
-#' annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
-#'
-#This function gives triple sequence of provided mutated base
+#' maf <- GAMBLR.data::get_coding_ssm(projection="hg38") %>% head(n=500)
+#' # peek at the data
+#' dplyr::select(maf,1:12) %>% head()
+#' 
+#' maf_anno <- annotate_maf_triplet(maf)
+#' dplyr::select(maf_anno,1:12,seq) %>% head()
+#' #Each mutation is now associated with it's sequence context in the reference genome in a column named seq
+#' \dontrun{
+#'   annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+#'   annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+#' }
+
 annotate_maf_triplet = function(maf,
                                 all_SNVs = TRUE,
                                 ref,
                                 alt,
                                 genome_build,
                                 fastaPath,
-                                bsgenome_name,
                                 pyrimidine_collapse = FALSE){
   genome = ""
   bsgenome_loaded = FALSE
 
-  # Were these lines ever necessary/useful? Shouldn't our MAF already have the right prefixing?
-  #if (genome_build == "grch37") {
-  #  maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-  #} else {
-  #  # If there is a mix of prefixed and non-prefixed options
-  #  maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-  #  maf$Chromosome <- paste0("chr", maf$Chromosome)
-  #}
   # If there is no fastaPath, it will read it from config key
 
   # Based on the genome_build the fasta file which will be loaded is different
@@ -83,15 +74,19 @@ annotate_maf_triplet = function(maf,
     if(!file.exists(fastaPath)){
       #try BSgenome
       installed = installed.genomes()
-      if(!missing(bsgenome_name)){
-        if(bsgenome_name %in% installed){
+      if(genome_build=="hg38"){
+        bsgenome_name = "BSgenome.Hsapiens.UCSC.hg38"
+      }else if(genome_build == "grch37"){
+        bsgenome_name = "BSgenome.Hsapiens.NCBI.GRCh37"
+      }else{
+        stop(paste("unsupported genome:",genome_build))
+      }
+      if(bsgenome_name %in% installed){
           genome = getBSgenome(bsgenome_name)
-
           bsgenome_loaded = TRUE
-        }
       }else{
         print(installed)
-        stop("Local Fasta file cannot be found. Supply a path to it with fastaPath or use one of the installed BSGenome options using the bsgenome_name parameter")
+        print(paste("Local Fasta file cannot be found and missing genome_build",bsgenome_name,"Supply a fastaPath for a local fasta file or install the missing BSGenome package and re-run"))
       }
     }
   }
@@ -99,7 +94,7 @@ annotate_maf_triplet = function(maf,
   if(!bsgenome_loaded){
     # Create a reference to an indexed fasta file.
     if (!file.exists(fastaPath)) {
-      stop("Failed to find the fasta file")
+      stop("Failed to find the fasta file and no compatible BSgenome found")
     }
     fasta = Rsamtools::FaFile(file = fastaPath)
   }

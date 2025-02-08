@@ -24,3 +24,4 @@ The function will (optionally) attempt a connection if necessary, and stores it 
 check_host(auto_connect=TRUE)
 
 }
+\keyword{internal}

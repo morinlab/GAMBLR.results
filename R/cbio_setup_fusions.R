@@ -29,6 +29,7 @@
 #' \dontrun{
 #' fusion_ids = cbio_setup_fusions(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
+#' @keywords internal
 cbio_setup_fusions = function(short_name = "GAMBL",
                               human_friendly_name = "GAMBL data",
                               project_name = "gambl_genome",

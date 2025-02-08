@@ -14,6 +14,7 @@
 #' @examples
 #' check_host(auto_connect=TRUE)
 #'
+#' @keywords internal
 check_host = function(auto_connect = FALSE,
                       verbose = FALSE){
 

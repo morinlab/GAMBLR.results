@@ -2,7 +2,7 @@
 % Please edit documentation in R/assign_cn_to_ssm.R
 \name{assign_cn_to_ssm}
 \alias{assign_cn_to_ssm}
-\title{Assign CN to SSM.}
+\title{Assign CN state to SSMs.}
 \usage{
 assign_cn_to_ssm(
   these_samples_metadata,

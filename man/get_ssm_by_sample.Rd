@@ -5,8 +5,6 @@
 \title{Get SSM By Sample.}
 \usage{
 get_ssm_by_sample(
-  this_sample_id,
-  this_seq_type,
   these_samples_metadata,
   tool_name = "slms-3",
   projection = "grch37",
@@ -16,14 +14,12 @@ get_ssm_by_sample(
   min_read_support = 3,
   basic_columns = TRUE,
   maf_cols = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  this_sample_id,
+  this_seq_type
 )
 }
 \arguments{
-\item{this_sample_id}{Required. The sample_id you want the data from.}
-
-\item{this_seq_type}{Required if not specifying these_samples_metadata. The seq_type of the sample you want data from.}
-
 \item{these_samples_metadata}{Required if not specifying both this_sample_id and this_seq_type a single row or entire metadata table containing your sample_id.}
 
 \item{tool_name}{The name of the variant calling pipeline (currently only slms-3 is supported).}
@@ -43,6 +39,10 @@ get_ssm_by_sample(
 \item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.}
 
 \item{verbose}{Enable for debugging/noisier output.}
+
+\item{this_sample_id}{Deprecated. Inferred from these_samples_metadata}
+
+\item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
 }
 \value{
 data frame in MAF format.
@@ -58,16 +58,17 @@ Is this function not what you are looking for? Try one of the following, similar
 \link{get_ssm_by_patients}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
 }
 \examples{
-this_sample_df = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00485-01A-01D",
-                                   this_seq_type = "genome",
-                                   tool_name = "slims-3",
+
+\dontrun{
+ this_sample_df = get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() \%>\%
+ dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",seq_type == "genome"),
                                    projection = "grch37")
 
-capture_meta = get_gambl_metadata(seq_type_filter = "capture")
+ capture_meta = get_gambl_metadata() \%>\% dplyr::filter(seq_type == "capture")
 
-ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
+ ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
                                projection = "grch37",
                                augmented = T,
                                these_samples_metadata = capture_meta)
-
+}
 }

@@ -48,4 +48,17 @@ hot_ssms \%>\%
    dplyr::filter(!is.na(hot_spot)) \%>\% 
    dplyr::select(1:10,37,hot_spot) 
 
+#This example will raise an error due to the user supplying an unsupported genome build:
+more_coding_ssm = GAMBLR.data::get_coding_ssm(these_samples_metadata = my_metadata,
+                                projection = "hg38",
+                                this_seq_type = "capture") \%>\% 
+                  dplyr::filter(Hugo_Symbol \%in\% c("EZH2","MEF2B","MYD88","KMT2D")) \%>\%
+                  dplyr::arrange(Hugo_Symbol)
+# peek at the data
+dplyr::select(more_coding_ssm,1:10,37) \%>\% head()
+
+more_hot_ssms = annotate_hotspots(more_coding_ssm)
+more_hot_ssms \%>\% 
+   dplyr::filter(!is.na(hot_spot)) \%>\% 
+   dplyr::select(1:10,37,hot_spot) 
 }

@@ -8,7 +8,7 @@ annotate_ssm_motif_context(
   maf,
   motif = "WRCY",
   index = 3,
-  projection = "grch37",
+  genome_build,
   fastaPath
 )
 }
@@ -19,7 +19,7 @@ annotate_ssm_motif_context(
 
 \item{index}{Position of the mutated allele in the motif}
 
-\item{projection}{The genome build projection for the variants you are working with (default is grch37)}
+\item{genome_build}{The genome build for the variants you are working with (default is grch37)}
 
 \item{fastaPath}{Can be a path to a FASTA file}
 }

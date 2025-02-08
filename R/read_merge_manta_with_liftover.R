@@ -18,6 +18,7 @@
 #'                                              out_dir = "../")
 #' }
 #'
+#' @keywords internal
 read_merge_manta_with_liftover = function(bedpe_paths = c(),
                                           pattern = "--matched",
                                           out_dir){

@@ -14,6 +14,7 @@
 #' 
 #' @noRd
 #'
+#' @keywords internal
 process_all_manta_bedpe = function(file_df,
                                    out_dir,
                                    group,

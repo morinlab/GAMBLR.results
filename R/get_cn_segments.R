@@ -39,6 +39,7 @@
 #' }
 #'
 #' @export
+#' @keywords internal
 create_seg_data <- function(seg_df, genome_build) {
   if (!inherits(seg_df, "data.frame"))
     stop("data must be a data frame")

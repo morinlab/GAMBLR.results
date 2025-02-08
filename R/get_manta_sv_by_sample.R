@@ -43,6 +43,7 @@
 #'                                projection = "hg38",
 #'                                force_lift = TRUE)
 #'
+#' @keywords internal
 get_manta_sv_by_sample = function(this_sample_id,
                                   these_samples_metadata,
                                   force_lift = FALSE,

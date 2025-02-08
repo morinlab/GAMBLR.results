@@ -14,6 +14,7 @@
 #' @examples
 #' my_session = get_ssh_session()
 #'
+#' @keywords internal
 get_ssh_session = function(host="gphost01.bcgsc.ca"){
 
   if(!is.null(config::get("host"))){

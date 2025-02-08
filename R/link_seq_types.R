@@ -29,6 +29,7 @@
 #'   intermediary = c("patient_id", "biopsy_id")
 #' )
 #' 
+#' @keywords internal
 link_seq_types <- function(these_sample_ids, 
                            given_seq_type, 
                            desired_seq_type, 

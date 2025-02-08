@@ -51,3 +51,4 @@ with this function has to match the parameter arguments of
 fusion_ids = cbio_setup_fusions(out_dir = "GAMBLR/cBioPortal/instance01/")
 }
 }
+\keyword{internal}

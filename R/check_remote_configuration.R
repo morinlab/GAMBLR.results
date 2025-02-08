@@ -14,6 +14,7 @@
 #' @examples
 #' check_remote_configuration()
 #'
+#' @keywords internal
 check_remote_configuration = function(auto_connect = FALSE){
 
   remote_gamblr = check_host(auto_connect=auto_connect)

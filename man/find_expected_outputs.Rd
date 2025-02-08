@@ -41,3 +41,4 @@ ex_outs = find_expected_outputs(tool_name = "manta",
                                filename_end_pattern = "unmatched.somaticSV.bedpe")
 
 }
+\keyword{internal}

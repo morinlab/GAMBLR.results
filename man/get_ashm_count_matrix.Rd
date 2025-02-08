@@ -9,7 +9,7 @@ get_ashm_count_matrix(
   maf_data,
   these_samples_metadata,
   this_seq_type = "genome",
-  projection = "grch37"
+  projection
 )
 }
 \arguments{

@@ -13,6 +13,7 @@
 #' @examples
 #' ref_meta = referesh_metadata_tables()
 #'
+#' @keywords internal
 referesh_metadata_tables = function(){
 
   con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)

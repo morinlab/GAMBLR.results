@@ -26,3 +26,4 @@ maf <- get_coding_ssm(basic_columns = FALSE)
 clean_maf = cleanup_maf(maf_df = maf)
 
 }
+\keyword{internal}
