@@ -22,17 +22,26 @@ get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               ...){
   these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type!="mrna")
-  capture_ssm = get_coding_ssm(these_samples_metadata = 
+  seq_types_in_metadata = unique(these_samples_metadata$seq_type)
+  if("capture" %in% seq_types_in_metadata){
+    capture_ssm = get_coding_ssm(these_samples_metadata = 
                                  dplyr::filter(these_samples_metadata,
                                                seq_type=="capture"),
                                this_seq_type = "capture", ...) 
-
-  genome_ssm = get_coding_ssm(these_samples_metadata = 
+  }
+  if("genome" %in% seq_types_in_metadata){
+    genome_ssm = get_coding_ssm(these_samples_metadata = 
                                 dplyr::filter(these_samples_metadata,
                                               seq_type=="genome"),
-                              this_seq_type = "genome", ...) 
-
-  merged_ssm = bind_genomic_data(capture_ssm,genome_ssm)
-  
-  return(merged_ssm)
+                              this_seq_type = "genome", ...)
+     
+  }
+  if(length(seq_types_in_metadata)>1){
+    merged_ssm = bind_genomic_data(capture_ssm,genome_ssm)
+    return(merged_ssm)
+  }else if("capture" %in% seq_types_in_metadata){
+    return(capture_ssm)
+  }else if("genome" %in% seq_types_in_metadata){
+    return(genome_ssm)
+  }
 }
