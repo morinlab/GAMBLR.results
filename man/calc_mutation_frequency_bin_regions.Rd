@@ -9,7 +9,6 @@ calc_mutation_frequency_bin_regions(
   regions_bed = NULL,
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
-  this_seq_type = c("genome", "capture"),
   projection,
   region_padding = 1000,
   drop_unmutated = FALSE,
@@ -28,8 +27,6 @@ calc_mutation_frequency_bin_regions(
 \item{these_samples_metadata}{Metadata with at least sample_id column. If not providing a maf data frame, seq_type is also required.}
 
 \item{these_sample_ids}{Vector of sample IDs. Metadata will be subset to sample IDs present in this vector.}
-
-\item{this_seq_type}{Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.}
 
 \item{projection}{Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default "grch37".}
 

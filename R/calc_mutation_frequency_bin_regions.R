@@ -10,7 +10,6 @@
 #' @param regions_bed Data frame of regions with four columns (chrom, start, end, name).
 #' @param these_samples_metadata Metadata with at least sample_id column. If not providing a maf data frame, seq_type is also required.
 #' @param these_sample_ids Vector of sample IDs. Metadata will be subset to sample IDs present in this vector.
-#' @param this_seq_type Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.
 #' @param region_padding Amount to pad the start and end coordinates by. Default 1000.
 #' @param projection Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default "grch37".
 #' @param drop_unmutated Whether to drop bins with 0 mutations. If returning a matrix format, this will only drop bins with no mutations in any samples.
@@ -49,7 +48,6 @@ calc_mutation_frequency_bin_regions <- function(
   regions_bed = NULL,
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
-  this_seq_type = c("genome", "capture"),
   projection,
   region_padding = 1000,
   drop_unmutated = FALSE,

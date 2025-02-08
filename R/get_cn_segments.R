@@ -45,7 +45,18 @@ create_seg_data <- function(seg_df, genome_build) {
     stop("data must be a data frame")
   if (!genome_build %in% c("grch37", "hg38"))
     stop("Invalid genome build")
-  
+  #ensure chr prefixes are there when necessary 
+  if(genome_build=="grch37"){
+    if(all(str_detect(seg_df$chrom, "chr"))){
+      seg_df = seg_df %>%
+        dplyr::mutate(chrom = gsub("chr", "", chrom))
+    }
+  }else{
+    if(all(!str_detect(seg_df$chrom, "chr"))){
+      seg_df = seg_df %>%
+        dplyr::mutate(chrom = paste0("chr", chrom))
+    }
+  }
   structure(seg_df,
             class = c("seg_data", class(seg_df)),
             genome_build = genome_build)
@@ -80,14 +91,27 @@ print.seg_data <- function(x, ...) {
 #'
 #' @examples
 #' # Example for the capture samples:
-#' 
-#' capture_metadata = get_gambl_metadata() %>%
-#'                       dplyr::filter(seq_type=="capture")
+#' # Get metadata for just a few capture samples
+#' capture_metadata = suppressMessages(get_gambl_metadata()) %>%
+#'                       dplyr::filter(seq_type=="capture") %>% head()
+#'
+#' # Load the copy number segments for the capture samples using hg38 projection
 #' capture_segments_hg38 = get_cn_segments(
 #'                              these_samples_metadata = capture_metadata,
 #'                              projection="hg38")
+#' print(capture_segments_hg38)
 #'
-#'
+#' genome_metadata = suppressMessages(get_gambl_metadata()) %>%
+#'                       dplyr::filter(seq_type=="genome") %>% head()
+#' # Create a metadata table with a mix of seq_types
+#' mixed_seq_type_meta = dplyr::bind_rows(capture_metadata,genome_metadata)
+# # We can load the copy number segments for all samples across seq_types
+#' capture_segments_default = get_cn_segments(
+#'                              these_samples_metadata = mixed_seq_type_meta)
+#' dplyr::group_by(capture_segments_default, ID) %>% 
+#' dplyr::summarize(n=dplyr::n())
+#' # Note the default projection is "grch37"
+#' print(capture_segments_default)
 get_cn_segments = function(these_samples_metadata,
                            projection = "grch37",
                            this_seq_type){
@@ -131,9 +155,9 @@ get_cn_segments = function(these_samples_metadata,
     }
 
     if(seq_type=="capture"){
-      seg = read_tsv(full_cnv_path) %>% dplyr::filter(ID %in% capture_ids)
+      seg = suppressMessages(read_tsv(full_cnv_path)) %>% dplyr::filter(ID %in% capture_ids)
     }else{
-      seg = read_tsv(full_cnv_path) %>% dplyr::filter(ID %in% genome_ids)
+      seg = suppressMessages(read_tsv(full_cnv_path)) %>% dplyr::filter(ID %in% genome_ids)
     }
     df_list[[seq_type]]=seg
 
@@ -146,18 +170,7 @@ get_cn_segments = function(these_samples_metadata,
   
   all_segs = dplyr::mutate(all_segs, CN = round(2*2^log.ratio))
   
-  #ensure chr prefixes are there when necessary 
-  if(projection=="grch37"){
-    if(all(str_detect(all_segs$chrom, "chr"))){
-      all_segs = all_segs %>%
-        dplyr::mutate(chrom = gsub("chr", "", chrom))
-    }
-  }else{
-    if(all(!str_detect(all_segs$chrom, "chr"))){
-      all_segs = all_segs %>%
-        dplyr::mutate(chrom = paste0("chr", chrom))
-    }
-  }
+
 
   #return S3 class with CN segments and genome_build 
   all_segs = create_seg_data(all_segs,projection)

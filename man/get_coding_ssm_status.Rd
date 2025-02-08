@@ -7,7 +7,6 @@
 get_coding_ssm_status(
   gene_symbols,
   these_samples_metadata,
-  from_flatfile = TRUE,
   augmented = TRUE,
   min_read_support = 3,
   maf_path = NULL,
@@ -15,13 +14,13 @@ get_coding_ssm_status(
   include_hotspots = TRUE,
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
-  this_seq_type = "genome",
   review_hotspots = TRUE,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
   genome_build,
   include_silent = FALSE,
   include_silent_genes,
-  suffix
+  suffix,
+  this_seq_type
 )
 }
 \arguments{
@@ -33,9 +32,6 @@ default.}
 included in the returned matrix. Only the column "sample_id" is
 required. If not provided, the matrix is tabulated for all available
 samples as default.}
-
-\item{from_flatfile}{Optional argument whether to use database or flat file
-to retrieve mutations. Default is TRUE.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original
 MAF from each sample for multi-sample patients instead of the augmented
@@ -62,8 +58,6 @@ presence.}
 
 \item{recurrence_min}{Integer value indicating minimal recurrence level.}
 
-\item{this_seq_type}{The seq_type you want back, default is genome.}
-
 \item{review_hotspots}{Logical parameter indicating whether hotspots object
 should be reviewed to include functionally relevant mutations or rare
 lymphoma-related genes. Default is TRUE.}
@@ -82,6 +76,8 @@ Silent variants to be considered. If provided, the Silent variants for
 these genes will be included regardless of the include_silent argument.}
 
 \item{suffix}{Optionally provide a character that will be appended to the end of each name}
+
+\item{this_seq_type}{Deprecated. This is now determined from the metadata provided.}
 
 \item{projection}{Specify projection (grch37 or hg38) of mutations. Default
 is grch37.}

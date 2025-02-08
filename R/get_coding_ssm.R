@@ -267,11 +267,11 @@ get_coding_ssm = function(
   if(basic_columns){
     #subset to basic columns during read to save time and memory with lazy loading (in theory)
     select_cols = c(1:45)
-    muts = fread_maf(full_maf_path,select_cols=select_cols) %>%
+    muts = suppressMessages(fread_maf(full_maf_path,select_cols=select_cols)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }else{
-    muts = fread_maf(full_maf_path) %>%
+    muts = suppressMessages(fread_maf(full_maf_path)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }

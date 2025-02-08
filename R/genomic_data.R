@@ -13,6 +13,8 @@
 #'   that can be retrieved by \code{get_genome_build()}.
 #' @param suggested An optional character string specifying a genome build (projection) to be used.
 #'   If provided, it must match the genome build inferred from the data objects.
+#' @param custom_error An optional error message to use instead of the default when the function
+#' raises an error.
 #'
 #' @return A character string representing the genome build to be used.
 #' @export

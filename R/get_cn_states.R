@@ -12,6 +12,7 @@
 #' @param use_cytoband_name Use cytoband names instead of region names, e.g p36.33.
 #' @param missing_data_as_diploid Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.
 #' @param projection Specify the genome build you want. Default is grch37.
+#' @param fill_missing_with The CN state to fill in for missing data. Default is "diploid".
 #' @param adjust_for_ploidy Set to TRUE to scale CN values by the genome-wide average per sample
 #'
 #' @return Copy number matrix with sample_id as rows and regions as columns.

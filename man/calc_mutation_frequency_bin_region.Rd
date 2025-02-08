@@ -49,8 +49,6 @@ calc_mutation_frequency_bin_region(
 \item{return_count}{Boolean statement to return mutation count per window (TRUE) or binary mutated/unmutated status (FALSE). Default is TRUE.}
 
 \item{drop_unmutated}{Boolean for whether to drop windows with 0 mutations. Only effective with "long" return format.}
-
-\item{this_seq_type}{Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.}
 }
 \value{
 Either a matrix or a long tidy table of counts per window.

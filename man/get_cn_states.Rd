@@ -26,6 +26,8 @@ get_cn_states(
 
 \item{use_cytoband_name}{Use cytoband names instead of region names, e.g p36.33.}
 
+\item{fill_missing_with}{The CN state to fill in for missing data. Default is "diploid".}
+
 \item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
 
 \item{projection}{Specify the genome build you want. Default is grch37.}

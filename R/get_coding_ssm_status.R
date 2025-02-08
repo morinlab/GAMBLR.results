@@ -25,8 +25,6 @@
 #'      included in the returned matrix. Only the column "sample_id" is
 #'      required. If not provided, the matrix is tabulated for all available
 #'      samples as default.
-#' @param from_flatfile Optional argument whether to use database or flat file
-#'      to retrieve mutations. Default is TRUE.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original
 #'      MAF from each sample for multi-sample patients instead of the augmented
 #'      MAF.
@@ -45,7 +43,6 @@
 #'      number of non-hotspot mutations instead of tabulating for just mutation
 #'      presence.
 #' @param recurrence_min Integer value indicating minimal recurrence level.
-#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param projection Specify projection (grch37 or hg38) of mutations. Default
 #'      is grch37.
 #' @param review_hotspots Logical parameter indicating whether hotspots object
@@ -61,6 +58,7 @@
 #'      Silent variants to be considered. If provided, the Silent variants for
 #'      these genes will be included regardless of the include_silent argument.
 #' @param suffix Optionally provide a character that will be appended to the end of each name
+#' @param this_seq_type Deprecated. This is now determined from the metadata provided.
 #'
 #' @return A data frame with tabulated mutation status.
 #'
@@ -80,7 +78,6 @@
 get_coding_ssm_status = function(
     gene_symbols,
     these_samples_metadata,
-    from_flatfile = TRUE,
     augmented = TRUE,
     min_read_support = 3,
     maf_path = NULL,
@@ -88,15 +85,17 @@ get_coding_ssm_status = function(
     include_hotspots = TRUE,
     keep_multihit_hotspot = FALSE,
     recurrence_min = 5,
-    this_seq_type = "genome",
     review_hotspots = TRUE,
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
     genome_build,
     include_silent = FALSE,
     include_silent_genes,
-    suffix
+    suffix,
+    this_seq_type
 ){
-
+  if(!missing(this_seq_type)){
+    stop("this_seq_type is deprecated. This is now determined from the metadata provided.")
+  }
   message(
     "Using the GAMBLR.results version of this function."
   )
