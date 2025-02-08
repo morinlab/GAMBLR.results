@@ -26,7 +26,7 @@
 #' @return Either a matrix or a long tidy table of counts per window.
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr tidyr
+#' @import dplyr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -65,7 +65,7 @@ calc_mutation_frequency_bin_region <- function(region,
       end_pos
     )
   } else {
-    chunks <- GAMBLR.data::region_to_chunks(region)
+    chunks <- region_to_chunks(region)
     chromosome <- chunks$chromosome
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)

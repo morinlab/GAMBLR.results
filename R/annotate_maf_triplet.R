@@ -52,6 +52,17 @@ annotate_maf_triplet = function(maf,
                                 fastaPath,
                                 pyrimidine_collapse = FALSE){
   genome = ""
+  # Get projection from NCBI_Build column of the maf
+  if ("NCBI_Build" %in% colnames(maf)) {
+    projection = tolower(maf$NCBI_Build[1])
+  } # If it is not in the maf, look for it in bsgenome_name
+  else if (!missing(bsgenome_name)) {
+    bsgenome_parts = unlist(strsplit(bsgenome_name, "\\."))
+    projection = bsgenome_parts[4]
+  } # Cannot find it ask for mutating it
+  else{
+    stop("Please add the 'NCBI_Build' column to your MAF file to specify the genome build.")
+  }
   bsgenome_loaded = FALSE
 
   # If there is no fastaPath, it will read it from config key
