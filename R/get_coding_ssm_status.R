@@ -95,7 +95,7 @@ get_coding_ssm_status = function(
     include_silent_genes,
     suffix
 ){
-  
+
   message(
     "Using the GAMBLR.results version of this function."
   )
@@ -109,7 +109,7 @@ get_coding_ssm_status = function(
     message(
         strwrap(
             prefix = " ",
-            initial = "", 
+            initial = "",
             "Output will include all genes specified in gene_symbols
             and include_silent_genes parameters."
         )
@@ -154,7 +154,7 @@ get_coding_ssm_status = function(
                                       augmented = augmented,
                                       basic_columns = FALSE,
                                       include_silent = include_silent)
-  
+
   }
 
   if(missing(include_silent_genes)){
@@ -166,7 +166,7 @@ get_coding_ssm_status = function(
     message(
         strwrap(
             prefix = " ",
-            initial = "", 
+            initial = "",
             "You have provided gene list with argument include_silent_genes.
             The Silent variants will be included even if the include_silent
             argument is set to FALSE.
@@ -202,7 +202,7 @@ get_coding_ssm_status = function(
     annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
     # review for the supported genes
     if(review_hotspots){
-      annotated = GAMBLR.data::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
     }
     message("annotating hotspots")
     hotspots = annotated %>%
