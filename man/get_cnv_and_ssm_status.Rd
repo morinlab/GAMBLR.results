@@ -75,7 +75,7 @@ return any copy number segments from the specified chromosome region.
 all_types_meta = get_gambl_metadata() \%>\% 
             dplyr::filter(pathology == "BL")
 dplyr::group_by(all_types_meta, seq_type) \%>\% 
-     dplyr::summarize(n=n())
+     dplyr::summarize(n=dplyr::n())
 
 # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 # return only CNV status; for CCND3 return only SSM status

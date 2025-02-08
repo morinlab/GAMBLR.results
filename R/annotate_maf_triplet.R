@@ -32,13 +32,14 @@
 #' @export
 #'
 #' @examples
-#' maf <- GAMBLR.data::get_coding_ssm(projection="hg38") %>% head(n=500)
+#' maf <- GAMBLR.open::get_coding_ssm(projection="hg38") %>% head(n=500)
 #' # peek at the data
 #' dplyr::select(maf,1:12) %>% head()
-#' 
+#'
 #' maf_anno <- annotate_maf_triplet(maf)
 #' dplyr::select(maf_anno,1:12,seq) %>% head()
-#' #Each mutation is now associated with it's sequence context in the reference genome in a column named seq
+#' # Each mutation is now associated with it's sequence context in the
+#' # reference genome in a column named seq
 #' \dontrun{
 #'   annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
 #'   annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
