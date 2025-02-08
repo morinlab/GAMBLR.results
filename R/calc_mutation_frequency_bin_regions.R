@@ -35,9 +35,11 @@
 #'                                 these_samples_metadata = dlbcl_bl_meta)
 #'
 #'  #get ashm regions
-#'  some_regions = GAMBLR.data::grch37_ashm_regions
+#'  some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+#'                                fix_names = "concat",
+#'                                concat_cols = c("gene","region"),sep="-")
 #'
-#'  mut_count_matrix <- calc_mutation_frequency_bin_region(
+#'  mut_count_matrix <- calc_mutation_frequency_bin_regions(
 #'    these_samples_metadata = dlbcl_bl_meta,
 #'    regions_bed = some_regions
 #'  )

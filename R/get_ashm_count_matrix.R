@@ -25,13 +25,13 @@
 #' 
 #'\dontrun{
 #'   DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology=="DLBCL")
-#' regions_bed <- dplyr::mutate(
-#'      GAMBLR.data::grch37_ashm_regions,
-#'      name = paste(gene, region, sep = "_")
-#' )
+#' #get ashm regions
+#' some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+#'                               fix_names = "concat",
+#'                               concat_cols = c("gene","region"),sep="-")
 #'
-#' matrix <- get_ashm_count_matrix(
-#'      regions_bed = regions_bed,
+#' mut_matrix <- get_ashm_count_matrix(
+#'      regions_bed = some_regions,
 #'      this_seq_type = "genome",
 #'      these_samples_metadata = DLBCL_genome_meta
 #' )
@@ -79,10 +79,13 @@ get_ashm_count_matrix = function(
         if(missing(projection)){
           projection = get_genome_build(regions_bed)
         }else{
+          print("HERE")
           if(!projection == get_genome_build(regions_bed) ){
             stop("genome_build in regions_bed does not match projection!")
           } 
         }
+      }else{
+        stop("regions_bed must be a bed_data object created with create_bed_data")
       }
     }
     

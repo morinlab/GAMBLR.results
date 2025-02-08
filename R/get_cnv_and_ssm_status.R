@@ -68,7 +68,7 @@
 #'                            all_types_meta,
 #'                            only_cnv = "MIR17HG")
 #' 
-#' 
+#' colSums(genome_cnv_ssm_status)
 #' print(dim(all_seq_type_status))   
 #' 
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,

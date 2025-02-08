@@ -15,8 +15,8 @@
 #'
 #' @examples
 #' 
-#' maf_data_all_exome_and_genome = get_coding_ssm(these_samples_metadata = get_gambl_metadata(seq_type_filter=c("genome","capture")))
-#'
+#' maf_all_seqtype = get_all_coding_ssm(these_samples_metadata = get_gambl_metadata())
+#' table(maf_all_seqtype$maf_seq_type)
 #'
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,

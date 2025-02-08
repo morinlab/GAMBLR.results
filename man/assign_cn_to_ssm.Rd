@@ -72,7 +72,8 @@ ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
 # peek at the results
 ssm_genomes_grch37 \%>\% dplyr::select(1:8)
 
-# 3. Lazily let this function obtain the corresponding seg_data for the right genome_build
+# 3. Lazily let this function obtain the corresponding seg_data
+#  for the right genome_build
 cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
 
 cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
@@ -84,7 +85,8 @@ cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
 cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
 
 # Easiest/laziest way:
-cn_list = assign_cn_to_ssm(projection = "grch37")
+cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,
+                           projection = "grch37")
 
 
 cn_list$maf \%>\% dplyr::group_by(Tumor_Sample_Barcode,CN) \%>\%
