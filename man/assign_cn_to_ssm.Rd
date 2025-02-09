@@ -60,34 +60,41 @@ set \code{coding_only = TRUE}. When necessary, this function relies on
 \code{get_ssm_by_samples} and \code{get_cn_segments} to obtain the required data.
 }
 \examples{
-# long-handed way
-# 1. get some metadata for a collection of samples
-some_meta = get_gambl_metadata() \%>\%
+
+\dontrun{
+ # long-handed way (mostly for illustration)
+ # 1. get some metadata for a collection of samples
+ some_meta = get_gambl_metadata() \%>\%
         dplyr::filter(cohort=="DLBCL_ICGC")
 
-# 2. Get the SSMs for these samples
+ # 2. Get the SSMs for these samples
 
-ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
+ ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
                                   these_samples_metadata = some_meta)
-# peek at the results
-ssm_genomes_grch37 \%>\% dplyr::select(1:8)
+ # peek at the results
+ ssm_genomes_grch37 \%>\% dplyr::select(1:8)
 
-# 3. Lazily let this function obtain the corresponding seg_data
-#  for the right genome_build
-cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
+ # 3. Lazily let this function obtain the corresponding seg_data
+ #  for the right genome_build
+ cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
 
-cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
-
-# This works in GAMBLR.results
-ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
+ cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
+ # or using the other genome build:
+ ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
                                   these_samples_metadata = some_meta)
-cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
-cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
+ cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
+ cn_list$maf \%>\% dplyr::select(1:8,log.ratio,CN)
+}
 
-# Easiest/laziest way:
+# Easiest/laziest way: Let the function obtain
+# the seg_data and maf_data for you
+
+ # 1. get some metadata for a collection of samples
+ some_meta = get_gambl_metadata() \%>\%
+        dplyr::filter(cohort=="DLBCL_ICGC") \%>\% head(3)
+
 cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,
                            projection = "grch37")
-
 
 cn_list$maf \%>\% dplyr::group_by(Tumor_Sample_Barcode,CN) \%>\%
   dplyr::count()

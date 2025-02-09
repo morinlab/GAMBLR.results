@@ -21,7 +21,8 @@ get_ssm_by_samples(
 )
 }
 \arguments{
-\item{these_samples_metadata}{Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.}
+\item{these_samples_metadata}{Optional metadata table.
+If provided, it will return SSM calls for the samples in the metadata table.}
 
 \item{tool_name}{Only supports slms-3 currently.}
 

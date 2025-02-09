@@ -29,11 +29,14 @@
 #' @export
 #'
 #' @examples
-#' meta = get_gambl_metadata() %>% dplyr::filter(pathology=="MCL")
-#' chr11_mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
-#'                                                          region = "11:69455000-69459900",
-#'                                                          slide_by = 10,
-#'                                                          window_size = 10000)
+#' meta = suppressMessages(get_gambl_metadata()) %>% 
+#'                         dplyr::filter(pathology=="MCL")
+#' 
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                               region = "11:69455000-69459900",
+#'                                               slide_by = 10,
+#'                                               window_size = 10000)
+#' head(mut_freq)
 #' 
 #' # This will fail because the chromosome naming doesn't match the default projection 
 #' misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
@@ -41,11 +44,12 @@
 #'                                                          slide_by = 10,
 #'                                                          window_size = 10000) 
 #' # This will work!
-#' chr11_mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
 #'                                                          region = "chr11:69455000-69459900",
 #'                                                          slide_by = 10,
 #'                                                          window_size = 10000,projection="hg38")
-#'
+#' head(mut_freq)
+#' 
 calc_mutation_frequency_bin_region <- function(region,
                                           chromosome,
                                           start_pos,

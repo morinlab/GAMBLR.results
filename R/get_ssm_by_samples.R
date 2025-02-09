@@ -10,7 +10,8 @@
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
 #' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_regions]
 #'
-#' @param these_samples_metadata Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.
+#' @param these_samples_metadata Optional metadata table.
+#' If provided, it will return SSM calls for the samples in the metadata table.
 #' @param tool_name Only supports slms-3 currently.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
@@ -88,9 +89,7 @@ get_ssm_by_samples = function(these_samples_metadata,
       seq_type_sample_ids = list()
       for(a_seq_type in unique(these_samples_metadata$seq_type)){
         seq_type_sample_ids[[a_seq_type]]=dplyr::filter(these_samples_metadata,seq_type==a_seq_type) %>% pull(sample_id)
-      }
-      print(seq_type_sample_ids)
-        
+      } 
     }
     else{
       these_samples_metadata = these_samples_metadata %>%

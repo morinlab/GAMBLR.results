@@ -7,6 +7,7 @@
 #' @param data A data frame with genome build attribute.
 #' @return A string specifying the genome build.
 #' @export
+#' @keywords internal
 get_genome_build <- function(data) {
   attr(data, "genome_build")
 }
@@ -42,6 +43,7 @@ preserve_genomic_attributes <- function(new_data, old_data) {
 #' @param genome_build A string specifying the genome build ("grch37" or "hg38").
 #' @return A data frame with class attributes for MAF data.
 #' @export
+#' @keywords internal
 create_maf_data <- function(maf_df, genome_build) {
   if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
   if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
@@ -122,6 +124,7 @@ ungroup.genomic_data <- function(x, ...) {
 #'
 #' merged_maf = bind_genomic_data(maf1, maf2,check_id=FALSE)
 #'
+#' @keywords internal
 bind_genomic_data <- function(..., check_id = TRUE) {
   
   in_list <- list(...)
@@ -329,6 +332,7 @@ check_get_projection <- function(genomic_data_list, suggested, custom_error) {
 #'                     
 #' get_genome_build(gene_regions)
 #'
+#' @keywords internal
 create_bed_data <- function(bed_df,
                             genome_build = NULL,
                             fix_names = NULL,

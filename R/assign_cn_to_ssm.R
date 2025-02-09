@@ -14,8 +14,8 @@
 #'      (e.g. from `get_coding_ssm` or `get_ssm_by_sample`).
 #' @param seg_data A data frame of segmented copy number data or seg_data object
 #' @param projection Specified genome projection that returned data is relative to. 
-#'      This is only required when it cannot be inferred from maf_df or seg_df 
-#'      (or they are not provided). 
+#'      This is only required when it cannot be inferred from maf_df or seg_df
+#'      (or they are not provided).
 #' @param coding_only Optional. Set to TRUE to restrict to only variants in coding space
 #'      Default is to work with genome-wide variants.
 #' @param assume_diploid Optional, this parameter annotates every mutation as
@@ -36,35 +36,42 @@
 #' @export
 #'
 #' @examples
-#' # long-handed way
-#' # 1. get some metadata for a collection of samples
-#' some_meta = get_gambl_metadata() %>%
+#'
+#' \dontrun{
+#'  # long-handed way (mostly for illustration)
+#'  # 1. get some metadata for a collection of samples
+#'  some_meta = get_gambl_metadata() %>%
 #'         dplyr::filter(cohort=="DLBCL_ICGC")
 #'
-#' # 2. Get the SSMs for these samples
-#' 
-#' ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
-#'                                   these_samples_metadata = some_meta)
-#' # peek at the results
-#' ssm_genomes_grch37 %>% dplyr::select(1:8)
-#' 
-#' # 3. Lazily let this function obtain the corresponding seg_data
-#' #  for the right genome_build
-#' cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
-#' 
-#' cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
-#' 
-#' # This works in GAMBLR.results
-#' ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
-#'                                   these_samples_metadata = some_meta)
-#' cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
-#' cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+#'  # 2. Get the SSMs for these samples
 #'
-#' # Easiest/laziest way:
+#'  ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
+#'                                   these_samples_metadata = some_meta)
+#'  # peek at the results
+#'  ssm_genomes_grch37 %>% dplyr::select(1:8)
+#'
+#'  # 3. Lazily let this function obtain the corresponding seg_data
+#'  #  for the right genome_build
+#'  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
+#'
+#'  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+#'  # or using the other genome build:
+#'  ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
+#'                                   these_samples_metadata = some_meta)
+#'  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
+#'  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+#' }
+#'
+#' # Easiest/laziest way: Let the function obtain
+#' # the seg_data and maf_data for you
+#'
+#'  # 1. get some metadata for a collection of samples
+#'  some_meta = get_gambl_metadata() %>%
+#'         dplyr::filter(cohort=="DLBCL_ICGC") %>% head(3)
+#' 
 #' cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,
 #'                            projection = "grch37")
-#' 
-#' 
+#'
 #' cn_list$maf %>% dplyr::group_by(Tumor_Sample_Barcode,CN) %>%
 #'   dplyr::count()
 #'
@@ -115,7 +122,7 @@ assign_cn_to_ssm = function(
       #get maf
       maf_sample = get_ssm_by_samples(
         these_samples_metadata = these_samples_metadata,
-        projection = projection,
+        projection = projection
       )
       missing_from_maf = dplyr::filter(these_samples_metadata,
                                        !sample_id %in% maf_sample$Tumor_Sample_Barcode) %>% 
