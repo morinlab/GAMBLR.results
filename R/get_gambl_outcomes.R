@@ -15,8 +15,12 @@
 #' @import tidyr dplyr readr RMariaDB DBI GAMBLR.helpers
 #'
 #' @examples
-#' outcome_df = get_gambl_outcomes()
-#'
+#' \dontrun{
+#'   outcome_df = get_gambl_outcomes()
+#'   metadata_with_outcomes = dplyr::left_join(
+#'                             get_gambl_metadata(),
+#'                             outcome_df)
+#' }
 #' @export
 get_gambl_outcomes = function(patient_ids,
                               time_unit = "year",
