@@ -60,13 +60,15 @@ Is this function not what you are looking for? Try one of the following, similar
 \examples{
 
 \dontrun{
- this_sample_df = get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() \%>\%
- dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",seq_type == "genome"),
-                                   projection = "grch37")
+ this_sample_df = GAMBLR.results:::get_ssm_by_sample(
+                          these_samples_metadata = get_gambl_metadata() \%>\%
+                                dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
+                                     seq_type == "genome"),
+                         projection = "grch37")
 
  capture_meta = get_gambl_metadata() \%>\% dplyr::filter(seq_type == "capture")
 
- ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
+ ssm_sample = GAMBLR.results:::get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
                                projection = "grch37",
                                augmented = T,
                                these_samples_metadata = capture_meta)

@@ -25,3 +25,4 @@ get_sample_wildcards(this_sample_id = "00-15201_tumorA",
                      this_seq_type = "genome")
 
 }
+\keyword{internal}

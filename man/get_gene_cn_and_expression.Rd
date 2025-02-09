@@ -24,6 +24,7 @@ This function works well with both Hugo Symbols and Ensembl Gene IDs.
 It's also possible to specify more than one gene.
 }
 \examples{
-MYC_cn_expression = get_gene_cn_and_expression("MYC")
-
+\dontrun{
+  MYC_cn_expression = get_gene_cn_and_expression("MYC")
+}
 }
