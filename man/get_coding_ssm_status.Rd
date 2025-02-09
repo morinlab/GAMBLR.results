@@ -106,13 +106,39 @@ similar, functions; \link{get_coding_ssm},
 \link{get_ssm_by_regions}.
 }
 \examples{
-\dontrun{
- coding_tabulated_df = get_coding_ssm_status(
-  maf_data = GAMBLR.data::sample_data$grch37$maf,
-  gene_symbols = c("EZH2","KMT2D","CREBBP","MYC")
- )
+# FL Tier 1 and 2 genes
+genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
+                      FL==TRUE) \%>\% dplyr::pull(Gene)
 
- #all lymphoma genes from bundled NHL gene list
- coding_tabulated_df = get_coding_ssm_status()
-}
+# Metadata for FL genomes and exomes
+fl_meta = get_gambl_metadata() \%>\% 
+    dplyr::filter(pathology=="FL",
+                  cohort != "FL_Crouch",
+                  seq_type != "mrna")
+
+table(fl_meta$seq_type)
+# Here, we let the function load the data for us
+ coding_tabulated_df = get_coding_ssm_status(
+  gene_symbols=genes,
+  include_hotspots=FALSE,
+  genome_build = "hg38",
+  these_samples_metadata = fl_meta
+ )
+ dim(coding_tabulated_df)
+ head(colnames(coding_tabulated_df))
+
+# Alternatively, we can provide the MAF data directly
+
+# Load the MAF data (let's use the other genome build this time)
+
+maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta,
+                              projection = "grch37")
+
+coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
+                                          these_samples_metadata = fl_meta,
+                                          maf_data = maf_data,
+                                          include_hotspots=FALSE)
+ dim(coding_tabulated2)
+ head(colnames(coding_tabulated2))
+
 }

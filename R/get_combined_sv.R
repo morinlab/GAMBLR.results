@@ -15,7 +15,10 @@
 #' @param these_samples_metadata a GAMBL metadata frame containing only the samples you want returned
 #' @param with_chr_prefix Prepend all chromosome names with chr (required by some downstream analyses). Default is FALSE.
 #' @param projection The projection genome build. Default is "grch37".
-#' @param oncogenes A character vector of genes commonly involved in translocations. Possible values: CCND1, CIITA, SOCS1, BCL2, RFTN1, BCL6, MYC, PAX5.
+#' @param oncogenes A character vector of genes commonly involved in translocations.
+#' You may want to include one or more e.g.: c("CCND1", "BCL2","MYC")
+#' NOTE: If you are looking for SV affecting oncogenes you are more likely
+#' going to want to pass the full output to [GAMBLR.utils::annotate_sv]
 #' @param region Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
@@ -23,8 +26,11 @@
 #' @export
 #'
 #' @examples
-#' get_combined_sv(oncogenes = c("MYC", "BCL2", "BCL6"))
-#'
+#' \dontrun{
+#'   all_sv_bed = get_combined_sv()
+#'   annotated_onco_sv = GAMBLR.utils::annotate_sv(all_sv_bed) %>% 
+#'         dplyr::filter(gene %in% c("BCL2", "BCL6", "MYC", "CCND1"),!is.na(partner))
+#' }
 get_combined_sv = function(min_vaf = 0,
                            these_sample_ids,
                            these_samples_metadata,

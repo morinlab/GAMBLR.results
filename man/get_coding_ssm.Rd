@@ -66,19 +66,32 @@ get_coding_ssm(
 A data frame containing all the MAF data columns (one row per mutation).
 }
 \description{
-Retrieve all coding SSMs from one seq_type in GAMBL in MAF-like format.
+Retrieve all coding SSMs from one seq_type in GAMBL
+in MAF-like format.
 }
 \details{
-Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.
-For more information on how to implement the filtering parameters, refer to the parameter descriptions as well as examples in the vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm_status},
-\link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
+Effectively retrieve coding SSM calls for either
+capture or genome seq_type. A superior function that can do everything
+this can do and more is \link{get_all_coding_ssm}
+Is this function not what you are looking for? Try one of:
+\link{get_coding_ssm_status},
+\link{get_ssm_by_patients},
+\link{get_ssm_by_sample},
+\link{get_ssm_by_samples},
+\link{get_ssm_by_region},
+\link{get_ssm_by_regions}
 }
 \examples{
-\dontrun{
-  #basic usage
-  maf_data = get_coding_ssm(limit_cohort = c("BL_ICGC"))
 
-  maf_data = get_coding_ssm(limit_samples = "HTMCP-01-06-00485-01A-01D")
-}
+  #basic usage (defaults to genome seq_type)
+  maf_genome = get_coding_ssm()
+
+  nrow(maf_genome)
+
+  dplyr::select(maf_genome,1,4,5,6,9,maf_seq_type)
+
+  maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",projection="hg38") 
+
+  dplyr::select(maf_exome_hg38,1,4,5,6,9,maf_seq_type)
+
 }

@@ -1,30 +1,3 @@
-#' Create MAF Data
-#'
-#' This function creates MAF (Mutation Annotation Format) data from the given input.
-#'
-#' @param maf_df A data frame containing the MAF data.
-#' @param genome_build A string specifying the genome build ("grch37" or "hg38").
-#' @return A data frame with class attributes for MAF data.
-#' @export
-create_maf_data <- function(maf_df, genome_build) {
-  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
-  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
-  
-  structure(maf_df,
-            class = c("maf_data", "genomic_data", class(maf_df)),  #  "genomic_data" for generic methods
-            genome_build = genome_build)
-}
-
-#' @export
-#' @keywords internal
-print.maf_data <- function(x, ...) {
-  cat("MAF Data Object\n")
-  cat("Genome Build:", attr(x, "genome_build"), "\n")
-  cat("Showing first 10 rows:\n")
-  # Convert to a plain data.frame (if not already) so that printing uses the default
-  # data.frame print method rather than printing as a list.
-  print(utils::head(as.data.frame(x), 10))
-}
 
 
 #' Get Genome Build
@@ -58,6 +31,40 @@ preserve_genomic_attributes <- function(new_data, old_data) {
   
   return(new_data)
 }
+
+
+
+#' Create MAF Data
+#'
+#' This function creates MAF (Mutation Annotation Format) data from the given input.
+#'
+#' @param maf_df A data frame containing the MAF data.
+#' @param genome_build A string specifying the genome build ("grch37" or "hg38").
+#' @return A data frame with class attributes for MAF data.
+#' @export
+create_maf_data <- function(maf_df, genome_build) {
+  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
+  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
+  
+  structure(maf_df,
+            class = c("maf_data", "genomic_data", class(maf_df)),  #  "genomic_data" for generic methods
+            genome_build = genome_build)
+}
+
+#' @export
+#' @keywords internal
+print.maf_data <- function(x, ...) {
+  cat("MAF Data Object\n")
+  cat("Genome Build:", attr(x, "genome_build"), "\n")
+  cat("Showing first 10 rows:\n")
+  # Convert to a plain data.frame (if not already) so that printing uses the default
+  # data.frame print method rather than printing as a list.
+  print(utils::head(as.data.frame(x), 10))
+}
+
+
+
+
 
 # S3 methods for genomic_data class
 #' @export

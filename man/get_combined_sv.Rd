@@ -25,7 +25,10 @@ get_combined_sv(
 
 \item{projection}{The projection genome build. Default is "grch37".}
 
-\item{oncogenes}{A character vector of genes commonly involved in translocations. Possible values: CCND1, CIITA, SOCS1, BCL2, RFTN1, BCL6, MYC, PAX5.}
+\item{oncogenes}{A character vector of genes commonly involved in translocations.
+You may want to include one or more e.g.: c("CCND1", "BCL2","MYC")
+NOTE: If you are looking for SV affecting oncogenes you are more likely
+going to want to pass the full output to \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate_sv}}
 
 \item{region}{Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.}
 }
@@ -45,6 +48,9 @@ Is this function not what you are looking for? Try one of the following, similar
 \link{get_manta_sv}, \link{get_manta_sv_by_sample}, \link{get_manta_sv_by_samples}
 }
 \examples{
-get_combined_sv(oncogenes = c("MYC", "BCL2", "BCL6"))
-
+\dontrun{
+  all_sv_bed = get_combined_sv()
+  annotated_onco_sv = GAMBLR.utils::annotate_sv(all_sv_bed) \%>\% 
+        dplyr::filter(gene \%in\% c("BCL2", "BCL6", "MYC", "CCND1"),!is.na(partner))
+}
 }
