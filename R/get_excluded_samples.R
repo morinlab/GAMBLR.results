@@ -13,7 +13,7 @@
 #'
 #' @examples
 #' excluded_samp = get_excluded_samples()
-#'
+#' @keywords internal
 get_excluded_samples = function(tool_name = "slms-3"){
   base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
 

@@ -43,30 +43,4 @@ If none off the above parameters are specified, the function will return CN segm
 Note, this. function internally calls helper function id_ease for dealing with sample IDs and metadata tables.
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{assign_cn_to_ssm}, \link{get_cn_segments}, \link{get_cn_states},
 }
-\examples{
-#return everything (default: genome, grch37)
-all_segs = get_sample_cn_segments()
-
-#using sample ID parameter
-one_sample = get_sample_cn_segments(these_sample_ids = "00-22011_tumorB",
-                                    this_seq_type = "capture")
-
-two_samples = get_sample_cn_segments(these_sample_ids = c("00-14595_tumorA",
-                                                          "00-16220_tumorB"),
-                                     projection = "hg38")
-
-#get some metadata
-this_meta = get_gambl_metadata() \%>\%
- dplyr::filter(sample_id \%in\% c("BLGSP-71-23-00440-01A-01E",
-                                "FL1014T2",
-                                "HTMCP-01-06-00563-01A-01D"))
-
-capture_meta = get_gambl_metadata(seq_type_filter = "capture")
-
-#return sample segments by using the metadata parameter
-segs_meta = get_sample_cn_segments(these_samples_metadata = this_meta)
-
-all_segs_cap = get_sample_cn_segments(these_samples_metadata = capture_meta,
-                                      projection = "hg38")
-
-}
+\keyword{internal}
