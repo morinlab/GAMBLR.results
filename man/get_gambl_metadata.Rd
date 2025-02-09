@@ -110,17 +110,15 @@ types of redundancy caused by samples or biopsies that have data from >1 seq_typ
 \examples{
 #basic usage
 my_metadata = get_gambl_metadata()
+dplyr::group_by(metadata,patholog,seq_type) \%>\% dplyr::count()
+\dontrun{
+  # Rarely needed but can be useful for some applications:
+  # override default filters and request metadata for samples
+  # other than tumour genomes,
+  #e.g. also get the normals
+  tumour_and_normal_metadata = get_gambl_metadata(also_normals = TRUE))
 
-#use pre-defined custom sample sets
-only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
-
-#override default filters and request metadata for samples other than tumour genomes,
-#e.g. also get the normals
-tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
-
-non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
-                                                       seq_type_priority = "genome")
-
-absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
-
+  # prioritize exome results over genome results
+  non_redundant_genome_and_capture = get_gambl_metadata(dna_seq_type_priority = "capture")
+}
 }
