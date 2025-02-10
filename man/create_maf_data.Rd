@@ -17,3 +17,4 @@ A data frame with class attributes for MAF data.
 \description{
 This function creates MAF (Mutation Annotation Format) data from the given input.
 }
+\keyword{internal}

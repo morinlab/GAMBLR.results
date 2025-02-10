@@ -86,3 +86,4 @@ gene_regions <- create_bed_data(hg38_gene_coordinates,
 get_genome_build(gene_regions)
 
 }
+\keyword{internal}

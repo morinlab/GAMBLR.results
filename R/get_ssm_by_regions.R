@@ -34,6 +34,7 @@
 #' @export
 #'
 #' @examples
+#' 
 #' regions_bed = GAMBLR.data::grch37_ashm_regions
 #'
 #' ashm_basic_details = get_ssm_by_regions(regions_bed = regions_bed)
@@ -114,9 +115,11 @@ get_ssm_by_regions = function(regions_list,
   if(streamlined){
     unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
+      return(unlisted_df)
   }else{
-    print("bind_rows")
-    return(bind_rows(region_mafs))
+    region_mafs = do.call(bind_rows, region_mafs)
+    region_mafs = create_maf_data(region_mafs, genome_build=projection)
+    return(region_mafs)
   }
-  return(unlisted_df)
+  
 }
