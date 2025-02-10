@@ -25,13 +25,13 @@
 #' 
 #'\dontrun{
 #'   DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology=="DLBCL")
-#' regions_bed <- dplyr::mutate(
-#'      GAMBLR.data::grch37_ashm_regions,
-#'      name = paste(gene, region, sep = "_")
-#' )
+#' #get ashm regions
+#' some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+#'                               fix_names = "concat",
+#'                               concat_cols = c("gene","region"),sep="-")
 #'
-#' matrix <- get_ashm_count_matrix(
-#'      regions_bed = regions_bed,
+#' mut_matrix <- get_ashm_count_matrix(
+#'      regions_bed = some_regions,
 #'      this_seq_type = "genome",
 #'      these_samples_metadata = DLBCL_genome_meta
 #' )
@@ -41,7 +41,7 @@ get_ashm_count_matrix = function(
         maf_data,
         these_samples_metadata,
         this_seq_type = "genome",
-        projection = "grch37"
+        projection
     ){
     if(missing(these_samples_metadata)){
         these_samples_metadata <- get_gambl_metadata() %>%
@@ -52,11 +52,41 @@ get_ashm_count_matrix = function(
     }
     
     if(missing(regions_bed)){
+      if(!missing(projection)){
         message(
-            "Using aSHM regions in grch37 projection as regions_bed"
+          paste("Using aSHM regions in",projection,"projection as regions_bed")
         )
-        regions_bed <- GAMBLR.data::grch37_ashm_regions %>%
-            mutate(name = paste(gene, region, sep = "_"))
+        if(projection=="grch37"){
+          regions_bed <- create_bed_data(GAMBLR.data::grch37_ashm_regions,
+                                         fix_names = "concat",
+                                         concat_cols = c("gene","region"),
+                                         sep="-")
+            
+        }else if(projection == "hg38"){
+          regions_bed <- create_bed_data(GAMBLR.data::hg38_ashm_regions,
+                                         fix_names = "concat",
+                                         concat_cols = c("gene","region"),
+                                         sep="-")
+          
+        }else{
+          stop("unsupported projection")
+        }
+      }else{
+        stop("either projection or a regions_bed containing a genome_build is required")
+      }
+    }else{
+      if("bed_data" %in% class(regions_bed)){
+        if(missing(projection)){
+          projection = get_genome_build(regions_bed)
+        }else{
+          print("HERE")
+          if(!projection == get_genome_build(regions_bed) ){
+            stop("genome_build in regions_bed does not match projection!")
+          } 
+        }
+      }else{
+        stop("regions_bed must be a bed_data object created with create_bed_data")
+      }
     }
     
     ashm_maf <- get_ssm_by_regions(

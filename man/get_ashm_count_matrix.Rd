@@ -9,7 +9,7 @@ get_ashm_count_matrix(
   maf_data,
   these_samples_metadata,
   this_seq_type = "genome",
-  projection = "grch37"
+  projection
 )
 }
 \arguments{
@@ -42,13 +42,13 @@ Values are the number of mutations in that patient in the region.
 
 \dontrun{
   DLBCL_genome_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology=="DLBCL")
-regions_bed <- dplyr::mutate(
-     GAMBLR.data::grch37_ashm_regions,
-     name = paste(gene, region, sep = "_")
-)
+#get ashm regions
+some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+                              fix_names = "concat",
+                              concat_cols = c("gene","region"),sep="-")
 
-matrix <- get_ashm_count_matrix(
-     regions_bed = regions_bed,
+mut_matrix <- get_ashm_count_matrix(
+     regions_bed = some_regions,
      this_seq_type = "genome",
      these_samples_metadata = DLBCL_genome_meta
 )

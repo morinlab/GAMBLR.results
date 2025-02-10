@@ -32,3 +32,4 @@ this_metadata = get_gambl_metadata()
 check_gambl_metadata(metadata_df = this_metadata)
 
 }
+\keyword{internal}

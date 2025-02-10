@@ -45,3 +45,4 @@ missing_samples = dplyr::anti_join(metadata, all_sv, by = c("sample_id" = "tumou
 missing_from_merge = get_manta_sv_by_samples(these_samples_metadata = missing_samples, verbose = FALSE)
 
 }
+\keyword{internal}

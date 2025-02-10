@@ -43,8 +43,11 @@
 #'
 #' @examples
 #' 
-#' # Get sample meta data
-#' this_meta = get_gambl_metadata() %>% dplyr::filter(pathology == "BL")
+#' # Get sample metadata including a mix of seq_type
+#' all_types_meta = get_gambl_metadata() %>% 
+#'             dplyr::filter(pathology == "BL")
+#' dplyr::group_by(all_types_meta, seq_type) %>% 
+#'      dplyr::summarize(n=dplyr::n())
 #' 
 #' # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 #' # return only CNV status; for CCND3 return only SSM status
@@ -52,21 +55,21 @@
 #'   gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
 #'   cn_thresh=c(3, 3, 2, 1)
 #' )
+#' 
 #' genome_cnv_ssm_status = get_cnv_and_ssm_status(
 #'                            genes_and_cn_threshs,
-#'                            this_meta,
+#'                            dplyr::filter(all_types_meta,seq_type=="genome"),
 #'                            only_cnv = "MIR17HG")
-#'                            
-#' exome_cnv_ssm_status = get_cnv_and_ssm_status(
+#' 
+#' print(dim(genome_cnv_ssm_status))    
+#'                        
+#' all_seq_type_status = get_cnv_and_ssm_status(
 #'                            genes_and_cn_threshs,
-#'                            this_meta,
+#'                            all_types_meta,
 #'                            only_cnv = "MIR17HG")
 #' 
-#' 
-#' genome_cnv_without_ssm_status = get_cnv_and_ssm_status(
-#'                                   genes_and_cn_threshs,
-#'                                   this_meta,
-#'                                   only_cnv = "all")
+#' colSums(genome_cnv_ssm_status)
+#' print(dim(all_seq_type_status))   
 #' 
 get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   these_samples_metadata,
@@ -83,7 +86,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   # check parameters
   stopifnot('`genes_and_cn_threshs` argument is missing.' = !missing(genes_and_cn_threshs))
   if(!missing(this_seq_type)){
-    stop("this_seq_type has been deprecated. Please subset the rows of these_samples_metadata to limit to one seq_type")
+    stop("this_seq_type is deprecated. This is now determined from the metadata provided.")
   }
   stopifnot('`genes_and_cn_threshs` argument must be a data frame with columns "gene_id" (characters) and "cn_thresh" (integers).' = {
     k = class(genes_and_cn_threshs) == "data.frame" &
@@ -117,7 +120,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   thresh_2 = genes_and_cn_threshs$cn_thresh == 2
   genes_and_cn_threshs_non_neutral = genes_and_cn_threshs[!thresh_2,]
   check_cnv = nrow(genes_and_cn_threshs_non_neutral) > 0
-  
+  these_samples_metadata = dplyr::filter(these_samples_metadata,
+                                         seq_type != "mrna")
   if(check_cnv){
     # get cn states
     regions=my_regions[genes_and_cn_threshs_non_neutral$gene_id]
@@ -201,10 +205,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     gene_symbols = genes_to_check_ssm,
     these_samples_metadata = these_samples_metadata,
     maf_data = my_maf,
-    projection = genome_build,
     genome_build = genome_build,
     min_read_support = min_read_support_ssm,
-    from_flatfile = from_flatfile,
     include_hotspots = include_hotspots,
     include_silent = FALSE,
     augmented = augmented

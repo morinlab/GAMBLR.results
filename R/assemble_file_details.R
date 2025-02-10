@@ -29,6 +29,7 @@
 #'                       these_sample_ids = c(one_sample, another_sample))
 #' }
 #'
+#' @keywords internal
 assemble_file_details = function(file_details_df,
                                  file_paths,
                                  tool_name,

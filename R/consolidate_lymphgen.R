@@ -18,6 +18,7 @@
 #' metadata = get_gambl_metadata()
 #' consolidate_lymphgen(sample_table = metadata)
 #'
+#' @keywords internal
 consolidate_lymphgen = function(sample_table,
                                 derived_data_path = "",
                                 verbose = TRUE){

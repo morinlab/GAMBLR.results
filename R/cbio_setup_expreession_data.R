@@ -22,6 +22,7 @@
 #' #return expression data for lymphoma genes (all samples)
 #' expression_ids = cbio_setup_expression_data(out_dir = "../../")
 #' }
+#' @keywords internal
 cbio_setup_expreession_data = function(project_name = "gambl_genome",
                                        clinical_file_path = "data_clinical_samples.txt",
                                        these_genes,

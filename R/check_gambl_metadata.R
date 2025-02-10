@@ -17,6 +17,7 @@
 #' this_metadata = get_gambl_metadata()
 #' check_gambl_metadata(metadata_df = this_metadata)
 #'
+#' @keywords internal
 check_gambl_metadata = function(metadata_df,
                                 to_check = "all",
                                 show_details = FALSE,

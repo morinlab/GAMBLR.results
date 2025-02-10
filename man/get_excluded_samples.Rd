@@ -20,5 +20,5 @@ Specify the tool or pipeline responsible for generating the files with \code{too
 }
 \examples{
 excluded_samp = get_excluded_samples()
-
 }
+\keyword{internal}

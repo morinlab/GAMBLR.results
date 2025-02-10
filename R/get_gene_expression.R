@@ -32,7 +32,7 @@
 #' @export
 #'
 #' @examples
-#' 
+#' \dontrun{
 #' # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
 #' # This uses the default (grep) engine, which may be intolerably slow on some systems
 #' SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
@@ -69,7 +69,7 @@
 #'                                    HGNC=TRUE,
 #'                                    arbitrarily_pick = T)
 #'
-#'
+#' }
 get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,

@@ -9,8 +9,7 @@ calc_mutation_frequency_bin_regions(
   regions_bed = NULL,
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
-  this_seq_type = c("genome", "capture"),
-  projection = "grch37",
+  projection,
   region_padding = 1000,
   drop_unmutated = FALSE,
   skip_regions = NULL,
@@ -28,8 +27,6 @@ calc_mutation_frequency_bin_regions(
 \item{these_samples_metadata}{Metadata with at least sample_id column. If not providing a maf data frame, seq_type is also required.}
 
 \item{these_sample_ids}{Vector of sample IDs. Metadata will be subset to sample IDs present in this vector.}
-
-\item{this_seq_type}{Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.}
 
 \item{projection}{Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default "grch37".}
 
@@ -59,20 +56,20 @@ to retrieve mutation counts for sliding windows across one or more regions. May 
 The heatmap plotting portion of this function has been moved to \link{heatmap_mutation_frequency_bin}.
 }
 \examples{
-#load metadata.
-metadata = get_gambl_metadata()
-dlbcl_bl_meta = dplyr::filter(metadata, pathology \%in\% c("DLBCL", "BL"))
+\dontrun{
+ #load metadata.
+ metadata = get_gambl_metadata()
+ dlbcl_bl_meta = dplyr::filter(metadata, pathology \%in\% c("DLBCL", "BL"))
 
-#bring together all derived sample-level results from many GAMBL pipelines.
-dlbcl_bl_meta = collate_results(join_with_full_metadata = TRUE,
-                                these_samples_metadata = dlbcl_bl_meta)
-
-#get ashm regions
-some_regions = GAMBLR.data::grch37_ashm_regions
-
-mut_count_matrix <- calc_mutation_frequency_bin_region(
+ #get ashm regions
+ some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+                               fix_names = "concat",
+                               concat_cols = c("gene","region"),sep="-")
+ some_regions
+ mut_count_matrix <- calc_mutation_frequency_bin_regions(
    these_samples_metadata = dlbcl_bl_meta,
    regions_bed = some_regions
-)
+ )
+}
 
 }

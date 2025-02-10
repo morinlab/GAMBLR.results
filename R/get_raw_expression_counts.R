@@ -22,7 +22,7 @@
 #' @export
 #'
 #' @examples
-#' 
+#' \dontrun{
 #' schmitz_meta = get_gambl_metadata() %>% 
 #'     filter(seq_type=="mrna",cohort=="dlbcl_schmitz")
 #' exp_out = get_raw_expression_counts(these_samples_metadata = schmitz_meta)
@@ -51,7 +51,7 @@
 #'     row_names_gp = gpar(fontsize=5),
 #'     bottom_annotation = column_ha,
 #'     show_column_names = F)
-#' 
+#' }
 #'
 get_raw_expression_counts = function(these_samples_metadata,
                                      existing_sample_id_column,

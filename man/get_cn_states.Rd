@@ -10,7 +10,7 @@ get_cn_states(
   these_samples_metadata,
   n_bins_split = 1000,
   use_cytoband_name = FALSE,
-  missing_data_as_diploid = FALSE,
+  fill_missing_with = "diploid",
   adjust_for_ploidy = FALSE,
   projection = "grch37"
 )
@@ -26,11 +26,13 @@ get_cn_states(
 
 \item{use_cytoband_name}{Use cytoband names instead of region names, e.g p36.33.}
 
-\item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
+\item{fill_missing_with}{The CN state to fill in for missing data. Default is "diploid".}
 
 \item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
 
 \item{projection}{Specify the genome build you want. Default is grch37.}
+
+\item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
 }
 \value{
 Copy number matrix with sample_id as rows and regions as columns.
@@ -43,29 +45,29 @@ This function returns CN states for the specified regions using the CN data from
 For how to determine/specify the coordinates of each region, refer to the parameter descriptions and examples.
 }
 \examples{
+\dontrun{
+  my_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
 
-my_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
-
-# basic usage with 500 approximately equal-sized bins across the genome
-# Use the hg38 projection (all coordinates will be relative to hg38)
-cn_matrix = get_cn_states(strategy="auto_split",
+  # basic usage with 500 approximately equal-sized bins across the genome
+  # Use the hg38 projection (all coordinates will be relative to hg38)
+  cn_matrix = get_cn_states(strategy="auto_split",
                           projection="hg38",
                           these_samples_metadata = my_metadata,
                           n_bins_split=500)
 
-# get the CN state of every lymphoma gene instead
+  # get the CN state of every lymphoma gene instead
 
-gene_cn = get_cn_states(strategy="custom_regions",
+  gene_cn = get_cn_states(strategy="custom_regions",
                         these_samples_metadata = metadata,
                         regions=GAMBLR.data::grch37_lymphoma_genes_bed)
                         
                         
-# get the CN state per cytoband using hg38 projection.
-# adjust CN values to correct for high ploidy
-cytoband_cn = get_cn_states(strategy="cytobands",
+  # get the CN state per cytoband using hg38 projection.
+  # adjust CN values to correct for high ploidy
+  cytoband_cn = get_cn_states(strategy="cytobands",
                             projection="hg38",
                             use_cytoband_name=TRUE,
                             these_samples_metadata=metadata,
                             adjust_for_ploidy=TRUE)
-
+}
 }

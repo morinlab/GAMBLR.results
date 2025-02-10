@@ -18,6 +18,7 @@
 #' maf <- get_coding_ssm(basic_columns = FALSE)
 #' clean_maf = cleanup_maf(maf_df = maf)
 #'
+#' @keywords internal
 cleanup_maf = function(maf_df){
 
   #cleanup various columns that store text to make them useful (make numeric, drop denominator etc)

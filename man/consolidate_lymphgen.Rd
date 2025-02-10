@@ -28,3 +28,4 @@ metadata = get_gambl_metadata()
 consolidate_lymphgen(sample_table = metadata)
 
 }
+\keyword{internal}

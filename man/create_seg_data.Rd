@@ -50,3 +50,4 @@ attr(seg_obj, "genome_build")
 }
 
 }
+\keyword{internal}

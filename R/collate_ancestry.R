@@ -17,6 +17,7 @@
 #' @examples
 #' table = collate_ancestry(sample_table = "my_sample_table.txt")
 #'
+#' @keywords internal
 collate_ancestry = function(sample_table,
                             seq_type_filter="genome",
                             somalier_output){

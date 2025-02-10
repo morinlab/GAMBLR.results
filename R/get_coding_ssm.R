@@ -1,169 +1,21 @@
 
-#' Create MAF Data
-#'
-#' This function creates MAF (Mutation Annotation Format) data from the given input.
-#'
-#' @param maf_df A data frame containing the MAF data.
-#' @param genome_build A string specifying the genome build ("grch37" or "hg38").
-#' @return A data frame with class attributes for MAF data.
-#' @export
-create_maf_data <- function(maf_df, genome_build) {
-  if (!inherits(maf_df, "data.frame")) stop("data must be a data frame")
-  if (!genome_build %in% c("grch37", "hg38")) stop("Invalid genome build")
-  
-  structure(maf_df,
-            class = c("maf_data", "genomic_data", class(maf_df)),  #  "genomic_data" for generic methods
-            genome_build = genome_build)
-}
-
-#' Get Genome Build
-#'
-#' This function retrieves the genome build attribute from the data.
-#'
-#' @param data A data frame with genome build attribute.
-#' @return A string specifying the genome build.
-#' @export
-get_genome_build <- function(data) {
-  attr(data, "genome_build")
-}
-
-#' Preserve Genomic Attributes
-#'
-#' This function preserves the genomic attributes and class after dplyr operations.
-#'
-#' @param new_data A data frame resulting from dplyr operations.
-#' @param old_data The original data frame with genomic attributes.
-#' @return A data frame with preserved genomic attributes.
-#' @export
-preserve_genomic_attributes <- function(new_data, old_data) {
-  attr(new_data, "genome_build") <- attr(old_data, "genome_build")
-  class(new_data) <- class(old_data)
-  return(new_data)
-}
-
-# S3 methods for genomic_data class
-#' @export
-mutate.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::mutate(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-filter.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::filter(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-select.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::select(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-rename.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::rename(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-arrange.genomic_data <- function(.data, ...) {
-  new_data <- dplyr::arrange(as.data.frame(.data), ...)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-group_by.genomic_data <- function(.data, ..., .add = FALSE) {
-  new_data <- dplyr::group_by(as.data.frame(.data), ..., .add = .add)  
-  preserve_genomic_attributes(new_data, .data)
-}
-#' @export
-ungroup.genomic_data <- function(x, ...) {
-  new_data <- dplyr::ungroup(as.data.frame(x), ...)
-  preserve_genomic_attributes(new_data, x)
-}
-# Merger function to preserve metadata and protect against accidental mixing across genome_builds
-
-#' Bind maf or other genomic data together
-#'
-#' @description Combine multiple maf_data objects and retain metadata such as genome_build.
-#' This function will not allow you to combine maf_data objects that have different genome_build values.
-#' An error will also be thrown if the same sample id is found in more than one of the inputs (if check_id is TRUE).
-#'
-#' @param ... All maf_data or seg_data objects to be combined.
-#' @param check_id Logical. If TRUE (the default), the function will check for the presence of the expected ID column
-#'        and for duplicate sample IDs across the inputs. Set to FALSE to skip this check.
-#'
-#' @return data.frame with combined data and preserved genome_build metadata.
-#' @export
-#'
-#' @examples
-#'
-#' merged_maf = bind_genomic_data(maf1, maf2,check_id=FALSE)
-#'
-bind_genomic_data <- function(..., check_id = TRUE) {
-  
-  in_list <- list(...)
-  
-  if ("maf_data" %in% class(in_list[[1]])) {
-    # MAF format, ID column is Tumor_Sample_Barcode
-    id_col <- "Tumor_Sample_Barcode"
-  } else if ("seg_data" %in% class(in_list[[1]])) {
-    # SEG format, ID column is ID
-    id_col <- "ID"
-  } else {
-    stop(paste("Unsure how to merge:", class(in_list[[1]])))
-  }
-  
-  # Ensure all inputs are either maf_data or seg_data objects
-  if (!all(sapply(in_list, inherits, "maf_data")) && !all(sapply(in_list, inherits, "seg_data"))) {
-    stop("All inputs must be maf_data objects or seg_data objects.")
-  }
-  
-  # Extract genome builds
-  genome_builds <- unique(sapply(in_list, get_genome_build))
-  
-  if (length(genome_builds) > 1) {
-    stop("Cannot bind seg_data or maf_data objects with different genome builds: ", 
-         paste(genome_builds, collapse = ", "))
-  }
-  
-  # If check_id is TRUE, verify that the expected ID column exists and that IDs are unique.
-  if (check_id) {
-    # Collect unique sample IDs from each dataset
-    id_sets <- lapply(in_list, function(df) {
-      if (!(id_col %in% colnames(df))) {
-        stop("ID column '", id_col, "' not found in input data.")
-      }
-      unique(df[[id_col]])
-    })
-    
-    # Flatten the list and count occurrences of each ID
-    all_ids <- unlist(id_sets)
-    duplicate_ids <- names(table(all_ids)[table(all_ids) > 1])
-    
-    # If any ID is found in multiple datasets, throw an error
-    if (length(duplicate_ids) > 0) {
-      stop("Duplicate IDs found in multiple input data frames: ", paste(duplicate_ids, collapse = ", "))
-    }
-  }
-  
-  combined <- dplyr::bind_rows(in_list)
-  attr(combined, "genome_build") <- genome_builds[1]  # Assign the common genome build
-  
-  if (!"maf_data" %in% class(combined)) {
-    class(combined) <- c("maf_data", "genomic_data", class(combined))  # Preserve class
-  }
-  
-  return(combined)
-}
-
 
 #' @title Get Coding SSM.
 #'
-#' @description Retrieve all coding SSMs from one seq_type in GAMBL in MAF-like format.
+#' @description Retrieve all coding SSMs from one seq_type in GAMBL
+#' in MAF-like format.
 #'
-#' @details Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.
-#' For more information on how to implement the filtering parameters, refer to the parameter descriptions as well as examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm_status],
-#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' @details Effectively retrieve coding SSM calls for either
+#' capture or genome seq_type. A superior function that can do everything
+#' this can do and more is [GAMBLR.results::get_all_coding_ssm] 
+#' Is this function not what you are looking for? Try one of:
+#' [GAMBLR.results::get_coding_ssm_status],
+#' [GAMBLR.results::get_ssm_by_patients],
+#' [GAMBLR.results::get_ssm_by_sample],
+#' [GAMBLR.results::get_ssm_by_samples],
+#' [GAMBLR.results::get_ssm_by_region],
+#' [GAMBLR.results::get_ssm_by_regions]
 #'
-
 #' @param these_samples_metadata Supply a metadata table to auto-subset the data to samples in that table before returning.
 #' @param these_sample_ids Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the `limit_samples` parameter).
 #' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR.results::get_ssm_by_samples].
@@ -189,11 +41,18 @@ bind_genomic_data <- function(..., check_id = TRUE) {
 #' @export
 #'
 #' @examples
-#' #basic usage
-#' maf_data = get_coding_ssm(limit_cohort = c("BL_ICGC"))
-#'
-#' maf_data = get_coding_ssm(limit_samples = "HTMCP-01-06-00485-01A-01D")
-#'
+#' 
+#'   #basic usage (defaults to genome seq_type)
+#'   maf_genome = get_coding_ssm()
+#' 
+#'   nrow(maf_genome)
+#' 
+#'   dplyr::select(maf_genome,1,4,5,6,9,maf_seq_type)
+#' 
+#'   maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",projection="hg38") 
+#' 
+#'   dplyr::select(maf_exome_hg38,1,4,5,6,9,maf_seq_type)
+#' 
 get_coding_ssm = function(
                           these_sample_ids = NULL,
                           these_samples_metadata = NULL,
@@ -214,9 +73,7 @@ get_coding_ssm = function(
                           limit_samples,
                           from_flatfile){
   
-  if(!missing(limit_samples)){
-    
-  }
+
   if(any(!missing(groups),!missing(limit_cohort),!missing(exclude_cohort),!missing(limit_pathology),!missing(limit_samples))){
     stop("limit_samples, limit_cohort, exclude_cohort and limit_pathology are deprecated, use `these_sample_ids` instead, or use a metadata table already subset to the samples of interest with `these_samples_metadata`")
   }
@@ -259,11 +116,11 @@ get_coding_ssm = function(
   if(basic_columns){
     #subset to basic columns during read to save time and memory with lazy loading (in theory)
     select_cols = c(1:45)
-    muts = fread_maf(full_maf_path,select_cols=select_cols) %>%
+    muts = suppressMessages(fread_maf(full_maf_path,select_cols=select_cols)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }else{
-    muts = fread_maf(full_maf_path) %>%
+    muts = suppressMessages(fread_maf(full_maf_path)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }

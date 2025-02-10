@@ -60,7 +60,7 @@ Warnings:
 }
 }
 \examples{
-
+\dontrun{
 # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
 # This uses the default (grep) engine, which may be intolerably slow on some systems
 SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
@@ -97,5 +97,5 @@ all_exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata()
                                    HGNC=TRUE,
                                    arbitrarily_pick = T)
 
-
+}
 }

@@ -34,6 +34,7 @@
 #' cbio_create(this_seq_type = "capture", description = "GAMBL data from exomes")
 #' }
 #'
+#' @keywords internal
 cbio_create = function(
     these_samples_metadata = NULL,
     maf_data = NULL,

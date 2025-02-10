@@ -22,6 +22,7 @@
 #'                                unix_group = "gambl",
 #'                                filename_end_pattern = "unmatched.somaticSV.bedpe")
 #'
+#' @keywords internal
 find_expected_outputs = function(targ_df,
                                  tool_name,
                                  unix_group,

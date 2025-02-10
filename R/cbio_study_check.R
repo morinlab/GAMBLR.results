@@ -25,6 +25,7 @@
 #' \dontrun{
 #' samples_not_in_clinical = cbio_study_check(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
+#' @keywords internal
 cbio_study_check = function(
     data_clinical_samples_path = "data_clinical_samples.txt",
     data_fusions_path = "data_fusions.txt",

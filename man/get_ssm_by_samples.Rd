@@ -5,11 +5,9 @@
 \title{Get SSM By Samples.}
 \usage{
 get_ssm_by_samples(
-  these_sample_ids,
   these_samples_metadata,
   tool_name = "slms-3",
   projection = "grch37",
-  this_seq_type = "genome",
   flavour = "clustered",
   these_genes,
   min_read_support = 3,
@@ -17,23 +15,18 @@ get_ssm_by_samples(
   maf_cols = NULL,
   subset_from_merge = FALSE,
   augmented = TRUE,
-  engine = "fread_maf"
+  engine = "fread_maf",
+  these_sample_ids,
+  this_seq_type
 )
 }
 \arguments{
-\item{these_sample_ids}{A vector of sample_id that you want results for.}
-
-\item{these_samples_metadata}{Optional metadata table. If provided, the function will return SSM calls for the sample IDs in the provided metadata table.}
+\item{these_samples_metadata}{Optional metadata table.
+If provided, it will return SSM calls for the samples in the metadata table.}
 
 \item{tool_name}{Only supports slms-3 currently.}
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
-
-\item{this_seq_type}{The seq type you want results for. Default is "genome".}
-
-\item{flavour}{Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.}
-
-\item{these_genes}{A vector of genes to subset ssm to.}
 
 \item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).}
 
@@ -46,46 +39,36 @@ get_ssm_by_samples(
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.}
 
 \item{engine}{Specify one of readr or fread_maf (default) to change how the large files are loaded prior to subsetting. You may have better performance with one or the other but for me fread_maf is faster and uses a lot less RAM.}
+
+\item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata}
+
+\item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
 }
 \value{
 A data frame in MAF format.
 }
 \description{
-Get all mutations for one or more sample including coding and non-coding mutations.
+Get the genome-wide set of mutations for one or more sample including coding and non-coding mutations.
 }
 \details{
-The user can specify a vector of sample IDs of interest with \code{these_sample_ids},
-and/or a metadata table (\code{these_samples_metadata}), already subset to the sample IDs of interest.
-In most situations, this should never need to be run with subset_from_merge = TRUE.
+The user can specify a metadata table (\code{these_samples_metadata}), subset to the sample IDs of interest.
+In most situations, this should never need to be run with subset_from_merge = TRUE, which is very inefficient.
 This function does not scale well to many samples. In most cases, users will actually need either \link{get_coding_ssm} or \link{get_ssm_by_region}.
 See \link{get_ssm_by_sample} for more information.
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
 \link{get_ssm_by_patients}, \link{get_ssm_by_regions}
 }
 \examples{
-#examples using the these_sample_ids parameter.
-sample_ssms = get_ssm_by_samples(these_sample_ids = c("HTMCP-01-06-00485-01A-01D",
-                                                      "14-35472_tumorA",
-                                                      "14-35472_tumorB"))
+
+my_meta = get_gambl_metadata() \%>\% 
+                       dplyr::filter(sample_id \%in\% c("HTMCP-01-06-00485-01A-01D",
+                                               "14-35472_tumorA",
+                                               "14-35472_tumorB"))
+sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
 
 hg38_ssms = get_ssm_by_samples(projection="hg38",
-                               these_sample_ids = c("HTMCP-01-06-00485-01A-01D",
-                                                    "14-35472_tumorA",
-                                                    "14-35472_tumorB"))
+                               these_samples_metadata = my_meta)
 
-readr_sample_ssms = get_ssm_by_samples(subset_from_merge = TRUE,
-                                       engine = "readr",
-                                       these_sample_ids = c("HTMCP-01-06-00485-01A-01D",
-                                                            "14-35472_tumorA",
-                                                            "14-35472_tumorB"))
-
-slow_sample_ssms = get_ssm_by_samples(subset_from_merge = TRUE,
-                                      these_sample_ids = c("HTMCP-01-06-00485-01A-01D",
-                                                           "14-35472_tumorA",
-                                                           "14-35472_tumorB"))
-
-#example using a metadata table subset to sample IDs of interest.
-my_metadata = get_gambl_metadata(seq_type_filter = "genome")
 my_metadata = dplyr::filter(my_metadata, pathology == "FL")
 
 sample_ssms = get_ssm_by_samples(these_samples_metadata = my_metadata)

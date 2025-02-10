@@ -51,3 +51,4 @@ assemble_file_details(file_paths = c(one.maf, another.maf),
 }
 
 }
+\keyword{internal}

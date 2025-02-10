@@ -10,7 +10,7 @@
 #' @param maf MAF data frame (required columns: Reference_Allele, Chromosome, Start_Position, End_Position)
 #' @param motif The motif sequence (default is WRCY)
 #' @param index Position of the mutated allele in the motif
-#' @param projection The genome build projection for the variants you are working with (default is grch37)
+#' @param genome_build The genome build for the variants you are working with (default is grch37)
 #' @param fastaPath Can be a path to a FASTA file
 #'
 #' @return A data frame with two extra columns (seq and motif).
@@ -21,45 +21,93 @@
 #' @export
 #'
 #' @examples
-#' my_maf <- get_coding_ssm()
-#' annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
+#' my_maf <- GAMBLR.open::get_coding_ssm() %>% head()
+#' 
+#' annotated = annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
+#' 
+#' print(annotated)
 #'
 annotate_ssm_motif_context <- function(maf,
                                        motif = "WRCY",
                                        index = 3,
-                                       projection = "grch37",
+                                       genome_build,
                                        fastaPath
 ){
-    if (projection == "grch37") {
-        maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-    } else {
-        # If there is a mix of prefixed and non-prefixed options
-        maf$Chromosome <- gsub("chr", "", maf$Chromosome) 
-        maf$Chromosome <- paste0("chr", maf$Chromosome)
-    }
+
+    bsgenome_loaded = FALSE
     # If there is no fastaPath, it will read it from config key 
     # Based on the projection the fasta file which will be loaded is different
     if (missing(fastaPath)){
+      if("maf_data" %in% class(maf)){
+        genome_build = get_genome_build(maf)
+      }
+      if(missing(genome_build)){
+        stop("no genome_build information provided or present in maf")
+      }
         base <- check_config_value(config::get("repo_base"))
         fastaPath <- paste0(
             base,
             "ref/lcr-modules-references-STABLE/genomes/",
-            projection,
+            genome_build,
             "/genome_fasta/genome.fa"
         )
     }
     # It checks for the presence of a local fastaPath
     if (!file.exists(fastaPath)) {
-        stop("Failed to find the fasta file")
+        #try BSgenome
+      installed = installed.genomes()
+      if(genome_build=="hg38"){
+        bsgenome_name = "BSgenome.Hsapiens.UCSC.hg38"
+      }else if(genome_build == "grch37"){
+        bsgenome_name = "BSgenome.Hsapiens.UCSC.hg19"
+      }else{
+        stop(paste("unsupported genome:",genome_build))
+      }
+      if(bsgenome_name %in% installed){
+          genome = getBSgenome(bsgenome_name)
+          bsgenome_loaded = TRUE
+      }else{
+        print(installed)
+        print(paste("Local Fasta file cannot be found and missing genome_build",bsgenome_name,"Supply a fastaPath for a local fasta file or install the missing BSGenome package and re-run"))
+      }
     }
     word <- motif
     splitWord <- strsplit(word,"")[[1]] # Split the word into its letters
     splitWordLen <- length(splitWord)
-    # Create a reference to an indexed fasta file.
-    fasta <- Rsamtools::FaFile(file = fastaPath)
-    # This section provides the sequence
-    # It will return one allele less than the length of motif before and after the indexed allele
-    sequences <- maf %>%
+
+    if(!bsgenome_loaded){
+      # Create a reference to an indexed fasta file.
+      if (!file.exists(fastaPath)) {
+        stop("Failed to find the fasta file and no compatible BSgenome found")
+      }
+      fasta = Rsamtools::FaFile(file = fastaPath)
+    }
+    if(bsgenome_loaded) {
+      if(genome_build == "grch37") {
+        maf = mutate(maf,original_chrom = Chromosome)
+        maf = mutate(maf, Chromosome = paste0("chr",Chromosome))
+      }
+      sequences <- maf %>%
+        dplyr::mutate(
+          seq = ifelse(
+            (nchar(maf$Reference_Allele) == 1 &
+               nchar(maf$Tumor_Seq_Allele2) == 1
+            ),
+            as.character(
+                Rsamtools::getSeq(
+                    genome,
+                    maf$Chromosome,
+                    start = maf$Start_Position - (splitWordLen - 1),
+                    end = maf$Start_Position + (splitWordLen - 1)
+                )
+            ),
+            "NA"
+          )
+        )
+    } else{
+      # This section provides the sequence
+      # It will return one allele less than the length of motif before and after the indexed allele
+      sequences <- maf %>%
         dplyr::mutate(
             seq = as.character(
                 Rsamtools::getSeq(
@@ -73,6 +121,7 @@ annotate_ssm_motif_context <- function(maf,
                     )
                 ))
         )
+    }
     # This section provides motif and its reverse complement 
     compliment <- c(
         'A'= 'T',
@@ -182,6 +231,9 @@ annotate_ssm_motif_context <- function(maf,
                 TRUE ~ "FALSE"
             )
         )
-    
+    if("original_chrom" %in% colnames(finder)){
+        finder = mutate(finder,Chromosome = original_chrom) %>% 
+        dplyr::select(-original_chrom)
+    }
     return(finder)
 }

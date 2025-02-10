@@ -15,6 +15,7 @@
 #' icgc_metadata = add_icgc_metadata(incoming_metadata = my_meta)
 #'
 #' @export
+#' @keywords internal
 add_icgc_metadata = function(incoming_metadata){
   repo_base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
   icgc_publ_file = paste0(repo_base,"data/metadata/raw_metadata/MALY_DE_tableS1.csv")

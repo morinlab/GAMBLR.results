@@ -12,6 +12,7 @@
 #' @import dplyr readr GAMBLR.helpers
 #' @export
 #'
+#' @keywords internal
 write_sample_set_hash = function(update = TRUE,
                                  new_sample_sets_df){
 

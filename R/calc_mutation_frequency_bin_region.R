@@ -13,7 +13,6 @@
 #' @param end_pos End coordinate of region.
 #' @param these_samples_metadata Optional data frame containing a sample_id column. If not providing a maf file, seq_type is also a required column.
 #' @param these_sample_ids Optional vector of sample IDs. Output will be subset to IDs present in this vector.
-#' @param this_seq_type Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.
 #' @param maf_data Optional maf data frame. Will be subset to rows where Tumor_Sample_Barcode matches provided sample IDs or metadata table. If not provided, maf data will be obtained with get_ssm_by_regions().
 #' @param projection Specify which genome build to use. Required.
 #' @param slide_by Slide size for sliding window. Default 100.
@@ -30,17 +29,33 @@
 #' @export
 #'
 #' @examples
-#' chr11_mut_freq = calc_mutation_frequency_bin_region(region = "chr11:69455000-69459900",
+#' meta = suppressMessages(get_gambl_metadata()) %>% 
+#'                         dplyr::filter(pathology=="MCL")
+#' 
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                               region = "11:69455000-69459900",
+#'                                               slide_by = 10,
+#'                                               window_size = 10000)
+#' head(mut_freq)
+#' 
+#' # This will fail because the chromosome naming doesn't match the default projection 
+#' misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                                          region = "chr11:69455000-69459900",
 #'                                                          slide_by = 10,
-#'                                                          window_size = 10000)
-#'
+#'                                                          window_size = 10000) 
+#' # This will work!
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                                          region = "chr11:69455000-69459900",
+#'                                                          slide_by = 10,
+#'                                                          window_size = 10000,projection="hg38")
+#' head(mut_freq)
+#' 
 calc_mutation_frequency_bin_region <- function(region,
                                           chromosome,
                                           start_pos,
                                           end_pos,
-                                          these_samples_metadata = NULL,
+                                          these_samples_metadata,
                                           these_sample_ids = NULL,
-                                          this_seq_type = c("genome", "capture"),
                                           maf_data = NULL,
                                           projection = "grch37",
                                           slide_by = 100,
@@ -50,6 +65,10 @@ calc_mutation_frequency_bin_region <- function(region,
                                           return_count = TRUE,
                                           drop_unmutated = FALSE
                                           ) {
+  if(missing(these_samples_metadata)){
+    stop("metadata must be provided via the these_samples_metadata argument")
+  }
+  these_samples_metadata = dplyr::filter(these_samples_metadata, !seq_type == "mrna")
   # Create objects to describe region both as string and individual objects
   try(if (missing(region) & missing(chromosome)) {
     stop("No region information provided. Please provide a region as a string in the chrom:start-end format, or as individual arguments. ")
@@ -70,15 +89,12 @@ calc_mutation_frequency_bin_region <- function(region,
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)
   }
-
-  # Harmonize metadata and sample IDs
-  get_meta <- id_ease(
-    these_samples_metadata,
-    these_sample_ids,
-    this_seq_type
-  )
-  metadata <- get_meta
-  these_sample_ids <- get_meta$sample_id %>% unique
+  
+  metadata <- these_samples_metadata
+  if(!missing(these_sample_ids)){
+    stop("deprecated agrument these_sample_ids was provided. Please use these_samples_metadata instead")
+  }
+  these_sample_ids <- pull(metadata,sample_id) %>% unique
 
 
   if (
@@ -152,7 +168,9 @@ calc_mutation_frequency_bin_region <- function(region,
         dplyr::filter(!is.na(mutated)) %>%
         dplyr::select(-seq_type)
     }
+
     region_ssm <- dplyr::bind_rows(region_ssm)
+
   } else {
     #  Subset provided maf to specified region
     message("Using provided maf...")

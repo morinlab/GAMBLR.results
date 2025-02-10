@@ -61,16 +61,8 @@ get_ssm_by_region = function(chromosome,
                              mode = "slms-3",
                              verbose = FALSE){
   
-  # get sample ids according with the metadata
-  sample_ids = id_ease(these_samples_metadata = these_samples_metadata,
-                       these_sample_ids = these_sample_ids,
-                       verbose = verbose,
-                       this_seq_type = this_seq_type) %>% 
-    pull(sample_id)
   
-  #duplicate the seq type variable used for glue
   seq_type = this_seq_type
-
   if(mode == "strelka2"){
     message("Mode is set to strelka2. Streamlined = TRUE is hardcoded for this mode...")
     streamlined = TRUE #force streamlined to TRUE, if strelka2 output is requested.
@@ -148,7 +140,7 @@ get_ssm_by_region = function(chromosome,
       print(paste("missing:", full_maf_path_comp))
       check_host(verbose=TRUE)
       if(verbose){
-        message("using local file")
+        print("using local file")
         print(paste("HERE:",full_maf_path_comp))
       }
       stop("failed to find the file needed for this")
@@ -197,14 +189,21 @@ get_ssm_by_region = function(chromosome,
       print(maf_column_types)
       print("NAMES:")
       print(maf_columns)
+      print("NUM:")
+      print(length(muts))
     }
 
     if(length(muts)==0){
       maf_types_sep = str_split(maf_column_types, pattern = "")[[1]] %>%
           str_replace_all("c", "character") %>%
-          str_replace_all("i|n", "numeric")
+          str_replace_all("l|i|n", "numeric")
+      if(verbose){
+        print("adding dummy line")
+      }
 
       muts_region = read.table(textConnection(""), col.names = maf_columns, colClasses = maf_types_sep)
+
+      
     }else{
       #this is what gets executed with default parameters
       muts_region = vroom::vroom(I(muts), col_types = paste(maf_column_types, collapse = ""), col_names = maf_columns, delim = "\t")
@@ -222,10 +221,14 @@ get_ssm_by_region = function(chromosome,
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
   }
-  
-  # subset sample ids
-  muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% sample_ids)
-
+  if(!missing(these_sample_ids)){
+    stop("deprecated argument: these_sample_ids, please use these_samples_metadata instead")
+  }
+  if(!missing(these_samples_metadata)){
+    sample_ids = pull(these_samples_metadata,sample_id)
+    # subset sample ids
+    muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% sample_ids)
+  }
   if(streamlined){
     muts_region = muts_region %>%
       dplyr::select(Start_Position, Tumor_Sample_Barcode)

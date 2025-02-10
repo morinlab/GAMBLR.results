@@ -15,8 +15,9 @@
 #' @export
 #'
 #' @examples
-#' MYC_cn_expression = get_gene_cn_and_expression("MYC")
-#'
+#' \dontrun{
+#'   MYC_cn_expression = get_gene_cn_and_expression("MYC")
+#' }
 get_gene_cn_and_expression = function(gene_symbol,
                                       ensembl_id,
                                       this_seq_type = "genome"){

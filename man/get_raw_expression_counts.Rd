@@ -46,7 +46,7 @@ Efficiently retrieve raw gene expression values (read counts) for one, multiple 
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
 }
 \examples{
-
+\dontrun{
 schmitz_meta = get_gambl_metadata() \%>\% 
     filter(seq_type=="mrna",cohort=="dlbcl_schmitz")
 exp_out = get_raw_expression_counts(these_samples_metadata = schmitz_meta)
@@ -75,6 +75,6 @@ Heatmap(assay(vsd)[show_genes,],
     row_names_gp = gpar(fontsize=5),
     bottom_annotation = column_ha,
     show_column_names = F)
-
+}
 
 }

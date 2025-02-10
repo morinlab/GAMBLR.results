@@ -10,28 +10,17 @@
 #' the MAF data frame and provide triple sequences for them (reverse complement
 #' sequence for the - strand).
 #'
-#' @param maf MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2, NCBI_Build)
-#' @param all_SNVs If TRUE, all triplet sequences of single nucleotide 
-#'        variants (SNVs) are returned without filtering for specific reference (ref) or 
-#'        alternative (alt) alleles. (Default is TRUE). 
-#'        When all_SNVs is TRUE, the ref and alt parameters are ignored.
-#' @param ref Reference allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)
-#' @param alt Alternative allele (Only relevant when all_SNVs is FALSE; otherwise, this parameter is ignored.)
-#' @param fastaPath The path to the genome FASTA file corresponding 
-#'        to the specified genome build. This file is used to extract sequence context 
-#'        when no BSgenome package is provided via bsgenome_name. 
-#'        - On GSC systems: If not specified, the function attempts to automatically 
-#'          infer the FASTA path from the GAMBL configuration.
-#'        - On local systems: A valid local path to a FASTA file must be provided.
-#' @param bsgenome_name Specifies the name of a BSgenome data package 
-#'        to be used for sequence extraction. This parameter overrides fastaPath if provided.
-#'        - Format: `BSgenome.<organism>.<provider>.<assembly>[.<masked>]`.
-#'        - Example: `"BSgenome.Hsapiens.UCSC.hg38"` for the human UCSC genome build hg38.
-#'        - If a masked genome is required, use a name like `"BSgenome.Hsapiens.UCSC.hg38.masked"`.
-#' @param pyrimidine_collapse estimates the mutation strand 
-#'        using a pyrimidine collapse strategy:
-#'        - Reference alleles C or T are interpreted as mutations on the + strand.
-#'        - Reference alleles A or G are interpreted as mutations on the - strand.
+#' @param maf MAF file (required columns: Reference_Allele, Tumor_Seq_Allele2)
+#' @param all_SNVs To give us all the triplet sequences of SNVs and not
+#'      specifying any specific ref and alt alleles (default is TRUE)
+#' @param ref Reference allele
+#' @param alt Alternative allele
+#' @param genome_build The genome build for the variants you are
+#'      working with (default is to infer it from the MAF)
+#' @param fastaPath Can be a path to a FASTA file on a disk. When on GSC,
+#'      this is first attempted to be inferred from the gambl reference through
+#'      path specified in config. Local files are also accepted as value here.
+#' @param pyrimidine_collapse Estimate mutation_strand and
 #'
 #' @return A data frame with two to three extra columns, in case
 #'      pyrimidine_collapse = FALSE, it will add triple sequence (seq) and the
@@ -43,65 +32,73 @@
 #' @export
 #'
 #' @examples
-#' maf <- GAMBLR.data::get_coding_ssm(these_sample_id = "DOHH-2")
+#' maf <- GAMBLR.open::get_coding_ssm(projection="hg38") %>% head(n=500)
+#' # peek at the data
+#' dplyr::select(maf,1:12) %>% head()
 #'
-#' annotate_maf_triplet(maf)
-#' annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
-#' annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
-#' 
-#' Use bsgenome_name as an alternative if you lack GSC access or a FASTA file.
-#' annotate_maf_triplet(maf, bsgenome_name = "BSgenome.Hsapiens.UCSC.grch37")
-#'
-#This function gives triple sequence of provided mutated base
+#' maf_anno <- annotate_maf_triplet(maf)
+#' dplyr::select(maf_anno,1:12,seq) %>% head()
+#' # Each mutation is now associated with it's sequence context in the
+#' # reference genome in a column named seq
+#' \dontrun{
+#'   annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+#'   annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+#' }
+
 annotate_maf_triplet = function(maf,
                                 all_SNVs = TRUE,
                                 ref,
                                 alt,
+                                genome_build,
                                 fastaPath,
-                                bsgenome_name,
                                 pyrimidine_collapse = FALSE){
   genome = ""
   # Get projection from NCBI_Build column of the maf
   if ("NCBI_Build" %in% colnames(maf)) {
-    projection = tolower(maf$NCBI_Build[1])
+    genome_build = tolower(maf$NCBI_Build[1])
   } # If it is not in the maf, look for it in bsgenome_name
   else if (!missing(bsgenome_name)) {
     bsgenome_parts = unlist(strsplit(bsgenome_name, "\\."))
-    projection = bsgenome_parts[4]
+    genome_build = bsgenome_parts[4]
   } # Cannot find it ask for mutating it
   else{
     stop("Please add the 'NCBI_Build' column to your MAF file to specify the genome build.")
   }
   bsgenome_loaded = FALSE
-  if (projection == "grch37") {
-    maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-  } else {
-    # If there is a mix of prefixed and non-prefixed options
-    maf$Chromosome <- gsub("chr", "", maf$Chromosome)
-    maf$Chromosome <- paste0("chr", maf$Chromosome)
-  }
+
   # If there is no fastaPath, it will read it from config key
-  # Based on the projection the fasta file which will be loaded is different
+
+  # Based on the genome_build the fasta file which will be loaded is different
   if (missing(fastaPath)){
+    if("maf_data" %in% class(maf)){
+      genome_build = get_genome_build(maf)
+    }
+    if(missing(genome_build)){
+      stop("no genome_build information provided or present in maf")
+    }
     base <- check_config_value(config::get("repo_base"))
     fastaPath <- paste0(
       base,
       "ref/lcr-modules-references-STABLE/genomes/",
-      projection,
+      genome_build,
       "/genome_fasta/genome.fa"
     )
     if(!file.exists(fastaPath)){
       #try BSgenome
       installed = installed.genomes()
-      if(!missing(bsgenome_name)){
-        if(bsgenome_name %in% installed){
+      if(genome_build=="hg38"){
+        bsgenome_name = "BSgenome.Hsapiens.UCSC.hg38"
+      }else if(genome_build == "grch37"){
+        bsgenome_name = "BSgenome.Hsapiens.NCBI.GRCh37"
+      }else{
+        stop(paste("unsupported genome:",genome_build))
+      }
+      if(bsgenome_name %in% installed){
           genome = getBSgenome(bsgenome_name)
-
           bsgenome_loaded = TRUE
-        }
       }else{
         print(installed)
-        stop("Local Fasta file cannot be found. Supply a path to it with fastaPath or use one of the installed BSGenome options using the bsgenome_name parameter")
+        print(paste("Local Fasta file cannot be found and missing genome_build",bsgenome_name,"Supply a fastaPath for a local fasta file or install the missing BSGenome package and re-run"))
       }
     }
   }
@@ -109,7 +106,7 @@ annotate_maf_triplet = function(maf,
   if(!bsgenome_loaded){
     # Create a reference to an indexed fasta file.
     if (!file.exists(fastaPath)) {
-      stop("Failed to find the fasta file")
+      stop("Failed to find the fasta file and no compatible BSgenome found")
     }
     fasta = Rsamtools::FaFile(file = fastaPath)
   }

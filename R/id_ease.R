@@ -41,6 +41,7 @@
 #'
 #' these_ids = id_ease(these_samples_metadata = this_metadata)
 #'
+#' @keywords internal
 id_ease = function(these_samples_metadata = NULL,
                    these_sample_ids = NULL,
                    this_seq_type = c("genome", "capture"),

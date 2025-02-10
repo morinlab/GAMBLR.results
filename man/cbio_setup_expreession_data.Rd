@@ -41,3 +41,4 @@ This function internally calls \link{get_gene_expression} for returning expressi
 expression_ids = cbio_setup_expression_data(out_dir = "../../")
 }
 }
+\keyword{internal}

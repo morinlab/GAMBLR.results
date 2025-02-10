@@ -8,7 +8,7 @@ annotate_ssm_motif_context(
   maf,
   motif = "WRCY",
   index = 3,
-  projection = "grch37",
+  genome_build,
   fastaPath
 )
 }
@@ -19,7 +19,7 @@ annotate_ssm_motif_context(
 
 \item{index}{Position of the mutated allele in the motif}
 
-\item{projection}{The genome build projection for the variants you are working with (default is grch37)}
+\item{genome_build}{The genome build for the variants you are working with (default is grch37)}
 
 \item{fastaPath}{Can be a path to a FASTA file}
 }
@@ -36,7 +36,10 @@ SITE and if the the motif is present, but the mutation is not in the indexed pos
 NA will be shown if the mutation is an indel mutation.
 }
 \examples{
-my_maf <- get_coding_ssm()
-annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
+my_maf <- GAMBLR.open::get_coding_ssm() \%>\% head()
+
+annotated = annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
+
+print(annotated)
 
 }

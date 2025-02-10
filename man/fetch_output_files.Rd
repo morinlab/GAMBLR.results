@@ -48,3 +48,4 @@ ex_outs = fetch_output_files(tool = "manta",
                              build = "hg38")
 
 }
+\keyword{internal}

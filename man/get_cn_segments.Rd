@@ -26,12 +26,24 @@ This function merely loads and returns all the seg_data available for a projecti
 }
 \examples{
 # Example for the capture samples:
+# Get metadata for just a few capture samples
+capture_metadata = suppressMessages(get_gambl_metadata()) \%>\%
+                      dplyr::filter(seq_type=="capture") \%>\% head()
 
-capture_metadata = get_gambl_metadata() \%>\%
-                      dplyr::filter(seq_type=="capture")
+# Load the copy number segments for the capture samples using hg38 projection
 capture_segments_hg38 = get_cn_segments(
                              these_samples_metadata = capture_metadata,
                              projection="hg38")
+print(capture_segments_hg38)
 
-
+genome_metadata = suppressMessages(get_gambl_metadata()) \%>\%
+                      dplyr::filter(seq_type=="genome") \%>\% head()
+# Create a metadata table with a mix of seq_types
+mixed_seq_type_meta = dplyr::bind_rows(capture_metadata,genome_metadata)
+capture_segments_default = get_cn_segments(
+                             these_samples_metadata = mixed_seq_type_meta)
+dplyr::group_by(capture_segments_default, ID) \%>\% 
+dplyr::summarize(n=dplyr::n())
+# Note the default projection is "grch37"
+print(capture_segments_default)
 }

@@ -21,6 +21,7 @@
 #'                                                   genome_build = c("hg38", "grch37"),
 #'                                                   search_pattern = ".bed")
 #'
+#' @keywords internal
 find_files_extract_wildcards = function(tool_results_path,
                                         search_pattern,
                                         genome_build,

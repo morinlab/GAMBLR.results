@@ -25,6 +25,7 @@
 #'
 #' missing_from_merge = get_manta_sv_by_samples(these_samples_metadata = missing_samples, verbose = FALSE)
 #'
+#' @keywords internal
 get_manta_sv_by_samples = function(these_samples_metadata,
                                    min_vaf = 0.1,
                                    min_score = 40,

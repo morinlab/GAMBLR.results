@@ -23,8 +23,8 @@ Retrieve all coding SSMs from GAMBL in MAF-like format, regardless of seq_type.
 Effectively retrieve coding SSM calls from one or all DNA seq_type. For additional optional arguments, see \link{get_coding_ssm}
 }
 \examples{
-
-maf_data_all_exome_and_genome = get_coding_ssm(these_samples_metadata = get_gambl_metadata(seq_type_filter=c("genome","capture")))
-
+my_meta = suppressMessages(get_gambl_metadata())
+maf_all_seqtype = get_all_coding_ssm(my_meta)
+table(maf_all_seqtype$maf_seq_type)
 
 }
