@@ -25,16 +25,16 @@ get_all_coding_ssm = function(these_samples_metadata = NULL,
                                          seq_type!="mrna")
   seq_types_in_metadata = unique(these_samples_metadata$seq_type)
   if("capture" %in% seq_types_in_metadata){
-    capture_ssm = get_coding_ssm(these_samples_metadata = 
+    capture_ssm = suppressWarnings(suppressMessages(get_coding_ssm(these_samples_metadata = 
                                  dplyr::filter(these_samples_metadata,
                                                seq_type=="capture"),
-                               this_seq_type = "capture", ...) 
+                               this_seq_type = "capture", ...))) 
   }
   if("genome" %in% seq_types_in_metadata){
-    genome_ssm = get_coding_ssm(these_samples_metadata = 
+    genome_ssm = suppressWarnings(suppressMessages(get_coding_ssm(these_samples_metadata = 
                                 dplyr::filter(these_samples_metadata,
                                               seq_type=="genome"),
-                              this_seq_type = "genome", ...)
+                              this_seq_type = "genome", ...)))
      
   }
   if(length(seq_types_in_metadata)>1){
