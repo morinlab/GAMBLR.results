@@ -210,9 +210,7 @@ get_ssm_by_sample = function(these_samples_metadata,
   if(!is.null(maf_cols) && !basic_columns){
     sample_ssm = dplyr::select(sample_ssm, all_of(maf_cols))
     }
+  sample_ssm = mutate(sample_ssm,maf_seq_type = seq_type)
   sample_ssm = create_maf_data(sample_ssm,projection)
-  # use S3-safe version of dplyr function
-  sample_ssm = mutate.genomic_data(sample_ssm,maf_seq_type = seq_type)
-
   return(sample_ssm)
 }
