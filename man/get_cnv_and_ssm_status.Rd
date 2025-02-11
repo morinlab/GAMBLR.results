@@ -72,7 +72,7 @@ return any copy number segments from the specified chromosome region.
 \examples{
 
 # Get sample metadata including a mix of seq_type
-all_types_meta = get_gambl_metadata() \%>\% 
+all_types_meta = suppressMessages(get_gambl_metadata()) \%>\% 
             dplyr::filter(pathology == "BL")
 dplyr::group_by(all_types_meta, seq_type) \%>\% 
      dplyr::summarize(n=dplyr::n())
@@ -80,23 +80,25 @@ dplyr::group_by(all_types_meta, seq_type) \%>\%
 # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
 # return only CNV status; for CCND3 return only SSM status
 genes_and_cn_threshs = data.frame(
-  gene_id=c("MYC", "MIR17HG", "CCND3", "SYNCRIP"),
-  cn_thresh=c(3, 3, 2, 1)
+  gene_id=c("MYC", "MIR17HG", "CCND3","ID3","DDX3X", "SYNCRIP"),
+  cn_thresh=c(3, 3, 2, 2, 2, 1)
 )
 
-genome_cnv_ssm_status = get_cnv_and_ssm_status(
+genome_cnv_ssm_status = suppressMessages(get_cnv_and_ssm_status(
                            genes_and_cn_threshs,
                            dplyr::filter(all_types_meta,seq_type=="genome"),
-                           only_cnv = "MIR17HG")
+                           only_cnv = "MIR17HG"))
 
 print(dim(genome_cnv_ssm_status))    
-                       
-all_seq_type_status = get_cnv_and_ssm_status(
+head(genome_cnv_ssm_status)   
+colSums(genome_cnv_ssm_status)
+                    
+all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(
                            genes_and_cn_threshs,
                            all_types_meta,
-                           only_cnv = "MIR17HG")
+                           only_cnv = "MIR17HG"))
 
-colSums(genome_cnv_ssm_status)
 print(dim(all_seq_type_status))   
-
+head(all_seq_type_status)
+colSums(all_seq_type_status)
 }
