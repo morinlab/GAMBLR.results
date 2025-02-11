@@ -3,7 +3,22 @@ Package: GAMBLR.results
 Title: Access results of the Genomic Analysis of Mature B-cell Lymphomas
 Version: 1.3
 Authors@R:
-    person("Vladimir", "Souza", , "vsouza@bcgsc.ca", role = c("aut", "cre"))
+    c(
+        person(given = "Ryan",
+           family = "Morin",
+           role = c("aut"),
+           email = "rdmorin@sfu.ca",
+           comment = c(ORCID = "0000-0003-2932-7800")),
+        person(given = "Kostiantyn",
+           family = "Dreval",
+           role = c("aut", "cre"),
+           email = "kdreval@sfu.ca",
+           comment = c(ORCID = "0000-0002-6214-2843")),
+        person(given = "Vladimir",
+           family = "Souza",
+           role = c("aut"),
+           email = "vsouza@bcgsc.ca")
+    )
 Description: This package is part of the Genomic Analysis of Mature B-cell
     Lymphomas (GAMBL) project developed by the Morin Lab.
 License: MIT + file LICENSE
