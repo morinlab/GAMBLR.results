@@ -1,12 +1,17 @@
 #' @title Maf To Custom Track.
 #'
-#' @description Convert a maf-formatted data frame into a bed custom track file for UCSC.
+#' @description Convert mutations into a UCSC custom track file
 #'
-#' @details This function takes an incoming MAF and converts it to a UCSC Genome Browser ready BED (or bigbed/biglolly) file.
-#' Optional parameters available for further customization of the returned file. For more information, refer to the parameter descriptions and function examples.
+#' @details This function takes a set of mutations as maf_data and converts it
+#' to a UCSC Genome Browser ready BED (or bigbed/biglolly) file complete with
+#' the required header. Upload the resulting file to
+#' [UCSC genome browser](<https://genome.ucsc.edu/cgi-bin/hgCustom>)
+#' to view your data as a custom track.
+#' Optional parameters available for further customization of the returned file.
+#' For more information, refer to the parameter descriptions
+#' and function examples.
 #'
-#' @param maf_data Either a maf loaded from disk or from the database using a get_ssm function.
-#' @param these_sample_ids A vector of sample IDs to subset the samples of interest from the input `maf_data`. If NULL (the default), all samples in `maf_data` are kept.
+#' @param maf_data maf_data obtained from of the `get_ssm` family of functions.
 #' @param these_samples_metadata A metadata table to subset the samples of interest from the input `maf_data`. If NULL (the default), all samples in `maf_data` are kept.
 #' @param this_seq_type The seq type you want back, default is "genome".
 #' @param output_file Name for your new bed file that can be uploaded as a custom track to UCSC.
@@ -24,20 +29,25 @@
 #'   is called internally and the `bedToBigBed` path is obtained from the `config.yml` 
 #'   file saved in the current working directory. This parameter is ignored if both
 #'   `as_bigbed` and `as_biglolly` is set to `FALSE`. 
-#'
+#' @param these_sample_ids DEPRECATED
 #' @return Nothing.
 #'
 #' @import tidyr dplyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
-#' library(GAMBLR.data)
-#' region_myc <- dplyr::filter(grch37_lymphoma_genes_bed, hgnc_symbol == "MYC")
+#' # using grch37 coordinates
+#' myc_grch37 <- dplyr::filter(grch37_lymphoma_genes_bed, hgnc_symbol == "MYC")
 #' my_maf <- get_ssm_by_regions(regions_bed = region_myc, streamlined = FALSE)
-#' maf_to_custom_track(maf_data = my_maf, output_file = "../mutations.bed")
+#' 
+#' # myc_hg19.bed will be created in your working directory
+#'
+#' 
+#' maf_to_custom_track(maf_data = my_maf, output_file = "myc_hg19.bed")
+#' 
+#' 
 #'
 maf_to_custom_track = function(maf_data,
-                               these_sample_ids = NULL,
                                these_samples_metadata = NULL,
                                this_seq_type = "genome",
                                output_file,
@@ -49,8 +59,14 @@ maf_to_custom_track = function(maf_data,
                                verbose = FALSE,
                                padding_size = 0,
                                projection = "grch37",
-                               bedToBigBed_path = "config"){
+                               bedToBigBed_path = "config",
+                               these_sample_ids = NULL){
   
+  # Handle deprecated parameters
+  if (!is.null(these_sample_ids)) {
+    stop("Parameter `these_sample_ids` is deprecated and will be ignored.
+    Please use `these_samples_metadata` instead.")
+  }
   # check some provided parameter 
   if(bedToBigBed_path == "config"){
     bedToBigBed_path = tryCatch(
@@ -65,13 +81,6 @@ maf_to_custom_track = function(maf_data,
                 file.exists(bedToBigBed_path))
   }
   
-  # get metadata with the dedicated helper function
-  these_samples_metadata = id_ease(
-    these_samples_metadata = these_samples_metadata,
-    these_sample_ids = these_sample_ids,
-    this_seq_type = this_seq_type,
-    verbose = FALSE
-  )
   
   # subset input maf according to metadata samples
   maf_data = filter(maf_data, Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
@@ -96,8 +105,8 @@ maf_to_custom_track = function(maf_data,
   }
   meta = dplyr::select(these_samples_metadata, sample_id, all_of(colour_column))
   colnames(meta)[2]="group"
-  
-  
+
+
   samples_coloured = left_join(meta, rgb_df)
   if(verbose){
     print(samples_coloured)
@@ -124,7 +133,8 @@ maf_to_custom_track = function(maf_data,
       temp_bed = tempfile(pattern = "bed_")
       
     }else{
-      stop("please provide an output file name ending in .bb to create a bigBed file")
+      stop("please provide an output file name ending in .bb
+      to create a bigBed file")
     }
     
     maf_coloured = mutate(maf_coloured,sample_id="redacted") %>%
