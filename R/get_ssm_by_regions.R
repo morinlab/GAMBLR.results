@@ -69,13 +69,16 @@ get_ssm_by_regions = function(regions_list,
     message("To return a MAF with standard 45 columns, set streamlioned = FALSE and basic_columns = TRUE")
     message("To return a maf with all (116) columns, set streamlined = FALSE and basic_columns = FALSE")
   }
-
   bed2region = function(x){
     paste0(x[1], ":", as.numeric(x[2]), "-", as.numeric(x[3]))
   }
 
   if(missing(regions_list)){
     if(!missing(regions_bed)){
+      genome_build = check_get_projection(list(this_bed=regions_bed),
+                                          projection,
+                                          custom_error = "Please specify a projection that matches the genome build of regions_bed")
+      
       regions = apply(regions_bed, 1, bed2region)
     }else{
       warning("You must supply either regions_list or regions_bed")
