@@ -4,7 +4,14 @@
 \alias{get_cn_segments}
 \title{Get CN Segments.}
 \usage{
-get_cn_segments(these_samples_metadata, projection = "grch37", this_seq_type)
+get_cn_segments(
+  these_samples_metadata,
+  projection = "grch37",
+  flavour = "combined",
+  this_seq_type,
+  fill_missing_with = "nothing",
+  verbose = FALSE
+)
 }
 \arguments{
 \item{these_samples_metadata}{User must provide a metadata table to restrict the data to the samples in your table.
@@ -13,7 +20,18 @@ seq_type in the metadata faithfully represents the seq_type of the data}
 
 \item{projection}{Desired genome coordinate system for returned CN segments. Default is "grch37".}
 
+\item{flavour}{Specify what pipeline or source of data to use.
+Available options are "combined" or "battenberg". Battenberg outputs are incomplete.}
+
 \item{this_seq_type}{Deprecated.}
+
+\item{fill_missing_with}{Specify how to fill values in dummy segments that were created to satisfy GISTIC.
+The default is "nothing", which causes these to be dropped so empty regions
+can be handled in subsequent processing steps. For creating a GISTIC input,
+you would typically want to set this to "avg_ploidy".
+This is taken care of for you by \link[GAMBLR.utils:prepare_gistic_inputs]{GAMBLR.utils::prepare_gistic_inputs}}
+
+\item{verbose}{Set to TRUE for a chattier experience}
 }
 \value{
 A data frame with CN segments for the specified region.
@@ -22,28 +40,35 @@ A data frame with CN segments for the specified region.
 Retrieve all copy number segments from the GAMBL outputs
 }
 \details{
-This function merely loads and returns all the seg_data available for a projection (genome build)
+This merely loads and returns all the seg_data available for a projection
+(genome build) and can assign a single value to dummy segments if they are
+present/identified in the source file
 }
 \examples{
-# Example for the capture samples:
+# Example for just exome/capture samples:
 # Get metadata for just a few capture samples
-capture_metadata = suppressMessages(get_gambl_metadata()) \%>\%
-                      dplyr::filter(seq_type=="capture") \%>\% head()
+capture_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(seq_type == "capture") \%>\%
+  head()
 
-# Load the copy number segments for the capture samples using hg38 projection
-capture_segments_hg38 = get_cn_segments(
-                             these_samples_metadata = capture_metadata,
-                             projection="hg38")
+# Load the copy number segments for capture samples using hg38 projection
+capture_segments_hg38 <- get_cn_segments(
+  these_samples_metadata = capture_metadata,
+  projection = "hg38"
+)
 print(capture_segments_hg38)
 
-genome_metadata = suppressMessages(get_gambl_metadata()) \%>\%
-                      dplyr::filter(seq_type=="genome") \%>\% head()
+genome_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(seq_type == "genome") \%>\%
+  head()
 # Create a metadata table with a mix of seq_types
-mixed_seq_type_meta = dplyr::bind_rows(capture_metadata,genome_metadata)
-capture_segments_default = get_cn_segments(
-                             these_samples_metadata = mixed_seq_type_meta)
-dplyr::group_by(capture_segments_default, ID) \%>\% 
-dplyr::summarize(n=dplyr::n())
+mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
+## We can load the copy number segments for all samples across seq_types
+capture_segments_default <- get_cn_segments(
+  these_samples_metadata = mixed_seq_type_meta
+)
+dplyr::group_by(capture_segments_default, ID) \%>\%
+  dplyr::summarize(n = dplyr::n())
 # Note the default projection is "grch37"
 print(capture_segments_default)
 }

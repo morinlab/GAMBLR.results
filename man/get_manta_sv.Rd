@@ -67,7 +67,7 @@ A data frame in a bedpe-like format with additional
 columns that allow filtering of high-confidence SVs.
 }
 \description{
-Retrieve Manta SVs and filter.
+Retrieve Manta SVs for one or many samples
 }
 \details{
 Retrieve Manta SVs with additional VCF information to allow for
