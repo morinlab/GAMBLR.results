@@ -56,6 +56,7 @@ get_ssm_by_samples = function(these_samples_metadata,
                               engine = 'fread_maf',
                               these_sample_ids,
                               this_seq_type){
+  
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
@@ -73,7 +74,7 @@ get_ssm_by_samples = function(these_samples_metadata,
         "Please use the `these_samples_metadata` option instead of `these_sample_ids`."
     )
     these_samples_metadata = get_gambl_metadata() %>%
-      dplyr::filter(sample_id %in% these_sample_ids) %>%
+      dplyr::filter(sample_id %in% these_sample_ids,seq_type!="mrna") %>%
       dplyr::filter(!sample_id %in% to_exclude)
       n_samp = nrow(these_samples_metadata)
       n_orig = length(these_sample_ids)
@@ -111,19 +112,28 @@ get_ssm_by_samples = function(these_samples_metadata,
 
   }else if(flavour=="clustered"){
     if(subset_from_merge && !augmented){
-      seq_type = this_seq_type #needed for glue
+      if(length(unique(these_samples_metadata$seq_type))>1){
+        print("more than one seq_type provided")
+        print("This function needs to be updated to handle >1 seq_type")
+        print("For a workaround, you can run individually for each desired seq_type")
+        stop()
+      }
+      seq_type = these_samples_metadata$seq_type[1] #needed for glue
       maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
       message(paste("using existing merge:", full_maf_path))
-      stop()
+      #if(!file.exists(full_maf_path)){
+      #  full_maf_path = paste0(full_maf_path,".bgz")  
+      #}
       #check for missingness
       if(!file.exists(full_maf_path)){
         print(paste("missing: ", full_maf_path))
         message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
         message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-        }
+      }
 
+      
       if(engine=="fread_maf"){
         if(basic_columns){
           maf_df_merge = fread_maf(full_maf_path,select_cols = c(1:45)) %>%
@@ -154,8 +164,14 @@ get_ssm_by_samples = function(these_samples_metadata,
     }
 
     if(subset_from_merge && augmented){
-      stop("This functionality needs to be updated to handle >1 seq_type")
-      seq_type = this_seq_type #needed for glue
+      if(length(unique(these_samples_metadata$seq_type))>1){
+        print("more than one seq_type provided")
+        print("This function needs to be updated to handle >1 seq_type")
+        print("For a workaround, you can run individually for each desired seq_type")
+        stop()
+      }
+      
+      seq_type = these_samples_metadata$seq_type[1] #needed for glue
       maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)

@@ -16,7 +16,7 @@
 #' @param return_anyway Set to TRUE to force variant calls to be returned, even if they're not lifted, This parameter should only ever be modified from the default setting when this function is called by another function that handles the liftOver separately.
 #' @param min_vaf The minimum tumour VAF for a SV to be returned. Default value is 0.1.
 #' @param min_score The lowest Manta somatic score for a SV to be returned. Default value is 40.
-#' @param pass If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.
+#' @param pass_filters If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.
 #' @param projection The projection of returned calls. Default is grch37.
 #' @param verbose Set to FALSE to prevent the path of the requested bedpe file to be printed.
 #'
@@ -50,7 +50,7 @@ get_manta_sv_by_sample = function(this_sample_id,
                                   return_anyway = FALSE,
                                   min_vaf = 0.1,
                                   min_score = 40,
-                                  pass = TRUE,
+                                  pass_filters = TRUE,
                                   projection = "grch37",
                                   verbose = TRUE){
 
@@ -199,7 +199,7 @@ get_manta_sv_by_sample = function(this_sample_id,
     dplyr::filter(VAF_tumour >= min_vaf & SCORE >= min_score)
 
   #Filter on FILTER (variant callers variant filter criteria).
-  if(pass){
+  if(pass_filters){
     bedpe_dat = bedpe_dat %>%
       dplyr::filter(FILTER == "PASS")
   }
@@ -230,6 +230,6 @@ get_manta_sv_by_sample = function(this_sample_id,
     mutate(across(c(CHROM_A, CHROM_B, manta_name, STRAND_A, STRAND_B, tumour_sample_id, normal_sample_id, pair_status, FILTER), as.character)) %>%
     mutate(across(c(START_A, END_A, START_B, END_B, SCORE, VAF_tumour, DP), as.numeric)) %>%
     arrange(CHROM_A, CHROM_B, START_A)
-
+  bedpe_dat = create_genomic_data(bedpe_dat,projection)
   return(bedpe_dat)
 }

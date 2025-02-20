@@ -9,7 +9,7 @@
 #' @param these_samples_metadata The only required parameter is a metadata table (data frame) that must contain a row for each sample you want the data from. The additional columns the data frame needs to contain, besides sample_id, are: unix_group, genome_build, seq_type, pairing_status.
 #' @param min_vaf The minimum tumour VAF for a SV to be returned. Default value is 0.1.
 #' @param min_score The lowest Manta somatic score for a SV to be returned. Default value is 40.
-#' @param pass If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.
+#' @param pass_filters If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.
 #' @param projection The projection of returned calls. Default is grch37.
 #' @param verbose Set to FALSE to prevent the path of the requested bedpe file to be printed.
 #'
@@ -29,7 +29,7 @@
 get_manta_sv_by_samples = function(these_samples_metadata,
                                    min_vaf = 0.1,
                                    min_score = 40,
-                                   pass = TRUE,
+                                   pass_filters = TRUE,
                                    projection = "grch37",
                                    verbose = TRUE){
 
@@ -49,7 +49,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
                                                                  return_anyway = TRUE, #make sure unlifted calls, with the extra column (need_lift) are returned.
                                                                  min_vaf = min_vaf,
                                                                  min_score = min_score,
-                                                                 pass = pass,
+                                                                 pass_filters = pass_filters,
                                                                  projection = projection,
                                                                  verbose = verbose)})
 
@@ -96,5 +96,6 @@ get_manta_sv_by_samples = function(these_samples_metadata,
     arrange(CHROM_A, CHROM_B, START_A)
 
   #return merged manta SVs.
+  merged_bedpe = create_genomic_data(merged_bedpe,projection)
   return(merged_bedpe)
 }
