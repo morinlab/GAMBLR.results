@@ -17,11 +17,11 @@
 #'
 #' @rawNamespace import(IRanges, except = c("start", "end", "merge", "shift", "collapse", "union", "slice", "intersect", "setdiff", "desc", "reduce", "trim"))
 #' @rawNamespace import(GenomicRanges, except = c("start", "end", "merge", "shift", "union", "intersect", "setdiff", "reduce", "trim"))
-#' @import Rsamtools readr dplyr
+#' @import Rsamtools readr dplyr BSgenome
 #' @export
 #'
 #' @examples
-#' my_maf <- GAMBLR.open::get_coding_ssm() %>% head()
+#' my_maf <- get_coding_ssm() %>% head()
 #' 
 #' annotated = annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
 #' 
@@ -44,13 +44,17 @@ annotate_ssm_motif_context <- function(maf,
       if(missing(genome_build)){
         stop("no genome_build information provided or present in maf")
       }
-        base <- check_config_value(config::get("repo_base"))
-        fastaPath <- paste0(
+      base <- check_config_and_value("repo_base")
+      fastaPath <- paste0(
             base,
             "ref/lcr-modules-references-STABLE/genomes/",
             genome_build,
             "/genome_fasta/genome.fa"
         )
+      if (!file.exists(fastaPath)) {
+        #try another location. These should really move into the config.
+        fastaPath = paste0(base,genome_build,".fa")
+      }
     }
     # It checks for the presence of a local fastaPath
     if (!file.exists(fastaPath)) {

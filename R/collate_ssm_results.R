@@ -17,9 +17,10 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' ssm_results = colalte_ssm_results(sample_table = samples,
 #'                                   include_silent = TRUE)
-#'
+#' }
 collate_ssm_results = function(sample_table,
                                seq_type_filter = "genome",
                                projection = "grch37",

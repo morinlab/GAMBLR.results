@@ -89,14 +89,14 @@ get_coding_ssm = function(
   #get file path for augmented maf
   if(augmented){
     seq_type = this_seq_type #glue needs to have this variable
-    maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$cds$augmented)
+    maf_template = check_config_and_value("results_flatfiles$ssm$template$cds$augmented")
     maf_path = glue::glue(maf_template)
-    full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
+    full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
   }else{
     seq_type = this_seq_type #glue needs to have this variable
-    maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$cds$deblacklisted)
+    maf_template = check_config_and_value("results_flatfiles$ssm$template$cds$deblacklisted")
     maf_path = glue::glue(maf_template)
-    full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
+    full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
   }
 
   #read file

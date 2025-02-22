@@ -12,8 +12,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' check_remote_configuration()
-#'
+#' }
 #' @keywords internal
 check_remote_configuration = function(auto_connect = FALSE){
 

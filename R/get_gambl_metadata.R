@@ -14,8 +14,8 @@
 #' @param biopsy_flatfile Optionally provide the full path to a biopsy table to use instead of the default.
 #' @param with_outcomes Optionally join to gambl outcome data.
 #' @param only_available If TRUE, will remove samples with FALSE or NA in the bam_available column (default: TRUE).
-#' @param from_flatfile New default is to use the metadata in the flat-files from your clone of the repo. Can be overridden to use the database.
 #' @param seq_type_priority For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others. Possible values are "genome" or "capture".
+#' @param from_flatfile Deprecated (will be ignored)
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #' 
@@ -129,11 +129,12 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
                                case_set,
                                remove_benchmarking = TRUE,
                                with_outcomes = TRUE,
-                               from_flatfile = TRUE,
+                               
                                sample_flatfile,
                                biopsy_flatfile,
                                only_available = TRUE,
-                               seq_type_priority = "genome"){
+                               seq_type_priority = "genome",
+                               from_flatfile){
   return_normals = FALSE
   if("normal" %in% tissue_status_filter & "tumour" %in% tissue_status_filter){
     #store internally and update so normals can be handled later
@@ -148,15 +149,17 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
   
   check_remote_configuration()
   #this needs to be in any function that reads files from the bundled GAMBL outputs synced by Snakemake
-  outcome_table = get_gambl_outcomes(from_flatfile = from_flatfile)
+  outcome_table = get_gambl_outcomes()
   
-  if(from_flatfile){
-    base = config::get("repo_base")
+
+    base = check_config_and_value("repo_base")
     if(missing(sample_flatfile)){
-      sample_flatfile = paste0(base, config::get("table_flatfiles")$samples)
+      sample_flatfile = paste0(base, 
+      check_config_and_value("table_flatfiles$samples"))
     }
     if(missing(biopsy_flatfile)){
-      biopsy_flatfile = paste0(base, config::get("table_flatfiles")$biopsies)
+      biopsy_flatfile = paste0(base, 
+        check_config_and_value("table_flatfiles$biopsies"))
     }
     
     #check for missingness
@@ -173,17 +176,7 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
     sample_meta = suppressMessages(read_tsv(sample_flatfile, guess_max = 100000))
     biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile, guess_max = 100000))
     
-  }else{
-    db = GAMBLR.helpers::check_config_value(config::get("database_name"))
-    con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
-    sample_meta = dplyr::tbl(con, "sample_metadata") %>%
-      as.data.frame()
-    
-    biopsy_meta = dplyr::tbl(con, "biopsy_metadata") %>%
-      as.data.frame()
-    
-    DBI::dbDisconnect(con)
-  }
+  
   
   # Conditionally remove samples without bam_available == TRUE
   if(only_available == TRUE){
@@ -248,8 +241,8 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
   all_meta = unique(all_meta) #something in the ICGC code is causing this. Need to figure out what #should this be posted as an issue on Github?
   if(!missing(case_set)){
     # This functionality is meant to eventually replace the hard-coded case sets
-    case_set_path = GAMBLR.helpers::check_config_value(config::get("sample_sets")$default)
-    full_case_set_path =  paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), case_set_path)
+    case_set_path = check_config_and_value("sample_sets$default")
+    full_case_set_path =  paste0("repo_base","/",case_set_path)
     if (file.exists(full_case_set_path)) {
       full_case_set = suppressMessages(read_tsv(full_case_set_path))
     } else {

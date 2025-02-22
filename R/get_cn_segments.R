@@ -79,31 +79,30 @@ get_cn_segments <- function(these_samples_metadata,
     seq_type == "capture") %>% 
     pull(sample_id)
   if (flavour == "combined") {
-    cnv_flatfile_template <- GAMBLR.helpers::check_config_value(
-      config::get("results_flatfiles")$cnv_combined$icgc_dart
+    cnv_flatfile_template <- check_config_and_value(
+      "results_flatfiles$cnv_combined$icgc_dart"
     )
     coltypes = "cciiid"
   } else if (flavour == "battenberg") {
-    cnv_flatfile_template <- GAMBLR.helpers::check_config_value(
-      config::get("results_merged")$battenberg
+    cnv_flatfile_template <- check_config_and_value(
+      "results_merged$battenberg"
     )
     coltypes = "cciiidi"
   } else {
     stop("currently available flavours are combined or battenberg")
   }
-
   df_list <- list()
   for (seq_type in seq_types) {
     cnv_path <- glue::glue(cnv_flatfile_template)
-    full_cnv_path <- paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
+    full_cnv_path <- paste0(check_config_and_value("project_base"), cnv_path)
     # check permissions to ICGC data.
     permissions <- file.access(full_cnv_path, 4)
     if (permissions == -1) {
       message(paste("failed loading from", full_cnv_path[1]))
       message("restricting to non-ICGC data")
-      cnv_flatfile_template <- GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv_combined$gambl)
+      cnv_flatfile_template <- check_config_and_value("results_flatfiles$cnv_combined$gambl")
       cnv_path <- glue::glue(cnv_flatfile_template)
-      full_cnv_path <- paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), cnv_path)
+      full_cnv_path <- paste0(check_config_and_value("project_base"), cnv_path)
     }
 
     # check for missingness.

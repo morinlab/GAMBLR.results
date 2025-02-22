@@ -10,11 +10,11 @@ og_get_gambl_metadata(
   case_set,
   remove_benchmarking = TRUE,
   with_outcomes = TRUE,
-  from_flatfile = TRUE,
   sample_flatfile,
   biopsy_flatfile,
   only_available = TRUE,
-  seq_type_priority = "genome"
+  seq_type_priority = "genome",
+  from_flatfile
 )
 }
 \arguments{
@@ -28,8 +28,6 @@ og_get_gambl_metadata(
 
 \item{with_outcomes}{Optionally join to gambl outcome data.}
 
-\item{from_flatfile}{New default is to use the metadata in the flat-files from your clone of the repo. Can be overridden to use the database.}
-
 \item{sample_flatfile}{Optionally provide the full path to a sample table to use instead of the default.}
 
 \item{biopsy_flatfile}{Optionally provide the full path to a biopsy table to use instead of the default.}
@@ -37,6 +35,8 @@ og_get_gambl_metadata(
 \item{only_available}{If TRUE, will remove samples with FALSE or NA in the bam_available column (default: TRUE).}
 
 \item{seq_type_priority}{For duplicate sample_id with different seq_type available, the metadata will prioritize this seq_type and drop the others. Possible values are "genome" or "capture".}
+
+\item{from_flatfile}{Deprecated (will be ignored)}
 }
 \value{
 A data frame with metadata for each biopsy in GAMBL

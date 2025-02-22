@@ -17,13 +17,14 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' this_meta = get_gambl_metadata()
 #' dlbcl_meta = dplyr::filter(this_meta, pathology == "DLBCL")
 #'
 #' wide_lymphgen = collate_lymphgen(these_samples_metadata = dlbcl_meta,
 #'                                  lymphgen_version = "default",
 #'                                  tidy = FALSE)
-#'
+#'}
 collate_lymphgen = function(these_samples_metadata,
                             lymphgen_version = "default",
                             tidy = FALSE){

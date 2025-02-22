@@ -13,8 +13,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' check_gamblr_config()
-#'
+#' }
 #' @keywords internal
 check_gamblr_config = function(compare_timestamps=FALSE,
                                ssh_session,

@@ -117,13 +117,15 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   check_remote_configuration()
   #this needs to be in any function that reads files from the bundled GAMBL outputs synced by Snakemake
 
-  base = config::get("repo_base")
-  sample_flatfile = paste0(base, config::get("table_flatfiles")$samples)
+  base = check_config_and_value("repo_base")
+  sample_flatfile = paste0(base,
+    check_config_and_value("table_flatfiles$samples"))
   sample_meta = suppressMessages(read_tsv(sample_flatfile, guess_max = 100000))
 
 
 
-  biopsy_flatfile = paste0(base, config::get("table_flatfiles")$biopsies)
+  biopsy_flatfile = paste0(base,
+    check_config_and_value("table_flatfiles$biopsies"))
   biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile, guess_max = 100000))
 
 
@@ -154,8 +156,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   #currently this function just nags the user
   check_biopsy_metadata = function(tumour_metadata){
-    base = config::get("repo_base")
-    flatfile = paste0(base, config::get("table_flatfiles")$biopsies)
+    base = check_config_and_value("repo_base")
+    flatfile = paste0(base, 
+      check_config_and_value("table_flatfiles$biopsies"))
     b_meta = suppressMessages(read_tsv(flatfile, guess_max = 100000))
     #sanity check biopsy_metadata contents
     missing_biopsies = filter(tumour_metadata,!biopsy_id %in% b_meta$biopsy_id) %>% select(sample_id,biopsy_id,cohort,pathology)

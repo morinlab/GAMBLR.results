@@ -20,7 +20,7 @@
 #' @examples
 #' my_metadata = suppressMessages(get_gambl_metadata())
 #' # get a few SSMs to annotate
-#' some_coding_ssm = GAMBLR.open::get_coding_ssm(these_samples_metadata = my_metadata,
+#' some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
 #'                                 projection = "grch37",
 #'                                 this_seq_type = "genome") %>% 
 #'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
@@ -33,8 +33,9 @@
 #'    dplyr::filter(!is.na(hot_spot)) %>% 
 #'    dplyr::select(1:10,37,hot_spot) 
 #'
+#' \dontrun{
 #' #This example will raise an error due to the user supplying an unsupported genome build:
-#' more_coding_ssm = GAMBLR.open::get_coding_ssm(
+#' more_coding_ssm = get_coding_ssm(
 #'                                 these_samples_metadata = my_metadata,
 #'                                 projection = "hg38",
 #'                                 this_seq_type = "capture") %>% 
@@ -47,6 +48,7 @@
 #' more_hot_ssms %>% 
 #'    dplyr::filter(!is.na(hot_spot)) %>% 
 #'    dplyr::select(1:10,37,hot_spot) 
+#' }
 annotate_hotspots = function(mutation_maf,
                              recurrence_min = 5,
                              analysis_base = c("FL--DLBCL", "BL--DLBCL"),

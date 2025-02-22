@@ -53,7 +53,7 @@ the MAF data frame and provide triple sequences for them (reverse complement
 sequence for the - strand).
 }
 \examples{
-maf <- GAMBLR.open::get_coding_ssm(projection = "hg38") \%>\% head(n = 500)
+maf <- get_coding_ssm(projection = "grch37") \%>\% head(n = 500)
 # peek at the data
 dplyr::select(maf, 1:12) \%>\% head()
 

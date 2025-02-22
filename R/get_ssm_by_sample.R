@@ -89,8 +89,8 @@ get_ssm_by_sample = function(these_samples_metadata,
   # Get unmatched normal if necessary. This is done using the unmatched normals that were added to the GAMBLR config.
   # That will need to be kept up to date if/when any new references are added.
   if(pair_status == "unmatched"){
-    normal_sample_id = config::get("unmatched_normal_ids")[[unix_group]][[seq_type]][[genome_build]]
-
+    keys = paste0("unmatched_normal_ids$",unix_group,"$",seq_type,"$",genome_build)
+    normal_sample_id = check_config_and_value(keys)
   }else{
     normal_sample_id = pull(these_samples_metadata, normal_sample_id)
   }
@@ -103,15 +103,25 @@ get_ssm_by_sample = function(these_samples_metadata,
     return()
   }else if(flavour == "clustered"){
     vcf_base_name = "slms-3.final"
-    path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
+    path_template = check_config_and_value(
+      "results_flatfiles$ssm$template$clustered$deblacklisted",
+      config_name="default"
+      )
     path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
-    local_full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
+    full_maf_path = paste0(
+      check_config_and_value("project_base",
+      config_name="default"),
+      path_complete)
+    local_full_maf_path = paste0(
+      check_config_and_value("project_base"),
+      path_complete)
     if(augmented){
-      path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
+      path_template = check_config_and_value(
+        "results_flatfiles$ssm$template$clustered$augmented",
+        config_name="default")
       path_complete = unname(unlist(glue::glue(path_template)))
-      aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
-      local_aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
+      aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
+      local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
     }
   }else{
     warning("Currently the only flavour available to this function is 'clustered'")
