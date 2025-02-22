@@ -5,29 +5,32 @@
 #' and un-timed SSMs and CNAs.
 #'
 #' @param this_sample_metadata Metadata with one row
-#' containing the details for the desired genome sample_id 
+#' containing the details for the desired genome sample_id
 #' @param projection Genome build projection (e.g., "hg38" or "grch37").
 #' @param verbose Set to TRUE for a chattier experience. Default is FALSE.
 #' @import readr dplyr
 #' @export
 #' @return a named list containing two data.frames with
 #' the ssm and cna timing information
-get_timed_mutations <- function(this_sample_metadata, genome_build, verbose = FALSE) {
+get_timed_mutations <- function(this_sample_metadata, projection, verbose = FALSE) {
   if (nrow(this_sample_metadata) > 1) {
     stop("this_sample_metadata must contain exactly one row")
   }
-  remote_session = NULL  
+  if (!projection %in% c("hg38", "grch37")) {
+    stop("Genome build projection must be either hg38 or grch37")
+  }
+  remote_session = NULL
   normal_sample_id <- pull(this_sample_metadata, normal_sample_id)
   sample_id <- pull(this_sample_metadata, sample_id)
   unix_group <- pull(this_sample_metadata, unix_group)
   tumour_sample_id <- sample_id
-  pattern_cna <- "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/{unix_group}/mutationtimer-1.0/99-outputs/timed_cna/{genome_build}/{sample_id}--{normal_sample_id}_timed_cna.{genome_build}.tsv"
+  pattern_cna <- "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/{unix_group}/mutationtimer-1.0/99-outputs/timed_cna/{projection}/{sample_id}--{normal_sample_id}_timed_cna.{projection}.tsv"
   input_cna <- glue::glue(pattern_cna)
-  pattern_ssm <- "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/{unix_group}/mutationtimer-1.0/99-outputs/timed_ssm/{genome_build}/{sample_id}--{normal_sample_id}_timed_ssm.{genome_build}.tsv"
+  pattern_ssm <- "/projects/rmorin/projects/gambl-repos/gambl-rmorin/results/{unix_group}/mutationtimer-1.0/99-outputs/timed_ssm/{projection}/{sample_id}--{normal_sample_id}_timed_ssm.{projection}.tsv"
   input_ssm <- glue::glue(pattern_ssm)
   local_base = config::get()$project_base
-  local_cna <- "{local_base}/{unix_group}/mutationtimer-1.0/99-outputs/timed_cna/{genome_build}/{sample_id}--{normal_sample_id}_timed_cna.{genome_build}.tsv"
-  local_ssm <- "{local_base}/{unix_group}/mutationtimer-1.0/99-outputs/timed_ssm/{genome_build}/{sample_id}--{normal_sample_id}_timed_ssm.{genome_build}.tsv"
+  local_cna <- "{local_base}/{unix_group}/mutationtimer-1.0/99-outputs/timed_cna/{projection}/{sample_id}--{normal_sample_id}_timed_cna.{projection}.tsv"
+  local_ssm <- "{local_base}/{unix_group}/mutationtimer-1.0/99-outputs/timed_ssm/{projection}/{sample_id}--{normal_sample_id}_timed_ssm.{projection}.tsv"
   local_cna = glue::glue(local_cna)
   local_ssm = glue::glue(local_ssm)
   print(paste(local_cna,local_ssm))
@@ -45,8 +48,8 @@ get_timed_mutations <- function(this_sample_metadata, genome_build, verbose = FA
 
   if (!is.null(remote_session)) {
     # check if file exists
-    status_cna <- ssh::ssh_exec_internal(ssh_session, 
-                                            command = paste("stat", input_cna), 
+    status_cna <- ssh::ssh_exec_internal(ssh_session,
+                                            command = paste("stat", input_cna),
                                             error = F)$status
     status_ssm <- ssh::ssh_exec_internal(ssh_session,
                                              command = paste("stat", input_ssm),
@@ -76,8 +79,8 @@ get_timed_mutations <- function(this_sample_metadata, genome_build, verbose = FA
     }
   }
   cna = suppressMessages(read_tsv(input_cna))
-  cna = create_genomic_data(cna,genome_build)
+  cna = create_genomic_data(cna,projection)
   ssm = suppressMessages(read_tsv(input_ssm))
-  ssm = create_genomic_data(ssm,genome_build)
+  ssm = create_genomic_data(ssm,projection)
   return(list(CNA=cna,SSM=ssm))
 }
