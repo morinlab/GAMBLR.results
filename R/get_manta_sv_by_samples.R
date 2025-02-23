@@ -19,12 +19,15 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' all_sv = get_manta_sv()
 #' metadata = get_gambl_metadata()
-#' missing_samples = dplyr::anti_join(metadata, all_sv, by = c("sample_id" = "tumour_sample_id"))
+#' missing_samples = dplyr::anti_join(metadata,
+#'   all_sv,
+#'   by = c("sample_id" = "tumour_sample_id"))
 #'
 #' missing_from_merge = get_manta_sv_by_samples(these_samples_metadata = missing_samples, verbose = FALSE)
-#'
+#' }
 #' @keywords internal
 get_manta_sv_by_samples = function(these_samples_metadata,
                                    min_vaf = 0.1,

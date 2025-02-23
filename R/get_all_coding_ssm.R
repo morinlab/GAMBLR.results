@@ -21,6 +21,9 @@
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               ...){
+  if(missing(these_samples_metadata)){
+    stop("these_samples_metadata is required")
+  }
   these_samples_metadata = dplyr::filter(these_samples_metadata,
                                          seq_type!="mrna")
   seq_types_in_metadata = unique(these_samples_metadata$seq_type)

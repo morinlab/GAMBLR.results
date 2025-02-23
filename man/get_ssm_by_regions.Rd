@@ -72,13 +72,18 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 
-regions_bed = GAMBLR.data::grch37_ashm_regions
+regions_bed = GAMBLR.utils::create_bed_data(
+   GAMBLR.data::grch37_ashm_regions,
+   fix_names = "concat",
+   concat_cols = c("gene","region"),sep="-"
+) \%>\% head(20)
+
 DLBCL_meta = suppressMessages(get_gambl_metadata()) \%>\% 
                 dplyr::filter(pathology=="DLBCL")
 ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
                              these_samples_metadata = DLBCL_meta,
                              streamlined=F)
- ashm_MAF \%>\% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) \%>\%
+ashm_MAF \%>\% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) \%>\%
               dplyr::select(Hugo_Symbol,
                     Tumor_Sample_Barcode,
                     Chromosome,Start_Position,

@@ -17,9 +17,10 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' collated = collate_sbs_results(sample_table = sample_table,
 #'                                sbs_manipulation = sbs_manipulation)
-#
+#' }
 collate_sbs_results = function(sample_table,
                                seq_type_filter = "genome",
                                file_path,

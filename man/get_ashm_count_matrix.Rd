@@ -41,7 +41,8 @@ Values are the number of mutations in that patient in the region.
 \examples{
 
 \dontrun{
-  DLBCL_genome_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology=="DLBCL")
+  DLBCL_genome_meta = get_gambl_metadata() \%>\% 
+    dplyr::filter(pathology=="DLBCL")
 #get ashm regions
 some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
                               fix_names = "concat",

@@ -37,6 +37,7 @@
 #'                                               slide_by = 10,
 #'                                               window_size = 10000)
 #' head(mut_freq)
+#' 
 #' \dontrun{
 #' # This will fail because the chromosome naming doesn't match the default projection 
 #' misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,

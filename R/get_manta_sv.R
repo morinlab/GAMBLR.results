@@ -64,7 +64,7 @@
 #' @return A data frame in a bedpe-like format with additional
 #' columns that allow filtering of high-confidence SVs.
 #'
-#' @import dplyr readr glue GAMBLR.helpers
+#' @import dplyr readr glue GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -101,14 +101,14 @@
 #' # Despite potentially being incomplete, we can nonetheless
 #' # annotate these directly for more details
 #' annotated_myc_hg38 = suppressMessages(
-#'          annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+#'          GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
 #' )
 #' head(annotated_myc_hg38)
 #' table(annotated_myc_hg38$partner)
 #' # The usual MYC partners are seen here
 #' 
 #' annotated_myc_incorrect = suppressMessages(
-#'          annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+#'          GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
 #' )
 #' head(annotated_myc_incorrect)
 #' table(annotated_myc_incorrect$partner)
@@ -195,7 +195,8 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     }
 
     # read merged data
-    manta_sv <- suppressMessages(read_tsv(output_file)) %>%
+    manta_sv <- suppressMessages(read_tsv(output_file,
+                                         progress = FALSE)) %>%
       dplyr::filter(
         tumour_sample_id %in% this_meta$sample_id,
         VAF_tumour >= min_vaf,

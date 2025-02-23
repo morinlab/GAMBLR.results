@@ -109,8 +109,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' #basic usage
-#' my_metadata = get_gambl_metadata()
+#' my_metadata = suppressMessages(get_gambl_metadata())
 #'
 #' #use pre-defined custom sample sets
 #' only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
@@ -123,7 +124,7 @@
 #'                                                        seq_type_priority = "genome")
 #'                                                        
 #' absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
-#'
+#' }
 og_get_gambl_metadata = function(seq_type_filter = "genome",
                                tissue_status_filter = "tumour",
                                case_set,

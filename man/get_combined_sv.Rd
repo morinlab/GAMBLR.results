@@ -81,14 +81,14 @@ nrow(incorrect_myc_locus_sv)
 # Despite potentially being incomplete, we can nonetheless
 # annotate these directly for more details
 annotated_myc_hg38 = suppressMessages(
-         annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+         GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
 )
 head(annotated_myc_hg38)
 table(annotated_myc_hg38$partner)
 # The usual MYC partners are seen here
 
 annotated_myc_incorrect = suppressMessages(
-         annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+         GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
 )
 head(annotated_myc_incorrect)
 table(annotated_myc_incorrect$partner)

@@ -49,6 +49,7 @@ Lastly, \code{seq_type_filter} lets the user control what seq type results will 
 refer to function examples, vignettes and parameter descriptions.
 }
 \examples{
+\dontrun{
 #get collated results for all capture samples, using cached results
 capture_collated_everything = collate_results(seq_type_filter = "capture",
                                               from_cache = TRUE,
@@ -75,5 +76,5 @@ fl_samples = dplyr::select(fl_metadata, sample_id, patient_id, biopsy_id)
 fl_collated = collate_results(sample_table = fl_samples,
                               seq_type_filter = "genome",
                               from_cache = TRUE)
-
+}
 }

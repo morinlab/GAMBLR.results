@@ -21,7 +21,7 @@
 #'
 #' @return A data frame with CN segments for the specified region.
 #'
-#' @import dplyr readr glue
+#' @import dplyr readr glue GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -63,7 +63,7 @@ get_cn_segments <- function(these_samples_metadata,
   if (missing(these_samples_metadata)) {
     message("no metadata provided")
     message("will get segments for all available genome and capture samples")
-    these_samples_metadata <- get_gambl_metadata() %>% 
+    these_samples_metadata <- suppressMessages(get_gambl_metadata()) %>% 
       dplyr::filter(seq_type %in% c("genome", "capture"))
     seq_types <- pull(these_samples_metadata, seq_type) %>% unique()
   } else {
@@ -118,7 +118,9 @@ get_cn_segments <- function(these_samples_metadata,
       }
       
       seg <- suppressMessages(read_tsv(full_cnv_path,
-        col_types = coltypes, na = c("NA", "NaN"))) %>%
+                                      col_types = coltypes,
+                                      na = c("NA", "NaN"),
+                                      progress = FALSE)) %>%
         dplyr::filter(ID %in% capture_ids)
     } else {
       if(verbose){
@@ -126,7 +128,9 @@ get_cn_segments <- function(these_samples_metadata,
       }
       
       seg <- suppressMessages(read_tsv(full_cnv_path,
-        col_types = coltypes, na = c("NA", "NaN"))) %>%
+                                       col_types = coltypes,
+                                       na = c("NA", "NaN"),
+                                       progress = FALSE)) %>%
         dplyr::filter(ID %in% genome_ids)
     }
     seg <- mutate(seg, seg_seq_type = seq_type)

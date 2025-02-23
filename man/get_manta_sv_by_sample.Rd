@@ -51,6 +51,7 @@ The value for this column is returned TRUE (for all rows) if the available genom
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_combined_sv}, \link{get_manta_sv}, \link{get_manta_sv_by_samples}
 }
 \examples{
+\dontrun{
 #example 1
 #get manta calls for a sample that needs to be lifted to "hg38" and let this function
 #take care of the liftover step for you.
@@ -67,6 +68,6 @@ my_metadata = dplyr::filter(my_metadata, sample_id=="99-27783_tumorA")
 my_sv = get_manta_sv_by_sample(these_samples_metadata = my_metadata,
                                projection = "hg38",
                                force_lift = TRUE)
-
+}
 }
 \keyword{internal}

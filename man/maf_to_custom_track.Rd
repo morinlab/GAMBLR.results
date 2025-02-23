@@ -42,7 +42,8 @@ maf_to_custom_track(
 
 \item{verbose}{Default is FALSE.}
 
-\item{padding_size}{Optional parameter specifying the padding size in the returned file, default is 0.}
+\item{padding_size}{Optional parameter specifying the padding size in the
+returned file, default is 0.}
 
 \item{projection}{Specify which genome build to use. Possible values are "grch37" (default) or "hg38". This parameter has
 effect only when \code{as_bigbed} or \code{as_biglolly} is TRUE.}
@@ -73,14 +74,31 @@ and function examples.
 }
 \examples{
 # using grch37 coordinates
-myc_grch37 <- dplyr::filter(grch37_lymphoma_genes_bed, hgnc_symbol == "MYC")
-my_maf <- get_ssm_by_regions(regions_bed = region_myc, streamlined = FALSE)
+myc_grch37 <- GAMBLR.utils::create_bed_data(
+                GAMBLR.data::grch37_lymphoma_genes_bed
+              ) \%>\%
+              dplyr::filter(name == "MYC")
+
+print(myc_grch37)
+# desired projection will be automatically set to the
+# genome_build of your region object
+genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
+                             these_samples_metadata = get_gambl_metadata(),
+                             this_seq_type = "genome",
+                             streamlined = FALSE)
 
 # myc_hg19.bed will be created in your working directory
 
+maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 
-maf_to_custom_track(maf_data = my_maf, output_file = "myc_hg19.bed")
+#lazy/concise way:
+my_region = "8:128747680-128753674"
 
-
+capture_maf <- get_ssm_by_regions(regions_list = my_region,
+                             these_samples_metadata = get_gambl_metadata(),
+                             this_seq_type = "genome",
+                             projection = "grch37",
+                             streamlined = FALSE)
+maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
 
 }

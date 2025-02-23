@@ -61,14 +61,14 @@
 #' # Despite potentially being incomplete, we can nonetheless
 #' # annotate these directly for more details
 #' annotated_myc_hg38 = suppressMessages(
-#'          annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+#'          GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
 #' )
 #' head(annotated_myc_hg38)
 #' table(annotated_myc_hg38$partner)
 #' # The usual MYC partners are seen here
 #' 
 #' annotated_myc_incorrect = suppressMessages(
-#'          annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+#'          GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
 #' )
 #' head(annotated_myc_incorrect)
 #' table(annotated_myc_incorrect$partner)
@@ -113,7 +113,9 @@ get_combined_sv <- function(these_samples_metadata,
     message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
   }
 
-  all_sv <- suppressMessages(read_tsv(sv_file, col_types = "cnncnncnccccnnccncn")) %>%
+  all_sv <- suppressMessages(read_tsv(sv_file,
+                                      col_types = "cnncnncnccccnnccncn",
+                                      progress = FALSE)) %>%
     dplyr::rename(c("VAF_tumour" = "VAF")) %>%
     dplyr::filter(VAF_tumour >= min_vaf)
 

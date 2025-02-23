@@ -5,30 +5,22 @@
 \title{Estimate Purity.}
 \usage{
 estimate_purity(
-  in_maf,
-  maf_df,
-  in_seg,
-  this_sample_id,
-  this_seq_type = "genome",
-  seg_file_source = "battenberg",
+  these_samples_metadata,
+  maf_data,
+  seg_data,
   show_plots = FALSE,
   assume_diploid = FALSE,
   coding_only = FALSE,
-  genes
+  projection
 )
 }
 \arguments{
-\item{in_maf}{Path to a local maf file.}
+\item{these_samples_metadata}{Metadata for one sample}
 
-\item{maf_df}{Optional. Instead of using the path to a maf file, use a local dataframe as the maf file.}
+\item{maf_data}{Optional. Instead of using the path to a maf file, use a local dataframe as the maf file.}
 
-\item{in_seg}{Path to a local corresponding seg file for the same sample ID as the input maf.}
-
-\item{this_sample_id}{Specify the sample_id or any other string you want embedded in the file name.}
-
-\item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
-
-\item{seg_file_source}{Specify what copy number calling program the input seg file is from, as it handles ichorCNA differently than WisecondorX, battenberg, etc.}
+\item{seg_data}{Data frame or seg_data object for the sample of interest.
+Can contain data from other samples, which will be ignored.}
 
 \item{show_plots}{Optional. Show two faceted plots that display the VAF and purity distributions for each copy number state in the sample. Default is FALSE.}
 
@@ -36,7 +28,11 @@ estimate_purity(
 
 \item{coding_only}{Optional. set to TRUE to restrict to only coding variants. Default is FALSE.}
 
-\item{genes}{Genes of interest.}
+\item{in_maf}{Path to a local maf file.}
+
+\item{in_seg}{Path to a local corresponding seg file for the same sample ID as the input maf.}
+
+\item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
 }
 \value{
 A list containing a data frame (MAF-like format) with the segmented absolute copy number data and three extra columns:
@@ -48,22 +44,23 @@ Final_purity is the finalized purity estimation per mutation after considering d
 Annotate a MAF with segmented absolute copy number data and added additional columns (VAF, Ploidy and Final_purity).
 }
 \details{
-This function takes a sample ID with the \code{this_sample_id} parameter and calls \link{assign_cn_to_ssm} to get CN information.
+This function takes a single row of metadata that defines a
+sample you wish to estimate the purity of.
 The user can also use an already loaded maf file with \code{maf_df}. In addition, a path to the maf/seq file of interest can also be passed to this function with
 \code{in_maf} and \code{in_seg}. To visualize VAF and purity distributions, set the \code{show_plots} to TRUE (default is FALSE).
 For more information on how to run this function with the parameters at hand, refer to the parameter descriptions and function examples.
 }
 \examples{
-#load a maf
-this_maf = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-                             this_seq_type = "genome")
 
-#estimate purity based on an already loaded maf object
-estimate_purity(maf_df = this_maf,
-                show_plots = TRUE)
+# get metadata for one sample 
+my_meta = suppressMessages(get_gambl_metadata()) \%>\% 
+  dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D",
+  seq_type == "genome")
 
-#estimate purity based sole on a smaple ID + added seg data.
-estimate_purity(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-                show_plots = TRUE, coding_only = TRUE)
+#estimate purity, allowing the data to be retrieved for you
+outputs = estimate_purity(these = my_meta,
+                show_plots = TRUE,
+                projection  = "grch37")
 
+outputs$sample_purity_estimation
 }

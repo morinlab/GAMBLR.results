@@ -12,10 +12,11 @@
 #' @return A ComplexHeatmap object
 #' @export
 #'
-#' @import dplyr ggsci stringr tidyr ComplexHeatmap grid GAMBLR.helpers
+#' @import dplyr ggsci stringr tidyr ComplexHeatmap grid GAMBLR.helpers circlize
 #'
 #' @examples 
-#' meta_df = get_gambl_metadata(seq_type_filter = c("genome", "capture")) %>%
+#' meta_df = suppressMessages(get_gambl_metadata()) %>% 
+#'   dplyr::filter(seq_type %in% c("genome", "capture")) %>%
 #'      dplyr::filter(pathology == "DLBCL")
 #' pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
 #' pretty_lymphoplot(

@@ -62,7 +62,7 @@
 #'
 #' @return A data frame with tabulated mutation status.
 #'
-#' @import dplyr tidyr GAMBLR.helpers
+#' @import dplyr tidyr GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -71,7 +71,7 @@
 #'                       FL==TRUE) %>% dplyr::pull(Gene)
 #' 
 #' # Metadata for FL genomes and exomes
-#' fl_meta = get_gambl_metadata() %>% 
+#' fl_meta = suppressMessages(get_gambl_metadata()) %>% 
 #'     dplyr::filter(pathology=="FL",
 #'                   cohort != "FL_Crouch",
 #'                   seq_type != "mrna")
@@ -122,10 +122,6 @@ get_coding_ssm_status = function(
   if(!missing(this_seq_type)){
     stop("this_seq_type is deprecated. This is now determined from the metadata provided.")
   }
-  message(
-    "Using the GAMBLR.results version of this function."
-  )
-
   if(missing(gene_symbols)){
     message("defaulting to all lymphoma genes")
     gene_symbols = pull(GAMBLR.data::lymphoma_genes, Gene)
@@ -148,7 +144,7 @@ get_coding_ssm_status = function(
   }
 
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata()
+    these_samples_metadata = suppressMessages(get_gambl_metadata())
   }
 
   if(include_silent){
@@ -171,7 +167,7 @@ get_coding_ssm_status = function(
 
   }else if (!is.null(maf_path)){
     message(paste("setting genome_build for MAF to:",genome_build))
-    coding_ssm = create_maf_data(fread_maf(maf_path,genome_build))
+    coding_ssm = GAMBLR.utils::create_maf_data(fread_maf(maf_path,genome_build))
   }
 
   if(missing(maf_data) & is.null(maf_path)){

@@ -13,7 +13,7 @@ get_cnv_and_ssm_status(
   genome_build = "grch37",
   include_hotspots = TRUE,
   review_hotspots = TRUE,
-  adjust_for_ploidy = FALSE,
+  adjust_for_ploidy = TRUE,
   include_silent = FALSE,
   this_seq_type
 )
@@ -44,7 +44,7 @@ of the genes, respectively.}
 \item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
 functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
 
-\item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
+\item{adjust_for_ploidy}{Set to FALSE to disable scaling of CN values by the genome-wide average per sample}
 
 \item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
 

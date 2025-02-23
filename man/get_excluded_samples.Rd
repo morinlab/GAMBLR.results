@@ -23,6 +23,9 @@ files with
 \code{tool_name} and this function will return a vector of excluded sample IDs.
 }
 \examples{
-excluded_samp <- get_excluded_samples()
+\dontrun{
+  excluded_samp <- get_excluded_samples()
+}
+
 }
 \keyword{internal}

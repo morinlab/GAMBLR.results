@@ -37,9 +37,9 @@
 #'
 #'
 #' #keep all 116 columns in the read MAF
-#' bcl2_all_details = get_ssm_by_region(region = "chr18:60796500-60988073",
+#' bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073",
 #'                                      basic_columns = FALSE)
-#'
+#' @keywords internal
 get_ssm_by_region = function(chromosome,
                              qstart,
                              qend,
@@ -122,7 +122,10 @@ get_ssm_by_region = function(chromosome,
     #use glue to get the absolute path
     maf_path = glue::glue(maf_partial_path)
     full_maf_path = paste0(base_path, maf_path)
-    
+    if(verbose){
+      print(maf_partial_path)
+      print(full_maf_path)
+    }
     if(mode == "slms-3"){
       full_maf_path_comp = paste0(full_maf_path, ".bgz")
 
@@ -139,7 +142,7 @@ get_ssm_by_region = function(chromosome,
         print("using local file")
         print(paste("HERE:",full_maf_path_comp))
       }
-      stop("failed to find the file needed for this")
+      stop(paste("failed to find the file needed for this:",full_maf_path_comp))
     }
   }
 
@@ -202,7 +205,12 @@ get_ssm_by_region = function(chromosome,
       
     }else{
       #this is what gets executed with default parameters
-      muts_region = vroom::vroom(I(muts), col_types = paste(maf_column_types, collapse = ""), col_names = maf_columns, delim = "\t")
+      muts_region = suppressMessages(vroom::vroom(I(muts),
+                                     progress = FALSE,
+                                     col_types = paste(maf_column_types,
+                                                      collapse = ""),
+                                     col_names = maf_columns,
+                                     delim = "\t"))
     }
 
     if(verbose){

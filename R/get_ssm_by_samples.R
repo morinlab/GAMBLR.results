@@ -38,11 +38,11 @@
 #'
 #' hg38_ssms = get_ssm_by_samples(projection="hg38",
 #'                                these_samples_metadata = my_meta)
-#'
+#' \dontrun{
 #' my_metadata = dplyr::filter(my_metadata, pathology == "FL")
 #'
 #' sample_ssms = get_ssm_by_samples(these_samples_metadata = my_metadata)
-#'
+#' }
 get_ssm_by_samples = function(these_samples_metadata,
                               tool_name = "slms-3",
                               projection = "grch37",
@@ -61,9 +61,7 @@ get_ssm_by_samples = function(these_samples_metadata,
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
   remote_session = check_remote_configuration(auto_connect = TRUE)
-  if(!subset_from_merge){
-    message("WARNING: on-the-fly merges can be extremely slow and consume a lot of memory if many samples are involved. Use at your own risk. ")
-  }
+
   to_exclude = get_excluded_samples(tool_name)
 
   if(missing(these_samples_metadata)){
@@ -136,11 +134,11 @@ get_ssm_by_samples = function(these_samples_metadata,
       
       if(engine=="fread_maf"){
         if(basic_columns){
-          maf_df_merge = fread_maf(full_maf_path,select_cols = c(1:45)) %>%
+          maf_df_merge = suppressMessages(fread_maf(full_maf_path,select_cols = c(1:45))) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }else{
-          maf_df_merge = fread_maf(full_maf_path) %>%
+          maf_df_merge = suppressMessages(fread_maf(full_maf_path)) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }
@@ -153,7 +151,7 @@ get_ssm_by_samples = function(these_samples_metadata,
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }else{
-          maf_df_merge = fread_maf(full_maf_path) %>%
+          maf_df_merge = suppressMessages(fread_maf(full_maf_path)) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }
@@ -191,11 +189,11 @@ get_ssm_by_samples = function(these_samples_metadata,
       #  dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
       #  dplyr::filter(t_alt_count >= min_read_support)
       if(basic_columns){
-        maf_df_merge = fread_maf(full_maf_path,select_cols = c(1:45)) %>%
+        maf_df_merge = suppressMessages(fread_maf(full_maf_path,select_cols = c(1:45))) %>%
           dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
           dplyr::filter(t_alt_count >= min_read_support)
       }else{
-        maf_df_merge = fread_maf(full_maf_path) %>%
+        maf_df_merge = suppressMessages(fread_maf(full_maf_path)) %>%
           dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
           dplyr::filter(t_alt_count >= min_read_support)
       }

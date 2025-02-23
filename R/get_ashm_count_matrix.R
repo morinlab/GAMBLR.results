@@ -24,7 +24,8 @@
 #' @examples
 #' 
 #'\dontrun{
-#'   DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology=="DLBCL")
+#'   DLBCL_genome_meta = get_gambl_metadata() %>% 
+#'     dplyr::filter(pathology=="DLBCL")
 #' #get ashm regions
 #' some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
 #'                               fix_names = "concat",
@@ -44,7 +45,7 @@ get_ashm_count_matrix = function(
         projection
     ){
     if(missing(these_samples_metadata)){
-        these_samples_metadata <- get_gambl_metadata() %>%
+        these_samples_metadata <- suppressMessages(get_gambl_metadata()) %>%
             dplyr::filter(seq_type == this_seq_type) 
     }else{
         these_samples_metadata <- these_samples_metadata %>%

@@ -26,6 +26,7 @@ Depends:
     R (>= 4.1)
 Imports:
     BSgenome,
+    circlize,
     ComplexHeatmap,
     config,
     data.table,

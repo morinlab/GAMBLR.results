@@ -40,7 +40,7 @@
 #' \dontrun{
 #'  # long-handed way (mostly for illustration)
 #'  # 1. get some metadata for a collection of samples
-#'  some_meta = get_gambl_metadata() %>%
+#'  some_meta = suppressMessages(get_gambl_metadata()) %>%
 #'         dplyr::filter(cohort=="DLBCL_ICGC")
 #'
 #'  # 2. Get the SSMs for these samples
@@ -66,7 +66,7 @@
 #' # the seg_data and maf_data for you
 #'
 #'  # 1. get some metadata for a collection of samples
-#'  some_meta = get_gambl_metadata() %>%
+#'  some_meta = suppressMessages(get_gambl_metadata()) %>%
 #'         dplyr::filter(cohort=="DLBCL_ICGC") %>% head(3)
 #' 
 #' cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,

@@ -109,8 +109,8 @@ types of redundancy caused by samples or biopsies that have data from >1 seq_typ
 }
 \examples{
 #basic usage
-my_metadata = get_gambl_metadata()
-dplyr::group_by(metadata,patholog,seq_type) \%>\% dplyr::count()
+my_metadata = suppressMessages(get_gambl_metadata())
+dplyr::group_by(my_metadata,pathology,seq_type) \%>\% dplyr::count()
 \dontrun{
   # Rarely needed but can be useful for some applications:
   # override default filters and request metadata for samples
