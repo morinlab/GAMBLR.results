@@ -119,9 +119,9 @@ get_ssm_by_samples = function(these_samples_metadata,
         stop()
       }
       seq_type = these_samples_metadata$seq_type[1] #needed for glue
-      maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
+      maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$deblacklisted")
       maf_path = glue::glue(maf_template)
-      full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
+      full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
       message(paste("using existing merge:", full_maf_path))
       #if(!file.exists(full_maf_path)){
       #  full_maf_path = paste0(full_maf_path,".bgz")  
@@ -146,7 +146,10 @@ get_ssm_by_samples = function(these_samples_metadata,
         }
       }else if(engine=="readr"){
         if(basic_columns){
-          maf_df_merge = suppressMessages(read_tsv(full_maf_path,col_select = c(1:45),num_threads=12,col_types = maf_column_types,lazy = TRUE)) %>%
+          maf_df_merge = suppressMessages(
+            read_tsv(full_maf_path,
+            col_select = c(1:45),
+            num_threads=12,col_types = maf_column_types,lazy = TRUE)) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }else{
@@ -172,9 +175,9 @@ get_ssm_by_samples = function(these_samples_metadata,
       }
       
       seq_type = these_samples_metadata$seq_type[1] #needed for glue
-      maf_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
+      maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
       maf_path = glue::glue(maf_template)
-      full_maf_path =  paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), maf_path)
+      full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
       message(paste("using existing merge:", full_maf_path))
 
       #check for missingness

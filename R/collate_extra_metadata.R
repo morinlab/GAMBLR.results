@@ -14,8 +14,9 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' table = collate_extra_metadata(sample_table = "my_sample_table.txt")
-#'
+#' }
 collate_extra_metadata = function(sample_table,
                                   file_path){
 

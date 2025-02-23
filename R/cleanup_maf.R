@@ -15,9 +15,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' maf <- get_coding_ssm(basic_columns = FALSE)
 #' clean_maf = cleanup_maf(maf_df = maf)
-#'
+#' }
 #' @keywords internal
 cleanup_maf = function(maf_df){
 

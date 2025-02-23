@@ -74,7 +74,7 @@ mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
                                               slide_by = 10,
                                               window_size = 10000)
 head(mut_freq)
-
+\dontrun{
 # This will fail because the chromosome naming doesn't match the default projection 
 misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
                                                          region = "chr11:69455000-69459900",
@@ -86,5 +86,5 @@ mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
                                                          slide_by = 10,
                                                          window_size = 10000,projection="hg38")
 head(mut_freq)
-
+}
 }

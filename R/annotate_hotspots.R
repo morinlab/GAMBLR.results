@@ -20,7 +20,7 @@
 #' @examples
 #' my_metadata = suppressMessages(get_gambl_metadata())
 #' # get a few SSMs to annotate
-#' some_coding_ssm = GAMBLR.open::get_coding_ssm(these_samples_metadata = my_metadata,
+#' some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
 #'                                 projection = "grch37",
 #'                                 this_seq_type = "genome") %>% 
 #'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
@@ -33,8 +33,9 @@
 #'    dplyr::filter(!is.na(hot_spot)) %>% 
 #'    dplyr::select(1:10,37,hot_spot) 
 #'
+#' \dontrun{
 #' #This example will raise an error due to the user supplying an unsupported genome build:
-#' more_coding_ssm = GAMBLR.open::get_coding_ssm(
+#' more_coding_ssm = get_coding_ssm(
 #'                                 these_samples_metadata = my_metadata,
 #'                                 projection = "hg38",
 #'                                 this_seq_type = "capture") %>% 
@@ -47,6 +48,7 @@
 #' more_hot_ssms %>% 
 #'    dplyr::filter(!is.na(hot_spot)) %>% 
 #'    dplyr::select(1:10,37,hot_spot) 
+#' }
 annotate_hotspots = function(mutation_maf,
                              recurrence_min = 5,
                              analysis_base = c("FL--DLBCL", "BL--DLBCL"),
@@ -55,11 +57,17 @@ annotate_hotspots = function(mutation_maf,
                                       custom_error="This function currently only supports grch37")
   hotspot_info = list()
   for(abase in analysis_base){
-    base_path = GAMBLR.helpers::check_config_value(config::get("repo_base"))
-
-    clust_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$clusters))
+    
+    base_path = GAMBLR.helpers::check_config_and_value("repo_base")
+    clust_full_path = paste0(base_path, 
+      check_config_and_value("results_versioned$oncodriveclustl$clusters"))
+    
+    #clust_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$clusters))
     clust_full_path = glue::glue(clust_full_path)
-    all_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$elements))
+    all_full_path = paste0(base_path, 
+      check_config_and_value("results_versioned$oncodriveclustl$elements"))
+    
+    #all_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$elements))
     all_full_path = glue::glue(all_full_path)
     clust_hotspot = suppressMessages(readr::read_tsv(clust_full_path))
     all_hotspot = suppressMessages(readr::read_tsv(all_full_path))

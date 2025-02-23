@@ -14,8 +14,9 @@
 #' @noRd
 #'
 #' @examples
-#' table_up = append_to_table("my_table", "my_df")
-#'
+#' \dontrun{
+#'   table_up = append_to_table("my_table", "my_df")
+#' }
 append_to_table = function(table_name,
                            data_df){
 

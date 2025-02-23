@@ -21,7 +21,8 @@ Check if code is running remotely and react accordingly.
 The function will (optionally) attempt a connection if necessary, and stores it in a global variable (ssh_session).
 }
 \examples{
+\dontrun{
 check_host(auto_connect=TRUE)
-
+}
 }
 \keyword{internal}

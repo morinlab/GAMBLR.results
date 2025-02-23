@@ -99,22 +99,22 @@ get_ssm_by_region = function(chromosome,
   maf_indexes = unname(maf_indexes)
 
   #get config values
-  tabix_bin = GAMBLR.helpers::check_config_value(config::get("dependencies")$tabix)
-  table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$ssm)
-  db = GAMBLR.helpers::check_config_value(config::get("database_name"))
-  base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  base_path_remote = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
+  tabix_bin = check_config_and_value("dependencies$tabix")
+  table_name = check_config_and_value("results_tables$ssm")
+  db = check_config_and_value("database_name")
+  base_path = check_config_and_value("project_base")
+  base_path_remote = check_config_and_value("project_base",config_name="default")
 
   #get absolute file paths based on the selected mode and check existance for the file
   if(from_indexed_flatfile){
     if(mode == "slms-3"){
       if(augmented){
-        maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
+        maf_partial_path = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
       }else{
-        maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
+        maf_partial_path = check_config_and_value("results_flatfiles$ssm$template$merged$deblacklisted")
       }
     }else if (mode == "strelka2"){
-      maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$all$strelka2)
+      maf_partial_path = check_config_and_value("results_flatfiles$ssm$all$strelka2")
     }else{
       stop("You requested results from indexed flatfile. The mode should be set to either slms-3 (default) or strelka2. Please specify one of these modes.")
     }

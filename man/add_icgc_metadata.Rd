@@ -19,8 +19,9 @@ Layer on ICGC metadata from a supplemental table to fill in missing COO.
 INTERNAL FUNCTION called by \link{get_gambl_metadata}, not meant for out-of-package usage.
 }
 \examples{
-my_meta = get_gambl_metadata()
-icgc_metadata = add_icgc_metadata(incoming_metadata = my_meta)
-
+\dontrun{
+  my_meta = get_gambl_metadata()
+  icgc_metadata = add_icgc_metadata(incoming_metadata = my_meta)
+}
 }
 \keyword{internal}

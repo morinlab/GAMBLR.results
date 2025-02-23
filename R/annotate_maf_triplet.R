@@ -32,7 +32,7 @@
 #' @export
 #'
 #' @examples
-#' maf <- GAMBLR.open::get_coding_ssm(projection = "hg38") %>% head(n = 500)
+#' maf <- get_coding_ssm(projection = "grch37") %>% head(n = 500)
 #' # peek at the data
 #' dplyr::select(maf, 1:12) %>% head()
 #'
@@ -52,17 +52,6 @@ annotate_maf_triplet <- function(maf,
                                  fastaPath,
                                  pyrimidine_collapse = FALSE) {
   genome <- ""
-  # Get projection from NCBI_Build column of the maf
-  if ("NCBI_Build" %in% colnames(maf)) {
-    genome_build <- tolower(maf$NCBI_Build[1])
-  } # If it is not in the maf, look for it in bsgenome_name
-  else if (!missing(bsgenome_name)) {
-    bsgenome_parts <- unlist(strsplit(bsgenome_name, "\\."))
-    genome_build <- bsgenome_parts[4]
-  } # Cannot find it ask for mutating it
-  else {
-    stop("Please add the 'NCBI_Build' column to your MAF file to specify the genome build.")
-  }
   bsgenome_loaded <- FALSE
 
   # If there is no fastaPath, it will read it from config key
@@ -75,7 +64,7 @@ annotate_maf_triplet <- function(maf,
     if (missing(genome_build)) {
       stop("no genome_build information provided or present in maf")
     }
-    base <- check_config_value(config::get("repo_base"))
+    base <- check_config_and_value("repo_base")
     fastaPath <- paste0(
       base,
       "ref/lcr-modules-references-STABLE/genomes/",
@@ -83,12 +72,16 @@ annotate_maf_triplet <- function(maf,
       "/genome_fasta/genome.fa"
     )
     if (!file.exists(fastaPath)) {
+        #try another location. These should really move into the config.
+        fastaPath = paste0(base,genome_build,".fa")
+    }
+    if (!file.exists(fastaPath)) {
       # try BSgenome
       installed <- installed.genomes()
       if (genome_build == "hg38") {
         bsgenome_name <- "BSgenome.Hsapiens.UCSC.hg38"
       } else if (genome_build == "grch37") {
-        bsgenome_name <- "BSgenome.Hsapiens.NCBI.GRCh37"
+        bsgenome_name <- "BSgenome.Hsapiens.UCSC.hg19"
       } else {
         stop(paste("unsupported genome:", genome_build))
       }
@@ -146,6 +139,10 @@ annotate_maf_triplet <- function(maf,
   # Using BSgenome
   if (all_SNVs == TRUE) {
     if (bsgenome_loaded) {
+      if(genome_build == "grch37") {
+        maf = mutate(maf,original_chrom = Chromosome)
+        maf = mutate(maf, Chromosome = paste0("chr",Chromosome))
+      }
       sequences <- maf %>%
         dplyr::mutate(
           seq = ifelse(
@@ -220,6 +217,10 @@ annotate_maf_triplet <- function(maf,
           "NA"
         )
       )
+  }
+  if("original_chrom" %in% colnames(sequences)){
+        sequences = mutate(sequences,Chromosome = original_chrom) %>% 
+        dplyr::select(-original_chrom)
   }
   return(sequences)
 }

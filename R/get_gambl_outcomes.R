@@ -29,7 +29,8 @@ get_gambl_outcomes = function(patient_ids,
                               from_flatfile = TRUE){
 
   if(from_flatfile){
-    outcome_flatfile = paste0(GAMBLR.helpers::check_config_value(config::get("repo_base")), GAMBLR.helpers::check_config_value(config::get("table_flatfiles")$outcomes))
+    outcome_flatfile = paste0(check_config_and_value("repo_base"), 
+                              check_config_and_value("table_flatfiles$outcomes"))
 
     #check for missingness
     if(!file.exists(outcome_flatfile)){
@@ -39,13 +40,6 @@ get_gambl_outcomes = function(patient_ids,
 
     all_outcome = suppressMessages(read_tsv(outcome_flatfile))
 
-  }else{
-    db = GAMBLR.helpers::check_config_value(config::get("database_name"))
-    con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
-    all_outcome = dplyr::tbl(con, "outcome_metadata") %>%
-      as.data.frame()
-
-    DBI::dbDisconnect(con)
   }
   if(!missing(patient_ids)){
     all_outcome = all_outcome %>%
