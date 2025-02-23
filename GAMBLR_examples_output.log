@@ -883,6 +883,25 @@ Showing first 10 rows:
 capture  genome 
 1214014  248643 
 
+> # most common mutations by gene and Variant_Classification
+> dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>% 
++   dplyr::count() %>% 
++   dplyr::arrange(desc(n))
+genomic_data Object
+Genome Build: grch37 
+Showing first 10 rows:
+   Hugo_Symbol Variant_Classification    n
+1      IGLV3-1      Missense_Mutation 2952
+2     IGHV2-70      Missense_Mutation 2787
+3          TTN      Missense_Mutation 2474
+4         BCL2      Missense_Mutation 2120
+5         BCL2                 Silent 2120
+6        IGLL5      Missense_Mutation 1888
+7     IGHV1-69      Missense_Mutation 1570
+8         PIM1      Missense_Mutation 1180
+9        MUC16      Missense_Mutation 1172
+10       IGLL5                 Silent 1135
+
 > ### Name: get_ashm_count_matrix
 > ### Title: Get ASHM Count Matrix.
 > ### Aliases: get_ashm_count_matrix
@@ -890,23 +909,45 @@ capture  genome
 > ### ** Examples
 > 
 > 
-> ## Not run: 
-> ##D   DLBCL_genome_meta = get_gambl_metadata() %>% 
-> ##D     dplyr::filter(pathology=="DLBCL")
-> ##D #get ashm regions
-> ##D some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
-> ##D                               fix_names = "concat",
-> ##D                               concat_cols = c("gene","region"),sep="-")
-> ##D 
-> ##D mut_matrix <- get_ashm_count_matrix(
-> ##D      regions_bed = some_regions,
-> ##D      this_seq_type = "genome",
-> ##D      these_samples_metadata = DLBCL_genome_meta
-> ##D )
-> ## End(Not run)
 > 
-> 
-> 
+>   DLBCL_genome_meta = get_gambl_metadata() %>% 
++     dplyr::filter(pathology=="DLBCL")
+
+> #get ashm regions
+> some_regions = GAMBLR.utils::create_bed_data(
++                               GAMBLR.data::grch37_ashm_regions,
++                               fix_names = "concat",
++                               concat_cols = c("gene","region"),
++                               sep="-") %>%
++   dplyr::filter(grepl("PAX5",name))
+
+> pax5_matrix <- get_ashm_count_matrix(
++      regions_bed = some_regions,
++      this_seq_type = "genome",
++      these_samples_metadata = DLBCL_genome_meta
++ )
+
+> head(pax5_matrix)
+                  PAX5-TSS-1 PAX5-distal-enhancer-1 PAX5-distal-enhancer-3 PAX5-intron-1
+00-14595_tumorC            2                      4                      3            12
+00-15201_tumorA            0                      0                      3             7
+00-15201_tumorB            0                      0                      0             1
+00-17960_CLC01670          0                      0                      0            11
+FL1015T2                   0                      1                      0             0
+00-23442_tumorB            0                      0                      2             0
+                  PAX5-distal-enhancer-2
+00-14595_tumorC                        0
+00-15201_tumorA                        0
+00-15201_tumorB                        0
+00-17960_CLC01670                      2
+FL1015T2                               0
+00-23442_tumorB                        0
+
+> colMeans(pax5_matrix)
+            PAX5-TSS-1 PAX5-distal-enhancer-1 PAX5-distal-enhancer-3          PAX5-intron-1 
+             0.4402619              0.5319149              1.2487725              1.9247136 
+PAX5-distal-enhancer-2 
+             0.6579378 
 
 > ### Name: get_bams
 > ### Title: Get BAMs.
@@ -1578,6 +1619,19 @@ Showing first 10 rows:
 > 
 > all_fusions = get_gene_fusions()
 
+> onco_fusions = get_gene_fusions(keep_genes = c("BCL2","MYC","BCL6"))
+
+> print(head(onco_fusions))
+# A tibble: 6 × 13
+  sample_id CHROM_A   START_A     END_A CHROM_B START_B  END_B gene1 gene2 SCORE STRAND_A STRAND_B FLAGS
+  <chr>     <chr>       <dbl>     <dbl> <chr>     <dbl>  <dbl> <chr> <chr> <dbl> <chr>    <chr>    <chr>
+1 01-14875T 3       187463198 187463199 14       1.06e8 1.06e8 BCL6  IGH@      0 -        -        know…
+2 01-15092T 18       60793477  60793478 14       1.06e8 1.06e8 BCL2  IGH@      0 -        -        know…
+3 01-17838T 14      106070093 106070094 8        1.29e8 1.29e8 IGH@  MYC       0 +        +        know…
+4 01-19969T 18       60794689  60794690 14       1.06e8 1.06e8 BCL2  IGH@      0 -        -        know…
+5 01-20260T 18       60891187  60891188 14       1.06e8 1.06e8 BCL2  IGH@      0 -        -        know…
+6 01-20260T 14      106209408 106209409 18       6.08e7 6.08e7 IGH@  BCL2      0 +        -        know…
+
 > ### Name: get_lymphgen
 > ### Title: Get Lymphgen.
 > ### Aliases: get_lymphgen
@@ -2131,13 +2185,12 @@ Showing first 10 rows:
 > 
 > ### ** Examples
 > 
-> meta_df = get_gambl_metadata(seq_type_filter = c("genome", "capture")) %>%
+> meta_df = suppressMessages(get_gambl_metadata()) %>% 
++   dplyr::filter(seq_type %in% c("genome", "capture")) %>%
 +      dplyr::filter(pathology == "DLBCL")
-[1] "THE CODE THAT CAUSED THIS SHOULD BE FIXED TO USE THE NEW FUNCTION"
-[1] "seq_type_filter"
-[1mindexing[0m [34mgambl_all_outcomes.tsv[0m [==================================================] [32m41.67GB/s[0m, eta: [36m 0s[0m                                                                                                                                           [1mindexing[0m [34mgambl_samples_available.tsv[0m [============================================] [32m582.69GB/s[0m, eta: [36m 0s[0m                                                                                                                                           [1mindexing[0m [34mgambl_biopsy_metadata.tsv[0m [==============================================] [32m143.16GB/s[0m, eta: [36m 0s[0m                                                                                                                                           [1mindexing[0m [34mMALY_DE_tableS1.csv[0m [======================================================] [32m4.36GB/s[0m, eta: [36m 0s[0m                                                                                                                                           [1mindexing[0m [34mICGC_MALY_seq_md.tsv[0m [====================================================] [32m25.81GB/s[0m, eta: [36m 0s[0m                                                                                                                                           
+
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
-[1mindexing[0m [34mGAMBL_all_the_things.lymphgen_calls.with_cnvs.with_sv.with_A53.tsv[0m [======] [32m99.74GB/s[0m, eta: [36m 0s[0m                                                                                                                                           
+[1mindexing[0m [34mGAMBL_all_the_things.lymphgen_calls.with_cnvs.with_sv.with_A53.tsv[0m [=====] [32m137.74GB/s[0m, eta: [36m 0s[0m                                                                                                                                           
 > pretty_lymphoplot(
 +      meta_df,
 +      show_side_annotation = TRUE,
@@ -2158,13 +2211,3 @@ Showing first 10 rows:
 > 
 > 
 > 
-── R CMD build ─────────────────────────────────────────────────────────────────────────────────────────
-  ✔  checking for file ‘/Users/rmorin/git/GAMBLR.results/DESCRIPTION’
-  ─  preparing ‘GAMBLR.results’: (922ms)
-   checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-  ─  checking for LF line-endings in source and make files and shell scripts
-  ─  checking for empty or unneeded directories
-   Removed empty directory ‘GAMBLR.results/vignettes’
-     Omitted ‘LazyData’ from DESCRIPTION
-  ─  building ‘GAMBLR.results_1.3.tar.gz’
-
