@@ -1638,14 +1638,46 @@ Showing first 10 rows:
 > 
 > ### ** Examples
 > 
-> ## Not run: 
-> ##D lymphgens = get_lymphgen(flavour = "no_cnvs.no_sv.with_A53")
-> ##D lymphgen_simple = get_lymphgen(flavour = "no_cnvs.no_sv.no_A53")
-> ## End(Not run)
-> 
-> 
-> 
-> 
+> my_meta = get_gambl_metadata()
+
+> lymphgen_all <- get_lymphgen(
++            flavour = "no_cnvs.no_sv.with_A53", 
++            these = my_meta,
++             keep_original_columns = TRUE
++         )
+
+> head(lymphgen_all$features)
+# A tibble: 6 × 64
+  sample_id    BCL2  EZH2 SOCS1 KMT2D EP300 CREBBP TNFRSF14 MEF2B  IRF8  PIM2  BTG2 TBL1XR1 KLHL14  PIM1
+  <chr>       <dbl> <dbl> <dbl> <dbl> <dbl>  <dbl>    <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>  <dbl> <dbl>
+1 00-14595_t…     1     1     1     0     0      0        0     0     0     1     1       0      0     0
+2 00-14595_t…     1     1     1     0     0      0        0     0     0     0     1       1      0     0
+3 00-14595_t…     1     1     1     0     0      0        0     0     0     0     1       1      0     0
+4 00-14595_t…     1     1     0     0     0      0        0     0     0     1     1       0      1     0
+5 00-15201_t…     0     0     0     1     0      0        0     0     0     0     1       0      0     1
+6 00-15201_t…     0     0     0     0     1      0        0     0     0     1     0       0      0     0
+# ℹ 49 more variables: `HLA-A` <dbl>, `HLA-B` <dbl>, ETV6 <dbl>, PRDM1 <dbl>, BTG1 <dbl>, MPEG1 <dbl>,
+#   CD79B <dbl>, MYD88L265P <dbl>, GRHPR <dbl>, OSBPL10 <dbl>, SETD1B <dbl>, FOXC1 <dbl>, DTX1 <dbl>,
+#   ETS1 <dbl>, TNFAIP3 <dbl>, KLF2 <dbl>, CD70 <dbl>, BCL10 <dbl>, NOL9 <dbl>, BCL6 <dbl>,
+#   NOTCH2 <dbl>, UBE2A <dbl>, SPEN <dbl>, NOTCH1 <dbl>, ID3 <dbl>, RFTN1 <dbl>, ITPKB <dbl>,
+#   CD83 <dbl>, DUSP2 <dbl>, WEE1 <dbl>, DDX3X <dbl>, ACTG1 <dbl>, STAT3 <dbl>, TET2 <dbl>,
+#   MBTPS1 <dbl>, PRRC2C <dbl>, JUNB <dbl>, HIST1H1B <dbl>, ACTB <dbl>, NFKBIA <dbl>, EDRF1 <dbl>,
+#   SGK1 <dbl>, HIST1H2BC <dbl>, MED16 <dbl>, ZFP36L1 <dbl>, BCL2L1 <dbl>, SEC24C <dbl>, …
+
+> head(lymphgen_all$lymphgen)
+# A tibble: 6 × 22
+  sample_id       Copy.Number  BCL2.Translocation BCL6.Translocation Model Confidence.BN2 Confidence.EZB
+  <chr>           <chr>        <chr>              <chr>              <chr>          <dbl>          <dbl>
+1 00-14595_tumorA Not Availab… Not Available      Not Available      NoFu…           0.35           0.97
+2 00-14595_tumorB Not Availab… Not Available      Not Available      NoFu…           0.35           0.97
+3 00-14595_tumorC Not Availab… Not Available      Not Available      NoFu…           0.35           0.97
+4 00-14595_tumorD Not Availab… Not Available      Not Available      NoFu…           0.35           0.94
+5 00-15201_tumorA Not Availab… Not Available      Not Available      NoFu…           0.25           0.05
+6 00-15201_tumorB Not Availab… Not Available      Not Available      NoFu…           0.36           0.12
+# ℹ 15 more variables: Confidence.MCD <dbl>, Confidence.N1 <dbl>, Confidence.ST2 <dbl>,
+#   BN2.Feature.Count <dbl>, EZB.Feature.Count <dbl>, MCD.Feature.Count <dbl>, N1.Feature.Count <dbl>,
+#   ST2.Feature.Count <dbl>, BN2.Features <chr>, EZB.Features <chr>, MCD.Features <chr>,
+#   N1.Features <chr>, ST2.Features <chr>, Subtype.Prediction <chr>, LymphGen <chr>
 
 > ### Name: get_manta_sv
 > ### Title: Get Manta SVs
@@ -2190,13 +2222,13 @@ Showing first 10 rows:
 +      dplyr::filter(pathology == "DLBCL")
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
-[1mindexing[0m [34mGAMBL_all_the_things.lymphgen_calls.with_cnvs.with_sv.with_A53.tsv[0m [=====] [32m137.74GB/s[0m, eta: [36m 0s[0m                                                                                                                                           
+
 > pretty_lymphoplot(
 +      meta_df,
 +      show_side_annotation = TRUE,
 +      flavour = "with_cnvs.with_sv.no_A53"
 + )
-[1mindexing[0m [34mGAMBL_all_the_things.lymphgen_calls.with_cnvs.with_sv.no_A53.tsv[0m [=======] [32m127.20GB/s[0m, eta: [36m 0s[0m                                                                                                                                           
+
 > ### Name: tidy_gene_expression
 > ### Title: Tidy gene Expression.
 > ### Aliases: tidy_gene_expression
