@@ -33,11 +33,12 @@ get_timed_mutations <- function(this_sample_metadata, projection, verbose = FALS
   local_ssm <- "{local_base}/{unix_group}/mutationtimer-1.0/99-outputs/timed_ssm/{projection}/{sample_id}--{normal_sample_id}_timed_ssm.{projection}.tsv"
   local_cna = glue::glue(local_cna)
   local_ssm = glue::glue(local_ssm)
-  print(paste(local_cna,local_ssm))
   if(!file.exists(input_cna) | !file.exists(input_ssm)){
     #might be a remote session
     if(file.exists(local_cna) & file.exists(local_ssm)){
-        print("found both files locally!")
+        if(verbose) {
+          print("found both files locally!")
+        }
         input_cna = local_cna
         input_ssm = local_ssm
     }else{
@@ -65,22 +66,26 @@ get_timed_mutations <- function(this_sample_metadata, projection, verbose = FALS
 
       suppressMessages(suppressWarnings(dir.create(dirN, recursive = T)))
       if (!file.exists(local_cna)) {
-        print(paste("DOWNLOADING:", input_cna))
+        if(verbose) {
+          print(paste("DOWNLOADING:", input_cna))
+        }
         ssh::scp_download(ssh_session, input_cna, dirN)
       }
       dirN <- dirname(local_ssm)
       suppressMessages(suppressWarnings(dir.create(dirN, recursive = T)))
       if (!file.exists(input_ssm)) {
-        print(paste("DOWNLOADING:", input_ssm))
+        if(verbose) {
+          print(paste("DOWNLOADING:", input_ssm))
+        }
         ssh::scp_download(ssh_session, input_ssm, dirN)
       }
       input_ssm = local_ssm
       input_cna = local_cna
     }
   }
-  cna = suppressMessages(read_tsv(input_cna))
+  cna = suppressMessages(read_tsv(input_cna, progress = FALSE))
   cna = create_genomic_data(cna,projection)
-  ssm = suppressMessages(read_tsv(input_ssm))
+  ssm = suppressMessages(read_tsv(input_ssm, progress = FALSE))
   ssm = create_genomic_data(ssm,projection)
   return(list(CNA=cna,SSM=ssm))
 }
