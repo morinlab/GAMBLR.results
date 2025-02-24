@@ -25,10 +25,15 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' lymphgens = get_lymphgen(flavour = "no_cnvs.no_sv.with_A53")
-#' lymphgen_simple = get_lymphgen(flavour = "no_cnvs.no_sv.no_A53")
-#' }
+#' my_meta = get_gambl_metadata()
+#' lymphgen_all <- get_lymphgen(
+#'            flavour = "no_cnvs.no_sv.with_A53", 
+#'            these = my_meta,
+#'             keep_original_columns = TRUE
+#'         )
+#' head(lymphgen_all$features)
+#' 
+#' head(lymphgen_all$lymphgen)
 #'
 get_lymphgen = function(these_samples_metadata,
                         flavour,
@@ -72,7 +77,8 @@ get_lymphgen = function(these_samples_metadata,
     }
   }
 
-  lg = suppressMessages(read_tsv(lg_path))
+  lg = suppressMessages(read_tsv(lg_path,
+                                 progress = FALSE))
   lg_tidy = tidy_lymphgen(lg,lymphgen_column_in = "Subtype.Prediction",lymphgen_column_out = "LymphGen")
   
   if(!keep_all_rows){
