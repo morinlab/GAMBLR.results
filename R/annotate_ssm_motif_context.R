@@ -21,11 +21,15 @@
 #' @export
 #'
 #' @examples
-#' my_maf <- get_coding_ssm() %>% head()
+#' my_maf <- get_coding_ssm() %>% 
+#'   dplyr::filter(Hugo_Symbol=="BCL2") %>%
+#'   dplyr::arrange(Chromosome,Start_Position,Tumor_Sample_Barcode) %>%
+#'   head()
 #' 
-#' annotated = annotate_ssm_motif_context(maf = my_maf, motif = "WRCY", index = 3)
+#' annotated = annotate_ssm_motif_context(maf = my_maf,
+#'                                        motif = "WRCY")
 #' 
-#' print(annotated)
+#' dplyr::select(annotated,1,5,6,11,13,16,seq,WRCY)
 #'
 annotate_ssm_motif_context <- function(maf,
                                        motif = "WRCY",

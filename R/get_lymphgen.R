@@ -31,9 +31,9 @@
 #'            these = my_meta,
 #'             keep_original_columns = TRUE
 #'         )
-#' head(lymphgen_all$features)
+#' head(lymphgen_all$features[,c(1:14)])
 #' 
-#' head(lymphgen_all$lymphgen)
+#' head(lymphgen_all$lymphgen[,c(1:14)])
 #'
 get_lymphgen = function(these_samples_metadata,
                         flavour,

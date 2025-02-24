@@ -39,7 +39,6 @@
 #' outputs = estimate_purity(these = my_meta,
 #'                 show_plots = TRUE,
 #'                 projection  = "grch37")
-#'
 #' outputs$sample_purity_estimation
 estimate_purity = function(these_samples_metadata,
                            maf_data,
@@ -77,7 +76,6 @@ estimate_purity = function(these_samples_metadata,
           seg_data = seg_data,
           coding_only = coding_only,
           this_seq_type = this_seq_type)$maf
-        print(head(CN_new))
       }
       
   }

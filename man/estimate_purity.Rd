@@ -61,6 +61,5 @@ my_meta = suppressMessages(get_gambl_metadata()) \%>\%
 outputs = estimate_purity(these = my_meta,
                 show_plots = TRUE,
                 projection  = "grch37")
-
 outputs$sample_purity_estimation
 }
