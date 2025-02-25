@@ -40,17 +40,23 @@ Values are the number of mutations in that patient in the region.
 }
 \examples{
 
-\dontrun{
-  DLBCL_genome_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology=="DLBCL")
-#get ashm regions
-some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
-                              fix_names = "concat",
-                              concat_cols = c("gene","region"),sep="-")
 
-mut_matrix <- get_ashm_count_matrix(
+  DLBCL_genome_meta = get_gambl_metadata() \%>\% 
+    dplyr::filter(pathology=="DLBCL")
+#get ashm regions
+some_regions = GAMBLR.utils::create_bed_data(
+                              GAMBLR.data::grch37_ashm_regions,
+                              fix_names = "concat",
+                              concat_cols = c("gene","region"),
+                              sep="-") \%>\%
+  dplyr::filter(grepl("PAX5",name))
+
+pax5_matrix <- get_ashm_count_matrix(
      regions_bed = some_regions,
      this_seq_type = "genome",
      these_samples_metadata = DLBCL_genome_meta
 )
-}
+head(pax5_matrix)
+colMeans(pax5_matrix)
+
 }

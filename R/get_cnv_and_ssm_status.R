@@ -33,12 +33,12 @@
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
 #' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
-#' @param adjust_for_ploidy Set to TRUE to scale CN values by the genome-wide average per sample
+#' @param adjust_for_ploidy Set to FALSE to disable scaling of CN values by the genome-wide average per sample
 #' @param this_seq_type Deprecated
 #' 
 #' @return A data frame with CNV and SSM combined status.
 #' 
-#' @import dplyr
+#' @import dplyr GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -81,7 +81,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   genome_build = "grch37",
                                   include_hotspots = TRUE,
                                   review_hotspots = TRUE,
-                                  adjust_for_ploidy=FALSE,
+                                  adjust_for_ploidy=TRUE,
                                   include_silent=FALSE,
                                   this_seq_type){
   
@@ -130,22 +130,15 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     
     names(regions)=genes_and_cn_threshs_non_neutral$gene_id
     if(missing(seg_data)){
-      cn_matrix = get_cn_states(
-        regions = regions,
-        strategy="custom_regions",
-        these_samples_metadata = these_samples_metadata,
-        adjust_for_ploidy = adjust_for_ploidy
-      )
-    }else{
-      cn_matrix = segmented_data_to_cn_matrix(
+      seg_data = get_cn_segments(these = these_samples_metadata)
+    }
+    cn_matrix = segmented_data_to_cn_matrix(
+        seg_data = seg_data,
         regions=regions,
         strategy="custom_regions",
         these_samples_metadata = these_samples_metadata,
-        seg_data = seg_data,
         adjust_for_ploidy=adjust_for_ploidy
       )
-     
-    }
 
     cn_matrix = cn_matrix[these_samples_metadata$sample_id,, drop=FALSE]
     

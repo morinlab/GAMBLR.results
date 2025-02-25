@@ -111,7 +111,7 @@ genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
                       FL==TRUE) \%>\% dplyr::pull(Gene)
 
 # Metadata for FL genomes and exomes
-fl_meta = get_gambl_metadata() \%>\% 
+fl_meta = suppressMessages(get_gambl_metadata()) \%>\% 
     dplyr::filter(pathology=="FL",
                   cohort != "FL_Crouch",
                   seq_type != "mrna")

@@ -68,9 +68,9 @@ sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
 
 hg38_ssms = get_ssm_by_samples(projection="hg38",
                                these_samples_metadata = my_meta)
-
+\dontrun{
 my_metadata = dplyr::filter(my_metadata, pathology == "FL")
 
 sample_ssms = get_ssm_by_samples(these_samples_metadata = my_metadata)
-
+}
 }

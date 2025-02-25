@@ -16,11 +16,19 @@
 #' @examples
 #' my_meta = suppressMessages(get_gambl_metadata())
 #' maf_all_seqtype = get_all_coding_ssm(my_meta)
+#' 
 #' table(maf_all_seqtype$maf_seq_type)
-#'
+#' 
+#' # most common mutations by gene and Variant_Classification
+#' dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>% 
+#'   dplyr::count() %>% 
+#'   dplyr::arrange(desc(n))
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               ...){
+  if(missing(these_samples_metadata)){
+    stop("these_samples_metadata is required")
+  }
   these_samples_metadata = dplyr::filter(these_samples_metadata,
                                          seq_type!="mrna")
   seq_types_in_metadata = unique(these_samples_metadata$seq_type)

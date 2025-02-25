@@ -76,7 +76,7 @@ my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-12877
 
 
 #keep all 116 columns in the read MAF
-bcl2_all_details = get_ssm_by_region(region = "chr18:60796500-60988073",
+bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073",
                                      basic_columns = FALSE)
-
 }
+\keyword{internal}

@@ -20,12 +20,12 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' ex_outs = fetch_output_files(tool = "manta",
 #'                              base_path = "gambl/sequenza_current",
 #'                              this_seq_type = "capture",
 #'                              build = "hg38")
-#'
+#' }
 #' @keywords internal
 fetch_output_files = function(tool,
                               unix_group,

@@ -26,6 +26,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' #get collated results for all capture samples, using cached results
 #' capture_collated_everything = collate_results(seq_type_filter = "capture",
 #'                                               from_cache = TRUE,
@@ -52,7 +53,7 @@
 #' fl_collated = collate_results(sample_table = fl_samples,
 #'                               seq_type_filter = "genome",
 #'                               from_cache = TRUE)
-#'
+#' }
 collate_results = function(sample_table,
                            write_to_file = FALSE,
                            join_with_full_metadata = FALSE,

@@ -41,5 +41,7 @@ Retrieve fusions identified by FusionCatcher
 \examples{
 
 all_fusions = get_gene_fusions()
+onco_fusions = get_gene_fusions(keep_genes = c("BCL2","MYC","BCL6"))
+print(head(onco_fusions))
 
 }

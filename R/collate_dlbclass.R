@@ -18,9 +18,10 @@
 #' @noRd
 #'
 #' @examples
-#' sample_table <- get_gambl_metadata(seq_type_filter = "capture")
-#' sample_table <- collate_dlbclass(sample_table = sample_table)
-#'
+#' \dontrun{
+#'   sample_table <- get_gambl_metadata(seq_type_filter = "capture")
+#'   sample_table <- collate_dlbclass(sample_table = sample_table)
+#' }
 collate_dlbclass = function(
     sample_table
     ){

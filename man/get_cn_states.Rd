@@ -4,70 +4,24 @@
 \alias{get_cn_states}
 \title{Get CN States.}
 \usage{
-get_cn_states(
-  strategy,
-  regions,
-  these_samples_metadata,
-  n_bins_split = 1000,
-  use_cytoband_name = FALSE,
-  fill_missing_with = "diploid",
-  adjust_for_ploidy = FALSE,
-  projection = "grch37"
-)
-}
-\arguments{
-\item{strategy}{The general strategy to define regions. Available options are: 'custom_regions','auto_split','cytobands','GISTIC'}
-
-\item{regions}{Required when strategy is set to 'custom_regions'. A data frame in bed-like format or a vector of regions in the format "chrom:start-end"}
-
-\item{these_samples_metadata}{Optional (but highly recommended) metadata table to auto-subset the data to samples in that table before returning. If missing, the result will include a row for every sample in seg_data.}
-
-\item{n_bins_split}{Split genome into N equally sized bins}
-
-\item{use_cytoband_name}{Use cytoband names instead of region names, e.g p36.33.}
-
-\item{fill_missing_with}{The CN state to fill in for missing data. Default is "diploid".}
-
-\item{adjust_for_ploidy}{Set to TRUE to scale CN values by the genome-wide average per sample}
-
-\item{projection}{Specify the genome build you want. Default is grch37.}
-
-\item{missing_data_as_diploid}{Fill in any sample/region combinations with missing data as diploid (e.g., CN state like 2). Default is FALSE.}
+get_cn_states()
 }
 \value{
 Copy number matrix with sample_id as rows and regions as columns.
 }
 \description{
 Get a copy number matrix for all samples based on segmented data in the database.
+This function is deprecated and has been replaced by
+GAMBLR.utils::segmented_data_to_cn_matrix and GAMBLR.results::get_cn_segments
 }
 \details{
-This function returns CN states for the specified regions using the CN data from GAMBLR.results and (optionally) assumes regions with no data are diploid.
-For how to determine/specify the coordinates of each region, refer to the parameter descriptions and examples.
+This function returns CN states for the specified regions using the CN data
+from GAMBLR.results and (optionally) assumes regions with no data are diploid.
+For how to determine/specify the coordinates of each region, refer to the
+parameter descriptions and examples.
 }
 \examples{
 \dontrun{
-  my_metadata = get_gambl_metadata() \%>\% dplyr::filter(pathology=="BL")
-
-  # basic usage with 500 approximately equal-sized bins across the genome
-  # Use the hg38 projection (all coordinates will be relative to hg38)
-  cn_matrix = get_cn_states(strategy="auto_split",
-                          projection="hg38",
-                          these_samples_metadata = my_metadata,
-                          n_bins_split=500)
-
-  # get the CN state of every lymphoma gene instead
-
-  gene_cn = get_cn_states(strategy="custom_regions",
-                        these_samples_metadata = metadata,
-                        regions=GAMBLR.data::grch37_lymphoma_genes_bed)
-                        
-                        
-  # get the CN state per cytoband using hg38 projection.
-  # adjust CN values to correct for high ploidy
-  cytoband_cn = get_cn_states(strategy="cytobands",
-                            projection="hg38",
-                            use_cytoband_name=TRUE,
-                            these_samples_metadata=metadata,
-                            adjust_for_ploidy=TRUE)
+  get_cnv_and_ssm_status()
 }
 }

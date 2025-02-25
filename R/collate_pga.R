@@ -20,11 +20,11 @@
 #' @examples
 #' # For genomes
 #' \dontrun{
-#' meta <- get_gambl_metadata()
-#' pga_metrics <- collate_pga(these_samples_metadata = meta)
-#' # For exomes
-#' meta_capture <- get_gambl_metadata(seq_type_filter = "capture")
-#' pga_metrics_capture <- collate_pga(these_samples_metadata = meta_capture)
+#'   meta <- get_gambl_metadata()
+#'   pga_metrics <- collate_pga(these_samples_metadata = meta)
+#'   # For exomes
+#'   meta_capture <- get_gambl_metadata(seq_type_filter = "capture")
+#'   pga_metrics_capture <- collate_pga(these_samples_metadata = meta_capture)
 #' }
 collate_pga <- function(
     these_samples_metadata,

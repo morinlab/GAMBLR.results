@@ -136,8 +136,9 @@ For more information on how to use this function with different filtering criter
 examples and vignettes. Embargoed cases (current options: 'BLGSP-study', 'FL-study', 'DLBCL-study', 'FL-DLBCL-study', 'FL-DLBCL-all', 'DLBCL-unembargoed', 'BL-DLBCL-manuscript', 'MCL','MCL-CLL')
 }
 \examples{
+\dontrun{
 #basic usage
-my_metadata = get_gambl_metadata()
+my_metadata = suppressMessages(get_gambl_metadata())
 
 #use pre-defined custom sample sets
 only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
@@ -150,5 +151,5 @@ non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genom
                                                        seq_type_priority = "genome")
                                                        
 absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
-
+}
 }

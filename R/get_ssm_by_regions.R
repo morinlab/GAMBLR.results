@@ -30,18 +30,23 @@
 #'
 #' @return Returns a data frame of variants in MAF-like format.
 #'
-#' @import tibble dplyr tidyr
+#' @import tibble dplyr tidyr GAMBLR.utils
 #' @export
 #'
 #' @examples
 #' 
-#' regions_bed = GAMBLR.data::grch37_ashm_regions
+#' regions_bed = GAMBLR.utils::create_bed_data(
+#'    GAMBLR.data::grch37_ashm_regions,
+#'    fix_names = "concat",
+#'    concat_cols = c("gene","region"),sep="-"
+#' ) %>% head(20)
+#' 
 #' DLBCL_meta = suppressMessages(get_gambl_metadata()) %>% 
 #'                 dplyr::filter(pathology=="DLBCL")
 #' ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
 #'                              these_samples_metadata = DLBCL_meta,
 #'                              streamlined=F)
-#'  ashm_MAF %>% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) %>%
+#' ashm_MAF %>% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) %>%
 #'               dplyr::select(Hugo_Symbol,
 #'                     Tumor_Sample_Barcode,
 #'                     Chromosome,Start_Position,
@@ -63,7 +68,13 @@ get_ssm_by_regions = function(regions_list,
                               min_read_support = 4,
                               basic_columns = FALSE,
                               verbose = FALSE){
-  
+  genome_build = NULL
+  if(missing(these_samples_metadata)){
+    stop("these_samples_metadata is required")
+  }
+  #ensure we only process the seq_type specified
+  these_samples_metadata = dplyr::filter(these_samples_metadata,
+    seq_type == this_seq_type)
   if(streamlined){
     message("Streamlined is set to TRUE, this function will disregard anything specified with basic_columns")
     message("To return a MAF with standard 45 columns, set streamlioned = FALSE and basic_columns = TRUE")
@@ -90,6 +101,14 @@ get_ssm_by_regions = function(regions_list,
     print(regions)
   }
   if(missing(maf_data)){
+    #projection is required if the MAF was not provided
+    if(is.null(genome_build)){
+      if(missing(projection)){
+        stop("projection is required when maf_data is not provided.")
+      }else{
+        genome_build = projection
+      }
+    }
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
           
                                                                 these_samples_metadata = these_samples_metadata,
@@ -98,7 +117,7 @@ get_ssm_by_regions = function(regions_list,
                                                                 mode = mode,
                                                                 augmented = augmented,
                                                                 this_seq_type = this_seq_type,
-                                                                projection = projection,
+                                                                projection = genome_build,
                                                                 basic_columns = basic_columns)})
   }else{
     region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
@@ -127,7 +146,7 @@ get_ssm_by_regions = function(regions_list,
       return(unlisted_df)
   }else{
     region_mafs = do.call(bind_rows, region_mafs)
-    region_mafs = create_maf_data(region_mafs, genome_build=projection)
+    region_mafs = GAMBLR.utils::create_maf_data(region_mafs, genome_build=genome_build)
     return(region_mafs)
   }
   

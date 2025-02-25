@@ -19,7 +19,8 @@ Create an ssh session to the GSC (requires active VPN connection)
 Using the ssh R package to create an ssh session.
 }
 \examples{
+\dontrun{
 my_session = get_ssh_session()
-
+}
 }
 \keyword{internal}

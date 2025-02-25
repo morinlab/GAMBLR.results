@@ -58,7 +58,7 @@ The heatmap plotting portion of this function has been moved to \link{heatmap_mu
 \examples{
 \dontrun{
  #load metadata.
- metadata = get_gambl_metadata()
+ metadata = suppressMessages(get_gambl_metadata())
  dlbcl_bl_meta = dplyr::filter(metadata, pathology \%in\% c("DLBCL", "BL"))
 
  #get ashm regions

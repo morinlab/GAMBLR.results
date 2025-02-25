@@ -52,14 +52,14 @@ You can subset to events affecting certain loci using the
 \examples{
 # lazily get every SV in the table with default quality filters
 all_sv <- get_combined_sv()
-head(all_sv)
+dplyr::select(all_sv,1:14)
 
 # get all SVs for just one cohort
 cohort_meta = suppressMessages(get_gambl_metadata()) \%>\% 
               dplyr::filter(cohort == "DLBCL_cell_lines")
 
 some_sv <- get_combined_sv(these_samples_metadata = cohort_meta)
-head(some_sv)
+dplyr::select(some_sv,1:14)
 nrow(some_sv)
 
 # get the SVs in a region around MYC
@@ -70,25 +70,25 @@ myc_region_grch37 = "8:128723128-128774067"
 
 hg38_myc_locus_sv <- get_combined_sv(region = myc_region_hg38,
                                 projection = "hg38")
-head(hg38_myc_locus_sv)
+dplyr::select(hg38_myc_locus_sv,1:14)
 nrow(hg38_myc_locus_sv)
 
 incorrect_myc_locus_sv <- get_combined_sv(region = myc_region_grch37,
                                 projection = "hg38")
-head(incorrect_myc_locus_sv)
+dplyr::select(incorrect_myc_locus_sv,1:14)
 nrow(incorrect_myc_locus_sv)
 
 # Despite potentially being incomplete, we can nonetheless
 # annotate these directly for more details
 annotated_myc_hg38 = suppressMessages(
-         annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+         GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
 )
 head(annotated_myc_hg38)
 table(annotated_myc_hg38$partner)
 # The usual MYC partners are seen here
 
 annotated_myc_incorrect = suppressMessages(
-         annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+         GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
 )
 head(annotated_myc_incorrect)
 table(annotated_myc_incorrect$partner)

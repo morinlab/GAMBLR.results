@@ -80,8 +80,8 @@
 #'
 #' @examples
 #' #basic usage
-#' my_metadata = get_gambl_metadata()
-#' dplyr::group_by(metadata,patholog,seq_type) %>% dplyr::count()
+#' my_metadata = suppressMessages(get_gambl_metadata())
+#' dplyr::group_by(my_metadata,pathology,seq_type) %>% dplyr::count()
 #' \dontrun{
 #'   # Rarely needed but can be useful for some applications:
 #'   # override default filters and request metadata for samples
@@ -110,6 +110,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
     args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
     message("one or more arguments for the original get_gambl_metadata detected, reverting to that function")
+    print("THE CODE THAT CAUSED THIS SHOULD BE FIXED TO USE THE NEW FUNCTION")
     print(args_match)
     return(og_get_gambl_metadata(...))
   }
@@ -120,13 +121,17 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   base = check_config_and_value("repo_base")
   sample_flatfile = paste0(base,
     check_config_and_value("table_flatfiles$samples"))
-  sample_meta = suppressMessages(read_tsv(sample_flatfile, guess_max = 100000))
+  sample_meta = suppressMessages(read_tsv(sample_flatfile,
+                                          guess_max = 100000,
+                                          progress = FALSE))
 
 
 
   biopsy_flatfile = paste0(base,
     check_config_and_value("table_flatfiles$biopsies"))
-  biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile, guess_max = 100000))
+  biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile,
+                                          guess_max = 100000,
+                                          progress = FALSE))
 
 
 
@@ -145,9 +150,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   massage_tumour_metadata = function(tumour_metadata){
     #check that capture samples have a protocol, fill in missing values and warn about it
-    num_missing_protocol = filter(tumour_metadata,seq_type=="capture",is.na(protocol)) %>% nrow()
-    message(paste(num_missing_protocol,"capture samples are missing a value for protocol. Assuming Exome."))
-    tumour_metadata = mutate(tumour_metadata,protocol=case_when(seq_type == "capture" & is.na(protocol) ~ "Exome",
+    num_missing_protocol = filter(tumour_metadata,
+                                  seq_type=="capture",is.na(protocol)) %>% nrow()
+    message(paste(num_missing_protocol,
+                 "capture samples are missing a value for protocol. Assuming Exome."))
+    tumour_metadata = mutate(tumour_metadata,
+                             protocol=case_when(seq_type == "capture" & is.na(protocol) ~ "Exome",
                                                                 seq_type == "genome" & is.na(protocol) ~ "Genome",
                                                                 TRUE ~ protocol))
     return(tumour_metadata)
@@ -159,7 +167,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
     base = check_config_and_value("repo_base")
     flatfile = paste0(base, 
       check_config_and_value("table_flatfiles$biopsies"))
-    b_meta = suppressMessages(read_tsv(flatfile, guess_max = 100000))
+    b_meta = suppressMessages(read_tsv(flatfile, guess_max = 100000, progress = FALSE))
     #sanity check biopsy_metadata contents
     missing_biopsies = filter(tumour_metadata,!biopsy_id %in% b_meta$biopsy_id) %>% select(sample_id,biopsy_id,cohort,pathology)
     n_missing_biopsies = nrow(missing_biopsies)

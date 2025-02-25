@@ -5,9 +5,14 @@
 #' @description Retrieve all coding SSMs from one seq_type in GAMBL
 #' in MAF-like format.
 #'
-#' @details Effectively retrieve coding SSM calls for either
-#' capture or genome seq_type. A superior function that can do everything
-#' this can do and more is [GAMBLR.results::get_all_coding_ssm] 
+#' @details Effectively retrieve simple somatic mutations (SSM) results for
+#' either capture or genome seq_type (but not both at once).
+#' The resulting data frame will be a maf_data object, which tracks the
+#' genome build (projection) for the variants and will have a
+#' maf_seq_type column that tracks the origin seq_type each variant.
+#' In most cases, users should be using the related function that
+#' is able to obtain SSMs across both genome and capture seq_type:
+#' [GAMBLR.results::get_all_coding_ssm] 
 #' Is this function not what you are looking for? Try one of:
 #' [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_patients],
@@ -16,28 +21,43 @@
 #' [GAMBLR.results::get_ssm_by_region],
 #' [GAMBLR.results::get_ssm_by_regions]
 #'
-#' @param these_samples_metadata Supply a metadata table to auto-subset the data to samples in that table before returning.
-#' @param these_sample_ids Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the `limit_samples` parameter).
-#' @param force_unmatched_samples Optional argument for forcing unmatched samples, using [GAMBLR.results::get_ssm_by_samples].
-#' @param projection Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.
-#' @param this_seq_type The seq_type you want back, default is genome.
-#' @param basic_columns Set to FALSE to override the default behavior of returning only the first 45 columns of MAF data.
-#' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters (matching columns in MAF).
-#' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF
-#' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs)
-#' @param include_silent Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.
-#' @param verbose Controls the "verboseness" of this function (and internally called helpers).
+#' @param these_samples_metadata Optional (but highly recommended) metadata
+#' table to tell the function how to subset the data. Only sample_id in
+#' this table with the matching seq_type will be in the output. Not all
+#' samples may be in the output, though, if they are missing SSM results
+#' or had no mutations detected.
+#' @param force_unmatched_samples Optional argument for forcing unmatched
+#' samples, using [GAMBLR.results::get_ssm_by_samples].
+#' @param projection Reference genome build for the coordinates in the MAF file.
+#' The default is grch37.
+#' @param this_seq_type The seq_type you want SSMs from, default is genome.
+#' @param basic_columns Basic columns refers to the first 45 standard MAF
+#' columns. Set this to FALSE if you want all the available columns instead.
+#' @param maf_cols if basic_columns is set to FALSE, the user can specify
+#' which columns to be returned within the MAF. This parameter can either
+#' be a vector of indexes (integer) or a vector of characters (matching
+#' columns in MAF).
+#' @param augmented Set to FALSE if you instead want the original MAF from
+#' each sample for multi-sample patients instead of the augmented MAF
+#' @param min_read_support Only returns variants with at least this many
+#' reads in t_alt_count (for cleaning up augmented MAFs)
+#' @param include_silent Logical indicating whether to include
+#' silent mutations in coding regions (i.e. synonymous). Default is TRUE.
+#' @param verbose Controls the "verboseness" of this function (and
+#' internally called helpers).
 #' @param from_flatfile Deprecated. Ignored
 #' @param engine Deprecated. Ignored
-#' @param groups Deprecated. Use either these_samples_metadata or these_sample_ids instead 
-#' @param limit_cohort Deprecated. Use either these_samples_metadata or these_sample_ids instead 
-#' @param exclude_cohort  Deprecated. Use either these_samples_metadata or these_sample_ids instead 
-#' @param limit_pathology Deprecated. Use either these_samples_metadata or these_sample_ids instead 
-#' @param limit_samples Deprecated. Use either these_samples_metadata or these_sample_ids instead 
+#' @param groups Deprecated. Use these_samples_metadata instead.
+#' @param these_sample_ids Deprecated. Use these_samples_metadata instead.
+#' @param limit_cohort Deprecated. Use these_samples_metadata instead.
+#' @param exclude_cohort  Deprecated. Use these_samples_metadata instead.
+#' @param limit_pathology Deprecated. Use these_samples_metadata instead.
+#' @param limit_samples Deprecated. Use these_samples_metadata instead.
 #'
-#' @return A data frame containing all the MAF data columns (one row per mutation).
+#' @return A data frame containing all the MAF data columns
+#' (one row per mutation).
 #'
-#' @import dplyr tidyr RMariaDB DBI glue GAMBLR.helpers
+#' @import dplyr tidyr RMariaDB DBI glue GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -49,13 +69,12 @@
 #' 
 #'   dplyr::select(maf_genome,1,4,5,6,9,maf_seq_type)
 #' 
-#'   maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",projection="hg38") 
+#'   maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",
+#'                                   projection="hg38") 
 #' 
 #'   dplyr::select(maf_exome_hg38,1,4,5,6,9,maf_seq_type)
 #' 
-get_coding_ssm = function(
-                          these_sample_ids = NULL,
-                          these_samples_metadata = NULL,
+get_coding_ssm = function(these_samples_metadata = NULL,
                           force_unmatched_samples,
                           projection = "grch37",
                           this_seq_type = "genome",
@@ -66,18 +85,19 @@ get_coding_ssm = function(
                           groups = c("gambl", "icgc_dart"),
                           include_silent = TRUE,
                           engine,
-                          verbose = TRUE,
+                          verbose = FALSE,
                           limit_cohort,
                           exclude_cohort,
                           limit_pathology,
                           limit_samples,
-                          from_flatfile){
+                          from_flatfile,
+                          these_sample_ids){
   
 
-  if(any(!missing(groups),!missing(limit_cohort),!missing(exclude_cohort),!missing(limit_pathology),!missing(limit_samples))){
-    stop("limit_samples, limit_cohort, exclude_cohort and limit_pathology are deprecated, use `these_sample_ids` instead, or use a metadata table already subset to the samples of interest with `these_samples_metadata`")
+  if(any(!missing(groups),!missing(limit_cohort),!missing(exclude_cohort),!missing(limit_pathology),!missing(limit_samples),!missing(these_sample_ids))){
+    stop("limit_samples, limit_cohort, exclude_cohort and limit_pathology, these_sample_ids are deprecated. Use `these_samples_metadata` instead")
   }
-
+  
   remote_session = check_remote_configuration()
   
   if(!include_silent){
@@ -136,20 +156,15 @@ get_coding_ssm = function(
     muts = dplyr::filter(muts, t_alt_count >= min_read_support)
   }
 
-  #filter maf on selected sample ids
-  if(!missing(these_sample_ids)){
-    muts = muts %>%
-      dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids)
-  }
 
-  if(verbose){
-    if(!missing(these_samples_metadata)){
+  if(!missing(these_samples_metadata)){
+      these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type == this_seq_type)
       muts = dplyr::filter(muts,Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
       mutated_samples = length(unique(muts$Tumor_Sample_Barcode))
-      message(paste("after linking with metadata, we have mutations from exactly", mutated_samples, "samples")) 
+      if(verbose){
+        message(paste("after linking with metadata, we have mutations from exactly", mutated_samples, "samples")) 
+      }
     }
-    
-  }
 
   #subset maf to a specific set of columns (defined in maf_cols)
   if(!is.null(maf_cols) && !basic_columns){
@@ -172,6 +187,6 @@ get_coding_ssm = function(
   }
   
   muts = mutate(muts,maf_seq_type = this_seq_type)
-  muts = create_maf_data(muts,projection)
+  muts = GAMBLR.utils::create_maf_data(muts,projection)
   return(muts)
 }

@@ -29,8 +29,15 @@ check_gene_expression = function(verbose=F, show_linkages=F, ...){
   # We start with the minimal metadata that corresponds to the tidy expression file (sample_metadata.tsv)
   metadata_file = check_config_and_value("results_merged$tidy_expression_metadata")
   metadata_file = paste0(check_config_and_value("project_base"),metadata_file)
-  expression_data_rows = suppressMessages(read_tsv(metadata_file)) %>% 
-                                            dplyr::select(sample_id,tissue_status,seq_type,patient_id,biopsy_id,protocol,ffpe_or_frozen,cohort) %>%
+  expression_data_rows = suppressMessages(read_tsv(metadata_file,progress = FALSE)) %>% 
+                                            dplyr::select(sample_id,
+                                                         tissue_status,
+                                                         seq_type,
+                                                         patient_id,
+                                                         biopsy_id,
+                                                         protocol,
+                                                         ffpe_or_frozen,
+                                                         cohort) %>%
                                             dplyr::rename(c("mrna_sample_id"="sample_id"))
   
 

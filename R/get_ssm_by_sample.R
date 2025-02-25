@@ -11,7 +11,6 @@
 #' @param these_samples_metadata Required if not specifying both this_sample_id and this_seq_type a single row or entire metadata table containing your sample_id.
 #' @param tool_name The name of the variant calling pipeline (currently only slms-3 is supported).
 #' @param projection The projection genome build. Supports hg38 and grch37.
-#' @param these_genes A vector of genes to subset ssm to.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.
 #' @param flavour Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
@@ -44,7 +43,6 @@
 get_ssm_by_sample = function(these_samples_metadata,
                              tool_name = "slms-3",
                              projection = "grch37",
-                             these_genes,
                              augmented = TRUE,
                              flavour = "clustered",
                              min_read_support = 3,
@@ -206,10 +204,6 @@ get_ssm_by_sample = function(these_samples_metadata,
     sample_ssm = fread_maf(full_maf_path)
   }
 
-  if(!missing(these_genes)){
-    sample_ssm = sample_ssm %>%
-      dplyr::filter(Hugo_Symbol %in% these_genes)
-  }
 
   #subset maf to only include first 43 columns (default)
   if(basic_columns){

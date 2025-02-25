@@ -69,8 +69,10 @@ annotate_hotspots = function(mutation_maf,
     
     #all_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$elements))
     all_full_path = glue::glue(all_full_path)
-    clust_hotspot = suppressMessages(readr::read_tsv(clust_full_path))
-    all_hotspot = suppressMessages(readr::read_tsv(all_full_path))
+    clust_hotspot = suppressMessages(readr::read_tsv(clust_full_path,
+                                    progress = FALSE))
+    all_hotspot = suppressMessages(readr::read_tsv(all_full_path,
+                                  progress = FALSE))
 
   clustered_hotspots = clust_hotspot %>%
     dplyr::select(-RANK) %>%

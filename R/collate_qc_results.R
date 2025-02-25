@@ -14,8 +14,9 @@
 #' @noRd
 #'
 #' @examples
-#' qc_metrics = collate_qc_results(sample_table = sample_table)
-#'
+#' \dontrun{
+#'   qc_metrics = collate_qc_results(sample_table = sample_table)
+#' }
 collate_qc_results = function(sample_table,
                               seq_type_filter = "genome"){
 

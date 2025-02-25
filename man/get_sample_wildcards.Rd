@@ -21,8 +21,9 @@ Get wildcards for a sample_id/seq_type combination.
 Return sample wildcards, useful for getting wildcard information necessary for retrieving sample-level flat-files with glue.
 }
 \examples{
+\dontrun{
 get_sample_wildcards(this_sample_id = "00-15201_tumorA",
                      this_seq_type = "genome")
-
+}
 }
 \keyword{internal}

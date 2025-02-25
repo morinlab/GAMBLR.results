@@ -13,12 +13,14 @@
 #'
 #' @return A data frame in a bedpe-like format 
 #'
-#' @import dplyr readr glue 
+#' @import dplyr readr glue
 #' @export
 #'
 #' @examples
 #' 
 #' all_fusions = get_gene_fusions()
+#' onco_fusions = get_gene_fusions(keep_genes = c("BCL2","MYC","BCL6"))
+#' print(head(onco_fusions))
 #'
 get_gene_fusions = function(projection = "grch37",
                        verbose=F,
@@ -61,7 +63,8 @@ get_gene_fusions = function(projection = "grch37",
     if(verbose){
       print(fusion_path)
     }
-    all_fusions = read_tsv(fusion_path) %>%
+    all_fusions = suppressMessages(read_tsv(fusion_path,
+                                            progress = FALSE)) %>%
       separate(FUSION,into=c("gene1","gene2"),sep=":")
     if(!missing(keep_genes)){
       all_fusions = dplyr::filter(all_fusions,gene1 %in% keep_genes | gene2 %in% keep_genes)
