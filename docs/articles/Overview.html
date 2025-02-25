@@ -100,7 +100,8 @@ most functions should just ignore seq_type rows that are not relevant.
 This example also drops all FFPE samples and retains only DLBCL and FL
 pathology.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span></span>
 <span>    <span class="va">pathology</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FL"</span>, <span class="st">"DLBCL"</span><span class="op">)</span>,</span>
 <span>    <span class="va">ffpe_or_frozen</span> <span class="op">==</span> <span class="st">"frozen"</span></span>
@@ -141,7 +142,8 @@ seq_type for those samples that have both data types. A column
 determine which mutations came from <em>genome</em> vs <em>capture</em>
 data.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dna_meta</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">my_meta</span>, <span class="va">seq_type</span> <span class="op">!=</span> <span class="st">"mrna"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">dna_meta</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">my_meta</span>, <span class="va">seq_type</span> <span class="op">!=</span> <span class="st">"mrna"</span><span class="op">)</span></span>
 <span><span class="va">all_coding</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_all_coding_ssm.html">get_all_coding_ssm</a></span><span class="op">(</span></span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">dna_meta</span>,</span>
 <span>  projection <span class="op">=</span> <span class="st">"hg38"</span>,</span>
@@ -167,7 +169,9 @@ methods in <code>GAMBLR.utils</code> that ensure these attributes remain
 <em>stuck</em> to these data types while you manipulate them with dplyr
 verbs.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">all_coding</span>, <span class="fl">1</span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">all_coding</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; genomic_data Object</span></span>
 <span><span class="co">#&gt; Genome Build: hg38 </span></span>
 <span><span class="co">#&gt; Showing first 10 rows:</span></span>
@@ -231,7 +235,8 @@ from the data.</p>
 <span><span class="co"># Error in check_get_projection(list(this_maf = mutation_maf), "grch37",  : </span></span>
 <span><span class="co"># This function currently only supports grch37</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># The workaround until someone resolves this is to disable that feature</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co"># The workaround until someone resolves this is to disable that feature</span></span>
 <span><span class="va">coding_tabulated_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_coding_ssm_status.html">get_coding_ssm_status</a></span><span class="op">(</span></span>
 <span>  maf_data <span class="op">=</span> <span class="va">all_coding</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">dna_meta</span>,</span>
@@ -258,7 +263,8 @@ from the data.</p>
 <p>Testing some other visualizations</p>
 <p><code>heatmap_mutation_frequency_bin</code></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu">GAMBLR.open</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/GAMBLR.open/man/get_gambl_metadata.html" class="external-link">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu">GAMBLR.open</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/GAMBLR.open/man/get_gambl_metadata.html" class="external-link">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="st">"FL_Dreval"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use the new approach to embed genome_build in your regions_bed</span></span>
@@ -306,7 +312,8 @@ from the data.</p>
 <p><img src="Overview_files/figure-html/heatmap1-1.png" width="700"></p>
 <p>This also works seamlessly for capture data.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">my_other_regions</span> <span class="op">&lt;-</span> <span class="fu">create_bed_data</span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">my_other_regions</span> <span class="op">&lt;-</span> <span class="fu">create_bed_data</span><span class="op">(</span></span>
 <span>  <span class="fu">GAMBLR.data</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/GAMBLR.data/man/grch37_ashm_regions.html" class="external-link">grch37_ashm_regions</a></span>,</span>
 <span>  fix_names <span class="op">=</span> <span class="st">"concat"</span>,</span>
 <span>  concat_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gene"</span>, <span class="st">"region"</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"-"</span></span>
@@ -328,7 +335,8 @@ from the data.</p>
 <p>Note that both genome builds are supported and the correct coordinate
 system is inferred from regions_bed.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># use the original my_regions (grch37)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co"># use the original my_regions (grch37)</span></span>
 <span><span class="fu">heatmap_mutation_frequency_bin</span><span class="op">(</span></span>
 <span>  regions_bed <span class="op">=</span> <span class="va">my_regions</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">cap_meta</span>,</span>
@@ -349,36 +357,17 @@ many patients, possibly spanning multiple pathologies? This is
 definitely a job for <code>prettyOncoplot</code></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
+<span></span>
 <span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu">GAMBLR.results</span><span class="fu">::</span><span class="fu"><a href="../reference/get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span></span>
 <span>    <span class="va">pathology</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FL"</span>, <span class="st">"DLBCL"</span><span class="op">)</span>,</span>
 <span>    <span class="va">ffpe_or_frozen</span> <span class="op">==</span> <span class="st">"frozen"</span>,</span>
 <span>    <span class="va">seq_type</span> <span class="op">!=</span> <span class="st">"mrna"</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; 3258 capture samples are missing a value for protocol. Assuming Exome.</span></span>
-<span><span class="co">#&gt; 63 biopsies are missing from the biopsy metadata. This should be fixed!</span></span>
-<span><span class="co">#&gt; affected cohorts:  DLBCL_LSARP_Trios,SMZL_Strefford,cHL_Maura</span></span>
-<span><span class="co">#&gt; 110 biopsies with discrepancies in the pathology field. This should be fixed!</span></span>
-<span><span class="co">#&gt; 10 biopsies with discrepancies in the time_point field. This should be fixed!</span></span>
 <span><span class="fu">prettyOncoplot</span><span class="op">(</span><span class="va">all_coding</span>,</span>
 <span>  genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"EZH2"</span>, <span class="st">"CREBBP"</span>, <span class="st">"MYD88"</span>, <span class="st">"CCND3"</span>, <span class="st">"KMT2D"</span>, <span class="st">"IGLL5"</span><span class="op">)</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">my_meta</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; There are no missing genes during onco matrix assembly.</span></span>
-<span><span class="co">#&gt; You should name at least one metadata column to show as an annotation. Defaulting to pathology</span></span>
-<span><span class="co">#&gt; All mutation types: Missense_Mutation, Multi_Hit, Splice_Site,</span></span>
-<span><span class="co">#&gt; Frame_Shift_Del, In_Frame_Del, Nonsense_Mutation, Frame_Shift_Ins,</span></span>
-<span><span class="co">#&gt; In_Frame_Ins, Translation_Start_Site, Nonstop_Mutation.</span></span>
-<span><span class="co">#&gt; `alter_fun` is assumed vectorizable. If it does not generate correct</span></span>
-<span><span class="co">#&gt; plot, please set `alter_fun_is_vectorized = FALSE` in `oncoPrint()`.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/pretty1-1.png" width="700"></p>
 <p>Letting prettyOncoplot decide which genes to include based on
 mutation frequency in the data.</p>
@@ -388,29 +377,15 @@ mutation frequency in the data.</p>
 <span>  minMutationPercent <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  simplify_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">my_meta</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; creating oncomatrix with 182 genes</span></span>
-<span><span class="co">#&gt; There are no missing genes during onco matrix assembly.</span></span>
-<span><span class="co">#&gt; You should name at least one metadata column to show as an annotation. Defaulting to pathology</span></span>
-<span><span class="co">#&gt; All mutation types: Missense, Truncating, Splice_Site.</span></span>
-<span><span class="co">#&gt; `alter_fun` is assumed vectorizable. If it does not generate correct</span></span>
-<span><span class="co">#&gt; plot, please set `alter_fun_is_vectorized = FALSE` in `oncoPrint()`.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span>
-<span><span class="co">#&gt; No legend element is put in the last 1 row under `nrow = 3`, maybe you</span></span>
-<span><span class="co">#&gt; should set `by_row = FALSE`? Reset `nrow` to 2.</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/pretty2-1.png" width="700"></p>
 <p>Attaching non-coding mutation data to an oncoplot involves first
 creating an aSHM count matrix.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
+<span></span>
 <span><span class="va">my_meta</span> <span class="op">&lt;-</span> <span class="fu">GAMBLR.open</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/GAMBLR.open/man/get_gambl_metadata.html" class="external-link">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="st">"FL_Dreval"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using the bundled metadata in GAMBLR.data...</span></span>
 <span></span>
 <span><span class="co"># Use the new approach to embed genome_build in your regions_bed</span></span>
 <span><span class="co"># and create/reformat the name column</span></span>
@@ -442,17 +417,11 @@ creating an aSHM count matrix.</p>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">my_meta</span>,</span>
 <span>  this_seq_type <span class="op">=</span> <span class="st">"genome"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Streamlined is set to TRUE, this function will disregard anything specified with basic_columns</span></span>
-<span><span class="co">#&gt; To return a MAF with standard 45 columns, set streamlioned = FALSE and basic_columns = TRUE</span></span>
-<span><span class="co">#&gt; To return a maf with all (116) columns, set streamlined = FALSE and basic_columns = FALSE</span></span>
-<span><span class="co">#&gt; Joining with `by = join_by(sample_id, region_name)`</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">ashm_mat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 443 130</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
 <span><span class="co"># get coding mutations (hg38)</span></span>
 <span><span class="va">my_coding</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_all_coding_ssm.html">get_all_coding_ssm</a></span><span class="op">(</span></span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">my_meta</span>,</span>
@@ -461,7 +430,8 @@ creating an aSHM count matrix.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><code>get_ssm_by_samples</code></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># get a few exomes and a few genomes</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co"># get a few exomes and a few genomes</span></span>
 <span></span>
 <span><span class="va">some_exome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span></span>
 <span>  <span class="va">seq_type</span> <span class="op">==</span> <span class="st">"capture"</span>,</span>
@@ -504,14 +474,12 @@ creating an aSHM count matrix.</p>
 prettyOncoplot output.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
+<span></span>
 <span><span class="co"># join the aSHM matrix to the metadata</span></span>
 <span></span>
 <span><span class="va">meta_with_ashm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">rownames_to_column</a></span><span class="op">(</span><span class="va">ashm_mat</span>,</span>
 <span>                                     <span class="st">"sample_id"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">my_meta</span>, <span class="va">.</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Joining with `by = join_by(sample_id)`</span></span>
 <span></span>
 <span><span class="fu">prettyOncoplot</span><span class="op">(</span></span>
 <span>  maf_df <span class="op">=</span> <span class="va">my_coding</span>,</span>
@@ -521,20 +489,12 @@ prettyOncoplot output.</p>
 <span>  stacked <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  minMutationPercent <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sortByColumns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pathology"</span>, <span class="st">"cohort"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; stacked mode is only compatible in combination with simplify = TRUE. Setting this for you.</span></span>
-<span><span class="co">#&gt; creating oncomatrix with 80 genes</span></span>
-<span><span class="co">#&gt; There are no missing genes during onco matrix assembly.</span></span>
-<span><span class="co">#&gt; The column(s) specified both in metadata and numeric metadata will be plotted as numeric values...</span></span>
-<span><span class="co">#&gt; dropping 22 genes due to sparseness</span></span>
-<span><span class="co">#&gt; HNRNPU-TSS,EIF2Ak3-TSS,LPP-intron-1,CD44-TSS,FOXP1-TSS-2,FOXP1-intron-1a,FANK1-TSS,NFKBIZ-TSS-1,SEPTIN9-intron-1,FOXP1-TSS-1,MEF2C-TSS-1,WEE1-intron,MCL1-intron,SEPTIN9-intron-3,P2RX5-TSS,ID3-TSS,NFKBIZ-TSS-2,RNF144B-TSS,RHEX-TSS,FOXP1-intron-1b,KLHL21-TSS,FCRL3-TSS</span></span>
-<span><span class="co">#&gt; All mutation types: Missense, Truncating, Splice_Site.</span></span>
-<span><span class="co">#&gt; `alter_fun` is assumed vectorizable. If it does not generate correct</span></span>
-<span><span class="co">#&gt; plot, please set `alter_fun_is_vectorized = FALSE` in `oncoPrint()`.</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/join_to_meta-1.png" width="700"></p>
 <p>Comparing two groups with <code>prettyCoOncoplot</code></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
+<span></span>
 <span><span class="fu">prettyCoOncoplot</span><span class="op">(</span><span class="va">all_coding</span>,</span>
 <span>  <span class="va">my_meta</span>,</span>
 <span>  genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -546,11 +506,13 @@ prettyOncoplot output.</p>
 <span>  label2 <span class="op">=</span> <span class="st">"DLBCL"</span>,</span>
 <span>  comparison_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FL"</span>, <span class="st">"DLBCL"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="Overview_files/figure-html/coOncoplot-1.png" width="700"></p>
 <p>Want to know which mutations are more prevalent in one group of
 patients vs another? You need <code>prettyForestPlot</code> in your
 life!</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out_list</span> <span class="op">=</span> <span class="fu">prettyForestPlot</span><span class="op">(</span><span class="va">all_coding</span>,</span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">out_list</span> <span class="op">=</span> <span class="fu">prettyForestPlot</span><span class="op">(</span><span class="va">all_coding</span>,</span>
 <span>  metadata <span class="op">=</span> <span class="va">my_meta</span>,</span>
 <span>  genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"EZH2"</span>, <span class="st">"CREBBP"</span>, <span class="st">"MYD88"</span>, <span class="st">"CCND3"</span>, <span class="st">"KMT2D"</span>,</span>
 <span>            <span class="st">"IGLL5"</span>, <span class="st">"CARD11"</span>, <span class="st">"BTG1"</span>, <span class="st">"ATP6V1B2"</span><span class="op">)</span>,</span>
@@ -567,13 +529,7 @@ you can obtain from get_cn_segments in <code>GAMBLR.results</code> or
 <code>GAMBLR.data</code>.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
 <span><span class="va">all_segments</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_cn_segments.html">get_cn_segments</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; no metadata provided</span></span>
-<span><span class="co">#&gt; will get segments for all available genome and capture samples</span></span>
-<span><span class="co">#&gt; dummy segments are not annotated in the inputs</span></span>
-<span><span class="co">#&gt; fill_missing_with parameter will be ignored</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">all_segments</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; SEG Data Object</span></span>
@@ -607,8 +563,6 @@ using all overlapping segments. The interface for this function has
 changed to add flexibility and transparency.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">cn_mat</span> <span class="op">&lt;-</span> <span class="fu">segmented_data_to_cn_matrix</span><span class="op">(</span></span>
 <span>  seg_data <span class="op">=</span> <span class="va">all_segments</span>,</span>
@@ -623,22 +577,17 @@ changed to add flexibility and transparency.</p>
 <span><span class="va">complete_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># this process is slow if you use a lot of bins</span></span>
 <span><span class="va">complete_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 27.71177 secs</span></span>
+<span><span class="co">#&gt; Time difference of 28.46228 secs</span></span>
 <span></span>
 <span><span class="fu">pretty_CN_heatmap</span><span class="op">(</span><span class="va">cn_mat</span>,</span>
 <span>  scale_by_sample <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">dna_meta</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The input is a data frame-like object, convert it to a matrix.</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <p>For the GISTIC strategy, it internally relies on
 <code>gistic_to_cn_state_matrix</code>.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
-<span></span>
-<span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/ComplexHeatmap" class="external-link">ComplexHeatmap</a></span><span class="op">)</span></span>
 <span><span class="va">cn_mat</span> <span class="op">&lt;-</span> <span class="fu">segmented_data_to_cn_matrix</span><span class="op">(</span></span>
@@ -655,16 +604,12 @@ changed to add flexibility and transparency.</p>
 <span><span class="fu">pretty_CN_heatmap</span><span class="op">(</span>cn_state_matrix <span class="op">=</span> <span class="va">cn_mat</span>,</span>
 <span>  scale_by_sample <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  these_samples_metadata <span class="op">=</span> <span class="va">dna_meta</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The input is a data frame-like object, convert it to a matrix.</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>This can also be used directly if you want to sanity check the
 results.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
-<span></span>
 <span></span>
 <span><span class="va">gistic_wide</span> <span class="op">&lt;-</span> <span class="fu">gistic_to_cn_state_matrix</span><span class="op">(</span></span>
 <span>  seg_data <span class="op">=</span> <span class="va">all_segments</span>,</span>
@@ -674,25 +619,19 @@ results.</p>
 <span>  scale_by_sample <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  fill_missing_with <span class="op">=</span> <span class="st">"diploid"</span> <span class="co"># Note: this needs to be set to diploid for now</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The input is a data frame-like object, convert it to a matrix.</span></span>
 <span><span class="co">#&gt; [1] "0 rows with NA values"</span></span>
-<span><span class="co">#&gt; Warning: The input is a data frame-like object, convert it to a matrix.</span></span>
 <span></span>
 <span><span class="va">h_saved</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/Heatmap.html" class="external-link">Heatmap</a></span><span class="op">(</span><span class="va">cn_mat</span>,</span>
 <span>  show_row_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  column_names_gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html" class="external-link">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>  clustering_distance_columns <span class="op">=</span> <span class="st">"binary"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The input is a data frame-like object, convert it to a matrix.</span></span>
 <span><span class="va">h_saved</span></span></code></pre></div>
 <p><img src="Overview_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>Another visualization for GISTIC outputs:
 <code>prettyChromoplot</code></p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#| warning: false</span></span>
-<span><span class="co">#| message: false</span></span>
-<span></span>
 <span><span class="va">genes</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MYC"</span>,<span class="st">"FCGR2B"</span>,<span class="st">"TNFRSF14"</span>,<span class="st">"FAS"</span>,<span class="st">"PTEN"</span>,<span class="st">"B2M"</span>,<span class="st">"RB1"</span>,<span class="st">"TCL1A"</span>,<span class="st">"CD70"</span>,</span>
 <span>  <span class="st">"BCL2"</span>,<span class="st">"KLHL14"</span>,<span class="st">"TCF4"</span>,<span class="st">"REL"</span>,<span class="st">"BCL6"</span>,<span class="st">"HIST1H1C"</span>,<span class="st">"SMARCA4"</span>,<span class="st">"CDKN2A"</span>,<span class="st">"RHOA"</span>,</span>
 <span>  <span class="st">"TNFAIP3"</span>,<span class="st">"TP53"</span>,<span class="st">"CDK14"</span>,<span class="st">"RELN"</span>,<span class="st">"ETS1"</span>,<span class="st">"MDM1"</span>,<span class="st">"MIR17HG"</span>,<span class="st">"CD58"</span>,<span class="st">"HNRNPD"</span>,</span>
@@ -707,15 +646,6 @@ results.</p>
 <span></span>
 <span><span class="fu">prettyChromoplot</span><span class="op">(</span>scores_path <span class="op">=</span> <span class="st">"scores.gistic"</span>,</span>
 <span>                 labels_bed <span class="op">=</span> <span class="va">gene_bed</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">Rows: </span><span style="color: #0000BB;">31533</span> <span style="font-weight: bold;">Columns: </span><span style="color: #0000BB;">8</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Column specification</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">Delimiter:</span> "\t"</span></span>
-<span><span class="co">#&gt; <span style="color: #BB0000;">chr</span> (1): Type</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">dbl</span> (7): Chromosome, Start, End, -log10(q-value), G-score, average amplitude...</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `spec()` to retrieve the full column specification for this data.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Specify the column types or set `show_col_types = FALSE` to quiet this message.</span></span>
-<span><span class="co">#&gt; Running in default mode of any...</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 31,533 × 15</span></span></span>
 <span><span class="co">#&gt;    Chromosome  Start    End `-log10(q-value)` `G-score` `average amplitude`</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
