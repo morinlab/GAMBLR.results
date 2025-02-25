@@ -104,14 +104,14 @@ annotate the result using \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate
 \examples{
 # lazily get every SV in the table with default quality filters
 all_sv <- get_manta_sv()
-head(all_sv)
+dplyr::select(all_sv,1:14) \%>\% head()
 
 # get all SVs for just one cohort
 cohort_meta = suppressMessages(get_gambl_metadata()) \%>\% 
               dplyr::filter(cohort == "DLBCL_cell_lines")
 
 some_sv <- get_manta_sv(these_samples_metadata = cohort_meta, verbose=FALSE)
-head(some_sv)
+dplyr::select(some_sv,1:14) \%>\% head()
 nrow(some_sv)
 
 # get the SVs in a region around MYC
@@ -123,13 +123,13 @@ myc_region_grch37 = "8:128723128-128774067"
 hg38_myc_locus_sv <- get_manta_sv(region = myc_region_hg38,
                                 projection = "hg38",
                                 verbose = FALSE)
-head(hg38_myc_locus_sv)
+dplyr::select(hg38_myc_locus_sv,1:14) \%>\% head()
 nrow(hg38_myc_locus_sv)
 
 incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37,
                                 projection = "hg38",
                                 verbose = FALSE)
-head(incorrect_myc_locus_sv)
+dplyr::select(incorrect_myc_locus_sv,1:14) \%>\% head()
 nrow(incorrect_myc_locus_sv)
 
 # Despite potentially being incomplete, we can nonetheless

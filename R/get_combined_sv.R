@@ -32,14 +32,14 @@
 #' @examples
 #' # lazily get every SV in the table with default quality filters
 #' all_sv <- get_combined_sv()
-#' head(all_sv)
+#' dplyr::select(all_sv,1:14)
 #' 
 #' # get all SVs for just one cohort
 #' cohort_meta = suppressMessages(get_gambl_metadata()) %>% 
 #'               dplyr::filter(cohort == "DLBCL_cell_lines")
 #'
 #' some_sv <- get_combined_sv(these_samples_metadata = cohort_meta)
-#' head(some_sv)
+#' dplyr::select(some_sv,1:14)
 #' nrow(some_sv)
 #' 
 #' # get the SVs in a region around MYC
@@ -50,12 +50,12 @@
 #' 
 #' hg38_myc_locus_sv <- get_combined_sv(region = myc_region_hg38,
 #'                                 projection = "hg38")
-#' head(hg38_myc_locus_sv)
+#' dplyr::select(hg38_myc_locus_sv,1:14)
 #' nrow(hg38_myc_locus_sv)
 #' 
 #' incorrect_myc_locus_sv <- get_combined_sv(region = myc_region_grch37,
 #'                                 projection = "hg38")
-#' head(incorrect_myc_locus_sv)
+#' dplyr::select(incorrect_myc_locus_sv,1:14)
 #' nrow(incorrect_myc_locus_sv)
 #'
 #' # Despite potentially being incomplete, we can nonetheless
@@ -149,6 +149,7 @@ get_combined_sv <- function(these_samples_metadata,
 
   all_sv <- all_sv %>%
     mutate(FILTER = "PASS") # i.e all variants returned with get_combined_sv() all have PASS in the FILTER column.
+  all_sv = dplyr::arrange(all_sv,CHROM_A,START_A,tumour_sample_id,VAF_tumour)
   all_sv <- create_genomic_data(all_sv, projection)
   return(all_sv)
 }

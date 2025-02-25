@@ -51,8 +51,8 @@ lymphgen_all <- get_lymphgen(
            these = my_meta,
             keep_original_columns = TRUE
         )
-head(lymphgen_all$features)
+head(lymphgen_all$features[,c(1:14)])
 
-head(lymphgen_all$lymphgen)
+head(lymphgen_all$lymphgen[,c(1:14)])
 
 }
