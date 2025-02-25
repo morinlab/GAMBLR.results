@@ -210,45 +210,38 @@ annotate the result using <a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Returning 789098 variants from 1664 sample(s)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Done!</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">all_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">all_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: grch37 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A START_A  END_A CHROM_B START_B  END_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       1   54732  54744       1   54790  54802</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       1  536206 536242       1  536520 536520</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       1  668630 668631       1  850204 850205</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       1  711805 711805       1  711829 711829</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       1  711805 711805       1  711829 711829</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       1  711805 711805       1  711829 711829</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                         manta_name SCORE STRAND_A STRAND_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  MantaDUP:TANDEM:56611:0:0:2:0:0    40        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2         MantaDEL:19570:0:0:0:0:0    43        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 MantaDUP:TANDEM:240583:0:1:0:0:0    79        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      MantaINS:118418:18:18:0:9:0    58        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       MantaINS:914528:0:0:0:10:0    56        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6         MantaINS:65113:0:0:0:8:0    60        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            tumour_sample_id          normal_sample_id VAF_tumour  DP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 BLGSP-71-06-00180-01A-01D BLGSP-71-06-00180-99A-01D      0.233  73</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                 14-11427T                 14-11427N      0.106  47</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                      CA46 BLGSP-71-06-00286-99A-01D      0.117 420</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 BLGSP-71-30-00667-01A-01E BLGSP-71-06-00286-99A-01D      0.397 116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 BLGSP-71-30-00674-01A-01E BLGSP-71-06-00286-99A-01D      0.362 105</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6           00-14595_tumorD           00-14595_normal      0.266  94</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   pair_status FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6     matched   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A START_A END_A CHROM_B   START_B     END_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       1   10286 10286       8 146301391 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       1   10309 10837      12     95038     95505</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       1   10347 10630      15 102520227 102520676</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       1   10438 10438       8 146301391 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       1   10438 10438       8 146301391 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       1   10457 10839      12     94873     95291</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                     manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   MantaBND:5:1923:1927:0:0:0    46        +        +        09-41114T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   MantaBND:1:6049:6050:1:0:0    52        +        +     4687-03-01BD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  MantaBND:11:3940:4135:0:0:0    58        -        -        12-34927T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   MantaBND:2:7221:7224:0:1:0    84        +        +      102-01-01TD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   MantaBND:2:1723:1728:0:0:0    81        +        +    102-0202-1DVT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 MantaBND:3:26317:26320:0:0:0    56        +        +     4690-03-01BD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        14-11247N      0.118 110</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   14-11247Normal      0.250  52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        14-11247N      0.135 104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   14-11247Normal      0.520  25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   14-11247Normal      0.630  27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   14-11247Normal      0.333  18</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># get all SVs for just one cohort</span></span></span>
 <span class="r-in"><span><span class="va">cohort_meta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> </span></span>
 <span class="r-in"><span>              <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort</span> <span class="op">==</span> <span class="st">"DLBCL_cell_lines"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">some_sv</span> <span class="op">&lt;-</span> <span class="fu">get_manta_sv</span><span class="op">(</span>these_samples_metadata <span class="op">=</span> <span class="va">cohort_meta</span>, verbose<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">some_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">some_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: grch37 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
@@ -266,13 +259,6 @@ annotate the result using <a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4    55        +        -         SU-DHL-9        14-11247N      0.183  60</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5    48        +        -               HT        14-11247N      0.273  44</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6    58        +        -            MD903        14-11247N      0.471  34</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   pair_status FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   unmatched   PASS</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">some_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 21216</span>
 <span class="r-in"><span></span></span>
@@ -285,7 +271,7 @@ annotate the result using <a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate
 <span class="r-in"><span><span class="va">hg38_myc_locus_sv</span> <span class="op">&lt;-</span> <span class="fu">get_manta_sv</span><span class="op">(</span>region <span class="op">=</span> <span class="va">myc_region_hg38</span>,</span></span>
 <span class="r-in"><span>                                projection <span class="op">=</span> <span class="st">"hg38"</span>,</span></span>
 <span class="r-in"><span>                                verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: hg38 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
@@ -310,44 +296,37 @@ annotate the result using <a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4 BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.171 280</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.117 230</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6 BLGSP-71-30-00647-01A-01E BLGSP-71-06-00286-99A-01D      0.283  46</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   pair_status FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   unmatched   PASS</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 458</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">incorrect_myc_locus_sv</span> <span class="op">&lt;-</span> <span class="fu">get_manta_sv</span><span class="op">(</span>region <span class="op">=</span> <span class="va">myc_region_grch37</span>,</span></span>
 <span class="r-in"><span>                                projection <span class="op">=</span> <span class="st">"hg38"</span>,</span></span>
 <span class="r-in"><span>                                verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: hg38 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A   START_A     END_A CHROM_B   START_B     END_B</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    chr4  77227094  77227100    chr8 128767241 128767247</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    chr8 128726344 128727379   chr11  93629113  93629647</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    chr8   1287381   1287381    chr8   1287384   1287384</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    chr8   1287381   1287381    chr8   1287384   1287384</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    chr8 128726344 128727379   chr11  93629113  93629647</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4    chr8 128726820 128726820    chr8 128726825 128726825</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5    chr8 128726820 128726820    chr8 128726825 128726825</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6    chr8 128738979 128738983    chr8 128752584 128752588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  MantaBND:658884:1:2:0:0:0    42        -        -  14-33798_tumorB</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   MantaBND:28037:1:9:0:0:0    66        -        +        01-20774T</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 MantaINS:1063533:0:0:0:4:0    51        +        -  97-28459_tumorB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 MantaINS:1063533:0:0:0:4:0    51        +        -  97-28459_tumorB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   MantaBND:28037:1:9:0:0:0    66        -        +        01-20774T</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4  MantaINS:242009:0:0:0:3:0    76        +        -         PD26403a</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5  MantaINS:226876:7:7:1:3:0    84        +        -         PD26403c</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6 MantaDEL:1407936:0:1:0:0:0   118        +        -  04-14093_tumorA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour  DP pair_status FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  14-33798_normal      0.136  44     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        14-11247N      0.280  25   unmatched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          FL3006N      0.308  26     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4         PD26403b      0.400 105     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5         PD26403b      0.407 113     matched   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  04-14093_normal      0.442  43     matched   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  14-33798_normal      0.136  44</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2          FL3006N      0.308  26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        14-11247N      0.280  25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         PD26403b      0.400 105</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         PD26403b      0.407 113</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  04-14093_normal      0.442  43</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 28</span>
 <span class="r-in"><span></span></span>
@@ -360,17 +339,17 @@ annotate the result using <a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate
 <span class="r-out co"><span class="r-pr">#&gt;</span>   chrom1    start1      end1 chrom2    start2      end2 name score strand1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1      2  28983233  28983240      8 127711264 127711271    .    43       -</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2      4   1746419   1746421      8 127723483 127723485    .    77       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      8 127741233 127741234     12  25049104  25049105    .   219       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      8 127713694 127713694     14 105857950 105857950    .   109       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      8 127716025 127716934     14 105862581 105863164    .   112       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6      8 127716523 127716523     14 105862757 105862757    .   173       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   strand2          tumour_sample_id  gene partner   fusion</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       -           02-14764_tumorB   ALK    &lt;NA&gt;   NA-ALK</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       -                 09-41114T WHSC1    &lt;NA&gt; NA-WHSC1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       +                  FL1018T2   MYC    LRMP LRMP-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       + BLGSP-71-06-00280-01A-01D   MYC     IGH  IGH-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       - BLGSP-71-06-00084-01A-01D   MYC     IGH  IGH-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       + BLGSP-71-06-00084-01A-01D   MYC     IGH  IGH-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      8 127226860 127226862      8 127759782 127759784    .    56       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      8 127226860 127226860      8 127759821 127759821    .    51       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5      8 127301019 127301020      8 127742838 127742839    .    71       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6      8 127301020 127301022      8 127742838 127742840    .    65       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   strand2 tumour_sample_id  gene partner   fusion</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       -  02-14764_tumorB   ALK    &lt;NA&gt;   NA-ALK</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       -        09-41114T WHSC1    &lt;NA&gt; NA-WHSC1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       +          SP13307   MYC    &lt;NA&gt;   NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       -          SP13307   MYC    &lt;NA&gt;   NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       -      365-16-01TD   MYC    &lt;NA&gt;   NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       +      365-16-01TD   MYC    &lt;NA&gt;   NA-MYC</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">annotated_myc_hg38</span><span class="op">$</span><span class="va">partner</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  BCL6 CCNL1   DMD   IGH   IGK   IGL  LRMP  PAX5 RFTN1 </span>

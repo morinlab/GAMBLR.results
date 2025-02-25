@@ -101,95 +101,36 @@ NA will be shown if the mutation is an indel mutation.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">my_maf</span> <span class="op">&lt;-</span> <span class="fu"><a href="get_coding_ssm.html">get_coding_ssm</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">my_maf</span> <span class="op">&lt;-</span> <span class="fu"><a href="get_coding_ssm.html">get_coding_ssm</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> </span></span>
+<span class="r-in"><span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Hugo_Symbol</span><span class="op">==</span><span class="st">"BCL2"</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
+<span class="r-in"><span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">Chromosome</span>,<span class="va">Start_Position</span>,<span class="va">Tumor_Sample_Barcode</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>One or more parsing issues, call `problems()` on your data frame for details,</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> e.g.:</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   dat &lt;- vroom(...)</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   problems(dat)</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">annotated</span> <span class="op">=</span> <span class="fu">annotate_ssm_motif_context</span><span class="op">(</span>maf <span class="op">=</span> <span class="va">my_maf</span>, motif <span class="op">=</span> <span class="st">"WRCY"</span>, index <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">annotated</span> <span class="op">=</span> <span class="fu">annotate_ssm_motif_context</span><span class="op">(</span>maf <span class="op">=</span> <span class="va">my_maf</span>,</span></span>
+<span class="r-in"><span>                                       motif <span class="op">=</span> <span class="st">"WRCY"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">annotated</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">annotated</span>,<span class="fl">1</span>,<span class="fl">5</span>,<span class="fl">6</span>,<span class="fl">11</span>,<span class="fl">13</span>,<span class="fl">16</span>,<span class="va">seq</span>,<span class="va">WRCY</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: grch37 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Hugo_Symbol Entrez_Gene_Id Center NCBI_Build Chromosome Start_Position</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    AL627309.1              0      .     GRCh37          1         138626</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    AL627309.1              0      .     GRCh37          1         138972</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 RP11-206L10.9              0      .     GRCh37          1         730845</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        FAM87B              0      .     GRCh37          1         753589</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        SAMD11              0      .     GRCh37          1         871158</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        SAMD11              0      .     GRCh37          1         871192</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   End_Position Strand Variant_Classification Variant_Type Reference_Allele</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       138626      +                 Silent          SNP                T</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       138973      +        Frame_Shift_Ins          INS                -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       730845      +          Splice_Region          SNP                G</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       753589      +          Splice_Region          SNP                A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       871158      +                 Silent          SNP                C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       871192      +      Missense_Mutation          SNP                C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Tumor_Seq_Allele1 Tumor_Seq_Allele2    dbSNP_RS dbSNP_Val_Status</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                 T                 C       novel               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                 -                GC rs760414759               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                 G                 A rs368628623               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                 A                 C       novel               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                 C                 T rs770660212               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                 C                 T rs548621473               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        Tumor_Sample_Barcode Matched_Norm_Sample_Barcode Match_Norm_Seq_Allele1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                 09-25670T                   09-25670N                      T</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 BLGSP-71-30-00673-01A-01E   BLGSP-71-06-00286-99A-01D                      -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                  SP116668                    SP116667                      G</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                      EB-3   BLGSP-71-06-00286-99A-01D                      A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                 05-33344T                   14-11247N                      C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 BLGSP-71-30-00662-01A-01E   BLGSP-71-06-00286-99A-01D                      C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Match_Norm_Seq_Allele2 Tumor_Validation_Allele1 Tumor_Validation_Allele2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                      T                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                      -                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                      G                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                      A                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                      C                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                      C                       NA                       NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Match_Norm_Validation_Allele1 Match_Norm_Validation_Allele2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                            NA                            NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Verification_Status Validation_Status Mutation_Status Sequencing_Phase</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                  NA                NA              NA               NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Sequence_Source Validation_Method Score BAM_File Sequencer Tumor_Sample_UUID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6              NA                NA    NA       NA        NA                NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Matched_Norm_Sample_UUID          HGVSc             HGVSp HGVSp_Short</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                       NA       c.684A&gt;G               p.=     p.S228=</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                       NA c.337_338insGC p.Pro113ArgfsTer3 p.P113Rfs*3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                       NA     n.259-5G&gt;A              &lt;NA&gt;        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                       NA     n.832+7N&gt;C              &lt;NA&gt;        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                       NA       c.312C&gt;T               p.=     p.D104=</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                       NA       c.346N&gt;T       p.Arg116Cys     p.R116C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Transcript_ID Exon_Number t_depth t_ref_count t_alt_count n_depth</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 ENST00000423372         1/2      69          48          21      35</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ENST00000423372         1/2      52          31          21      36</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 ENST00000586288        &lt;NA&gt;      31          21          10      23</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 ENST00000326734        &lt;NA&gt;      97          47          50      35</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 ENST00000342066        5/14      93          42          51      16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 ENST00000342066        5/14      20          16           4      51</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   n_ref_count n_alt_count maf_seq_type     seq  WRCY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          35           0       genome CCATGAG FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2          36           0       genome      NA    NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          23           0       genome TTCGTTA FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4          35           0       genome AGAAATT FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5          16           0       genome GGACGGC FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6          51           0       genome CACCGCA FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        BCL2         18       60795859                C                 T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        BCL2         18       60795894                A                 T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        BCL2         18       60795911                A                 G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        BCL2         18       60795911                A                 G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        BCL2         18       60795947                C                 G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        BCL2         18       60985305              GTG               AAT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Tumor_Sample_Barcode     seq  WRCY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      CAR_126_PreCART CTTCACT FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            08-13706T GCAAGCT MOTIF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    00-15336_CLC01491 CCAAACT MOTIF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    00-15336_CLC02290 CCAAACT MOTIF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5             FL1010T2 AATCAAA FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6             SP192988      NA FALSE</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

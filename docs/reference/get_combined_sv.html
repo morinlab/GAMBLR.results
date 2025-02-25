@@ -118,97 +118,86 @@ You can subset to events affecting certain loci using the
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># lazily get every SV in the table with default quality filters</span></span></span>
 <span class="r-in"><span><span class="va">all_sv</span> <span class="op">&lt;-</span> <span class="fu">get_combined_sv</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">all_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">all_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: grch37 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A  START_A    END_A CHROM_B  START_B    END_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       1  3587650  3587656       1  3622021  3622027</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      10 81676978 81676979      10 92752813 92752814</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      10 85593304 85593641       6  2792479  2792814</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      10 96210548 96210907      12 92608729 92609149</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      10 98828963 98828965      10 98862637 98862639</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6      11 47663585 47663928      16 53044937 53045280</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                             manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         MantaDEL:11066:0:1:0:0:0_bp1    NA        +        -       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        MantaDEL:132721:0:1:0:1:0_bp1    NA        +        -       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3           MantaBND:85878:0:2:0:0:0:1    NA        -        +       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4          MantaBND:133537:0:1:0:0:0:1    NA        +        +       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 MantaDUP:TANDEM:133659:0:1:0:0:0_bp1    NA        -        +       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6          MantaBND:121876:0:5:0:0:0:0    NA        -        +       H054_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour DP       gridss_name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       H054_N_WGS      0.165 85   gridss0fb_2691o</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       H054_N_WGS      0.197 71 gridss176fb_2753o</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       H054_N_WGS      0.154 39              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       H054_N_WGS      0.114 44              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       H054_N_WGS      0.122 90  gridss178bf_220o</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       H054_N_WGS      0.122 41              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                      ANNOTATION_A DIST_TO_ANNOTATION_A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1             SE_TP73,SE_TP73-AS3                    0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                      SE_TSPAN14               535036</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  SE_C10orf99,SE_CERNA2,SE_GHITM               315834</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4         SE_AL157834.2,SE_PDLIM1               779450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 SE_PIK3AP1,SE_TM9SF3,SE_PIK3AP1              -300156</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6              SE_FNBP4,SE_NUP160                76324</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                        ANNOTATION_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                               SE_TP73,SE_TP73-AS3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                       SE_AL365434.1,SE_AL365434.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 SE_MIR4645,SE_SERPINB1,SE_SERPINB9,SE_SERPINB9P1,SE_MIR4645,SE_SERPINB1,SE_SERPINB9,SE_SERPINB9P1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                             SE_AC025164.1,SE_BTG1,SE_LINC01619,SE_AC025164.1,SE_BTG1,SE_LINC01619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                   SE_PIK3AP1,SE_TM9SF3,SE_PIK3AP1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                                           SE_CHD9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   DIST_TO_ANNOTATION_B FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1               -26937   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                    0   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                37570   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4               -22403   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5              -333830   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                46382   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    CHROM_A START_A END_A CHROM_B   START_B     END_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        1    9894 10014      16     69889     69998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        1   10173 10984      12     94748     95533</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        1   10176 10711      11 134946192 134946783</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        1   10269 10794      16     59726     60283</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        1   10285 10286       8 146301390 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        1   10287 10688      15 102521012 102521550</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        1   10308 10837      12     95037     95505</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        1   10347 10631      15 102520227 102520677</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9        1   10437 10438       8 146301390 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       1   10437 10438       8 146301390 146301391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  MantaBND:10:1901:1907:0:0:0:1    NA        -        +  00-14595_tumorD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   MantaBND:1:5198:6695:0:0:0:1    NA        +        +         CLC03470</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  MantaBND:23:3075:4071:0:0:0:1    NA        +        +        14-14094T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   MantaBND:3:3538:3557:0:0:0:1    NA        +        -        07-13339T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   MantaBND:5:1923:1927:0:0:0:1    NA        +        +        09-41114T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     MantaBND:13192:0:1:0:0:0:0    NA        +        +      835-02-03TD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7   MantaBND:1:6049:6050:1:0:0:0    NA        +        +     4687-03-01BD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  MantaBND:11:3940:4135:0:0:0:1    NA        -        -        12-34927T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   MantaBND:2:7221:7224:0:1:0:1    NA        +        +      102-01-01TD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10  MantaBND:2:1723:1728:0:0:0:0    NA        +        +    102-0202-1DVT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   00-14595_normal      0.400  10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         14-11247N      0.136  44</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         14-11247N      0.186  59</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         14-11247N      0.175  40</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         14-11247N      0.118 110</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    14-11247Normal      0.312  32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7    14-11247Normal      0.250  52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         14-11247N      0.135 104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9    14-11247Normal      0.520  25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10   14-11247Normal      0.630  27</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># get all SVs for just one cohort</span></span></span>
 <span class="r-in"><span><span class="va">cohort_meta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="get_gambl_metadata.html">get_gambl_metadata</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> </span></span>
 <span class="r-in"><span>              <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort</span> <span class="op">==</span> <span class="st">"DLBCL_cell_lines"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">some_sv</span> <span class="op">&lt;-</span> <span class="fu">get_combined_sv</span><span class="op">(</span>these_samples_metadata <span class="op">=</span> <span class="va">cohort_meta</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">some_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">some_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: grch37 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A   START_A     END_A CHROM_B  START_B    END_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       1  23981141  23981142       1 60870954 60870955</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       1  44208923  44208924       6 95573698 95573699</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       1  62864466  62864736      15 27630123 27630439</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       1  66804419  66804420      10 54466941 54466942</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       1 105052013 105052280      20  9572155  9572453</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       1 105428638 105428639       7 93357377 93357378</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                   manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 MantaBND:14444:0:1:0:0:0:0    NA        +        +           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 MantaBND:15937:0:1:0:0:0:1    NA        +        -           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 MantaBND:17095:0:1:0:0:0:0    NA        +        -           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 MantaBND:17346:0:2:0:0:0:0    NA        -        +           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   MantaBND:738:0:1:0:0:0:0    NA        -        +           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 MantaBND:20099:0:1:1:0:0:1    NA        +        -           DOHH-2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour DP gridss_name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        14-11247N      0.082 97        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        14-11247N      0.141 64        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        14-11247N      0.130 46        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        14-11247N      0.195 87        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        14-11247N      0.158 38        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        14-11247N      0.179 39        &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                               ANNOTATION_A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SE_AL021154.1,SE_AL450043.1,SE_E2F2,SE_ID3,SE_MDS2,SE_AL450043.1,SE_MDS2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                          SE_AC099795.1,SE_SLC2A1,SE_SLC2A1-AS1,SE_SLC2A1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                SE_JAK1,SE_RAVER2,SE_JAK1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                 SE_PDE4B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                 SE_NTNG1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                 SE_NTNG1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   DIST_TO_ANNOTATION_A              ANNOTATION_B DIST_TO_ANNOTATION_B FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                    0 SE_JAK1,SE_RAVER2,SE_JAK1              4422478   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2              -781402             SE_AL132996.1             -4465629   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3              2428697         SE_FAN1,SE_MTMR10              3583514   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                    0                  SE_SGMS1             -2341951   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5              2845161                  SE_SHLD1             -3783469   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6              2468802             SE_AC003092.1               310993   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    CHROM_A  START_A    END_A CHROM_B   START_B     END_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        1  1346152  1346155       1 111802594 111802597</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        1  1739478  1739484       1   1770671   1770677</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        1  1826839  1826841       1   1833712   1833714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        1  1827338  1827339       1   8741628   8741629</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        1  2317295  2317296       1  16648172  16648173</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        1  4472986  4472989       1   6530057   6530060</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        1  6290197  6290198       1  16693372  16693373</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        1  6438168  6438173       1   6445895   6445900</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9        1  6438168  6438173       1   6445895   6445900</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       1 10005435 10005437       4  28617083  28617085</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                             manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           MantaBND:14352:0:1:0:0:0:1    NA        +        +            HBL-1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  MantaDUP:TANDEM:14103:0:1:0:0:0_bp1    NA        -        +         OCI-Ly10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           MantaBND:14359:0:1:0:0:0:1    NA        +        +         SU-DHL-4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           MantaBND:14359:0:2:0:0:0:0    NA        -        -         SU-DHL-4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5           MantaBND:12526:0:1:0:0:0:1    NA        +        +         SU-DHL-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6         MantaDEL:15336:0:1:0:1:0_bp1    NA        +        -         SU-DHL-5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7           MantaBND:12875:0:1:0:0:0:0    NA        -        -         SU-DHL-6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         MantaDEL:16045:0:1:0:0:0_bp1    NA        +        -               HT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9         MantaDEL:15520:0:1:0:0:0_bp1    NA        +        -         SU-DHL-5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10          MantaBND:15925:0:1:0:0:0:0    NA        -        -          WSU-NHL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         14-11247N      0.189  95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         14-11247N      0.193 119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         14-11247N      0.213  94</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         14-11247N      0.300  80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         14-11247N      0.323  62</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6         14-11247N      0.345 113</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7         14-11247N      0.234  77</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         14-11247N      0.247  81</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9         14-11247N      1.000  30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10        14-11247N      0.176  91</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">some_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3519</span>
 <span class="r-in"><span></span></span>
@@ -220,89 +209,85 @@ You can subset to events affecting certain loci using the
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">hg38_myc_locus_sv</span> <span class="op">&lt;-</span> <span class="fu">get_combined_sv</span><span class="op">(</span>region <span class="op">=</span> <span class="va">myc_region_hg38</span>,</span></span>
 <span class="r-in"><span>                                projection <span class="op">=</span> <span class="st">"hg38"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: hg38 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A   START_A     END_A CHROM_B   START_B     END_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   chr14 106062935 106063377    chr8 127737727 127738231</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   chr14 106063072 106063075    chr8 127737852 127737855</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3   chr14 105859407 105859410    chr8 127735901 127735904</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   chr14 105859777 105859778    chr8 127735884 127735885</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   chr14 105745498 105745499    chr8 127735666 127735667</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   chr14 105857936 105857939    chr8 127737109 127737112</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                    manta_name SCORE STRAND_A STRAND_B tumour_sample_id</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 MantaBND:109733:0:1:1:0:0:1    NA        +        -       H059_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 MantaBND:109733:0:1:0:2:0:1    NA        -        +       H059_T_WGS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 MantaBND:138918:0:1:0:0:0:1    NA        +        -          SP59270</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 MantaBND:138918:0:1:1:0:0:1    NA        -        +          SP59270</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 MantaBND:113362:0:1:0:0:0:1    NA        -        +          SP59272</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 MantaBND:116726:1:2:0:0:0:1    NA        +        -          SP59276</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   normal_sample_id VAF_tumour DP       gridss_name ANNOTATION_A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       H059_N_WGS      0.556  9  gridss152bf_237h      IGHV3-7</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       H059_N_WGS      0.400 15 gridss152fb_1553h      IGHV3-7</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          SP59269      0.350 20  gridss152bf_470h          Emu</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4          SP59269      0.786 14  gridss152fb_859h          Emu</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5          SP59271      0.293 41  gridss152fb_638h        IGHG1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6          SP59274      0.500 24 gridss152bf_1277h          Emu</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   DIST_TO_ANNOTATION_A ANNOTATION_B DIST_TO_ANNOTATION_B FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                 -254          MYC                    0   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                 -391          MYC                    0   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                    0          MYC                  328   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                    0          MYC                  347   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                -2428          MYC                  565   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                    0          MYC                    0   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    CHROM_A   START_A     END_A CHROM_B   START_B     END_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     chr1   6803016   6803030    chr8 127731317 127731331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     chr1   8253139   8253144    chr8 127756470 127756475</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     chr1  50392925  50392927    chr8 127747754 127747756</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4     chr1 100041646 100041649    chr8 127753200 127753203</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5     chr1 149968016 149968030    chr8 127720533 127720547</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     chr1 180261380 180261390    chr8 127747224 127747234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7     chr1 182119529 182119530    chr8 127747267 127747268</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8     chr1 202928006 202928020    chr8 127747224 127747238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9     chr1 207726976 207727002    chr8 127724887 127724913</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10    chr1 209800781 209800785    chr8 127753804 127753808</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                          manta_name  SCORE STRAND_A STRAND_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                              &lt;NA&gt; 208.20        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                              &lt;NA&gt; 308.00        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                              &lt;NA&gt; 253.09        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                              &lt;NA&gt; 211.34        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                              &lt;NA&gt; 335.95        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  MantaBND:2:133568:133570:0:2:0:0     NA        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                              &lt;NA&gt; 226.75        +        -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                              &lt;NA&gt; 419.03        +        -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                              &lt;NA&gt; 204.27        -        +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 MantaBND:0:549563:738680:0:1:0:0     NA        +        -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             tumour_sample_id          normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            01-12047_tumorA           01-12047_normal 0.10396040 202</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  BLGSP-71-30-00665-01A-01E BLGSP-71-30-00665-10A-01D 0.08870968 124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  BLGSP-71-30-00678-01A-01E BLGSP-71-06-00286-99A-01D 0.05128205 195</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  BLGSP-71-30-00656-01A-01E BLGSP-71-06-00286-99A-01D 0.05241935 248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            13-38657_tumorB           13-38657_normal 0.10800000 250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6            11-12873_tumorC           11-12873_normal 0.05900000 102</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  BLGSP-71-30-00655-01A-01E BLGSP-71-06-00286-99A-01D 0.05555556 198</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8            14-11777_tumorB                 14-11777N 0.03921569 459</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  BLGSP-71-30-00661-01A-01E BLGSP-71-06-00286-99A-01D 0.07253886 193</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 BLGSP-71-30-00647-01A-01E BLGSP-71-06-00286-99A-01D 0.13200000  38</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 683</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">incorrect_myc_locus_sv</span> <span class="op">&lt;-</span> <span class="fu">get_combined_sv</span><span class="op">(</span>region <span class="op">=</span> <span class="va">myc_region_grch37</span>,</span></span>
 <span class="r-in"><span>                                projection <span class="op">=</span> <span class="st">"hg38"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> genomic_data Object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Genome Build: hg38 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Showing first 10 rows:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   CHROM_A   START_A     END_A CHROM_B   START_B     END_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    chr8 128738980 128738981    chr8 128752584 128752585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    chr8 127313080 127313571    chr8 128746007 128746587</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    chr8 128738979 128738981    chr8 128752583 128752585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   chr11  93629111  93629647    chr8 128726343 128727380</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   chr12 116681066 116681327    chr8 128759615 128759893</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   chr20  36675075  36675080    chr8 128757284 128757289</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                      manta_name  SCORE STRAND_A STRAND_B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 MantaDEL:330987:0:1:0:0:0_bp1     NA        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 MantaDEL:204533:0:1:0:0:0_bp1     NA        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 MantaDEL:136949:0:1:0:0:0_bp1     NA        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4    MantaBND:28037:1:9:0:0:0:1     NA        +        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   MantaBND:295764:0:1:0:0:0:0     NA        -        -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                          &lt;NA&gt; 201.75        +        +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            tumour_sample_id          normal_sample_id VAF_tumour  DP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                SMZL-UK-T3                   SP59382 0.34600000  78</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                  PD26401c                  PD26401b 0.07700000 259</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                  SU-DHL-6                 14-11247N 0.46600000  58</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                 01-20774T                 14-11247N 0.28000000  25</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 HTMCP-01-01-00003-01D-03D HTMCP-01-01-00003-11A-01D 0.08700000 104</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 HTMCP-01-16-00265-01A-01E HTMCP-01-16-00265-10A-01D 0.09195402  87</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         gridss_name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5              &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 gridss152ff_7493h</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                  ANNOTATION_A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                         MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                         MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                         MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                    SE_CEP295,SE_MIR1304,SE_SCARNA9,SE_TAF1D</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                      SE_AC083806.3,SE_RNFT2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 SE_DLGAP4-AS1,SE_RAB5IF,SE_SLA2,SE_TGIF2,SE_TGIF2-RAB5IF,SE_RAB5IF,SE_TGIF2,SE_TGIF2-RAB5IF</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   DIST_TO_ANNOTATION_A ANNOTATION_B DIST_TO_ANNOTATION_B FILTER</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1              -996030          MYC             -1009634   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2               422662          MYC             -1003058   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3              -996030          MYC             -1009634   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                34502          MYC              -983394   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5               117572          MYC             -1016666   PASS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6               -62426          MYC             -1014335   PASS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    CHROM_A   START_A     END_A CHROM_B   START_B     END_B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     chr1 182655283 182655290    chr8 128767396 128767403</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     chr1 233914485 233914492    chr8 128773743 128773750</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    chr11  73459284  73459290    chr8 128758908 128758914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    chr11  93629111  93629307    chr8 128726629 128726825</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    chr11  93629111  93629647    chr8 128726343 128727380</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    chr11  93629111  93629641    chr8 128726295 128727325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7    chr11  93629111  93629613    chr8 128726323 128727499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8    chr11  93629111  93629581    chr8 128726380 128727086</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9    chr11  93629111  93629568    chr8 128726370 128727275</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10   chr11  93629111  93629568    chr8 128726368 128727133</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                          manta_name  SCORE STRAND_A STRAND_B  tumour_sample_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       MantaBND:203817:0:1:0:0:0:0     NA        -        -   12-23835_tumorA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       MantaBND:306088:0:1:0:0:0:0     NA        +        -   05-16093_tumorA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                              &lt;NA&gt; 259.43        -        +   01-23117_tumorB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       MantaBND:202456:0:1:0:0:0:1     NA        +        - 00-12637_CLC02086</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        MantaBND:28037:1:9:0:0:0:1     NA        +        -         01-20774T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  MantaBND:0:278162:278290:0:0:0:1     NA        +        -          CLC03336</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7       MantaBND:170141:0:1:0:0:0:1     NA        +        -          CLC03338</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8       MantaBND:204178:0:1:0:0:0:1     NA        +        -          CLC03454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9       MantaBND:157518:0:3:0:0:0:0     NA        +        -          CLC03455</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10      MantaBND:191300:0:1:0:0:0:1     NA        +        -          CLC03456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    normal_sample_id VAF_tumour  DP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   12-23835_normal  0.0530000 114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   05-16093_normal  0.0780000  77</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   01-23117_normal  0.1383929 224</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           FL1011N  0.0980000  61</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         14-11247N  0.2800000  25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6         14-11247N  0.2570000 179</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7         14-11247N  0.1150000 139</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         14-11247N  0.2710000 140</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9         14-11247N  0.2680000  97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10        14-11247N  0.1850000 151</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">incorrect_myc_locus_sv</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 52</span>
 <span class="r-in"><span></span></span>
@@ -312,20 +297,20 @@ You can subset to events affecting certain loci using the
 <span class="r-in"><span>         <span class="fu">GAMBLR.utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/GAMBLR.utils/man/annotate_sv.html" class="external-link">annotate_sv</a></span><span class="op">(</span><span class="va">hg38_myc_locus_sv</span>, genome_build <span class="op">=</span> <span class="st">"hg38"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">annotated_myc_hg38</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   chrom1    start1      end1 chrom2    start2      end2 name score strand1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      8 127712273 127712274      8 127766237 127766238    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      8 127226858 127226862      8 127759780 127759784    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      8 127226859 127226861      8 127759820 127759822    .    NA       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      8 127736365 127736844      X  42943128  42943587    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      8 127736585 127736587      X  42943308  42943310    .    NA       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6     18  63195263  63195266      8 127744561 127744564    .    NA       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   strand2 tumour_sample_id gene partner  fusion</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       +  CAR_235_PreCART  MYC    &lt;NA&gt;  NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       +          SP13307  MYC    &lt;NA&gt;  NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       -          SP13307  MYC    &lt;NA&gt;  NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       +         SP124957  MYC    &lt;NA&gt;  NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       -         SP124957  MYC    &lt;NA&gt;  NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       -         SP194216 BCL2    &lt;NA&gt; NA-BCL2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   chrom1    start1      end1 chrom2    start2      end2 name   score strand1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     18  63123493  63123497      8 127728389 127728393    . 1742.35       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     18  63195263  63195266      8 127744561 127744564    .      NA       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      2  28983232  28983241      8 127711263 127711272    .      NA       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      3  70834666  70834671      8 127750318 127750323    .  249.44       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5      3 101756651 101756656      8 127724888 127724893    .  261.80       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6      4   1746418   1746422      8 127723482 127723486    .      NA       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   strand2          tumour_sample_id   gene partner    fusion</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       -                 SU-DHL-10   BCL2    &lt;NA&gt;   NA-BCL2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       -                  SP194216   BCL2    &lt;NA&gt;   NA-BCL2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       -           02-14764_tumorB    ALK    &lt;NA&gt;    NA-ALK</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       + BLGSP-71-30-00661-01A-01E  FOXP1    &lt;NA&gt;  NA-FOXP1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       - BLGSP-71-30-00676-01A-01E NFKBIZ    &lt;NA&gt; NA-NFKBIZ</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       -                 09-41114T  WHSC1    &lt;NA&gt;  NA-WHSC1</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">annotated_myc_hg38</span><span class="op">$</span><span class="va">partner</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  BCL6 CCNL1   DMD   IGH   IGK   IGL  LRMP  PAX5 RFTN1  ZEB2 </span>
@@ -337,19 +322,19 @@ You can subset to events affecting certain loci using the
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">annotated_myc_incorrect</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   chrom1    start1      end1 chrom2    start2      end2 name score strand1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      8 128738980 128738981      8 128752584 128752585    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      8 127313080 127313571      8 128746007 128746587    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      8 128738979 128738981      8 128752583 128752585    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      8 128757288 128757293      9  32897903  32897908    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      8 128738977 128738983      8 128752583 128752589    .    NA       +</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6      8 128738977 128738983      8 128752583 128752589    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      8 127313080 127313571      8 128746007 128746587    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      8 128738977 128738983      8 128752583 128752589    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      8 128738977 128738983      8 128752583 128752589    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      8 128738979 128738981      8 128752583 128752585    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5      8 128738979 128738981      8 128752583 128752585    .    NA       +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6      8 128738979 128738981      8 128752583 128752585    .    NA       +</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   strand2 tumour_sample_id gene partner fusion</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       -       SMZL-UK-T3  MYC    &lt;NA&gt; NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       -         PD26401c  MYC    &lt;NA&gt; NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       -         SU-DHL-6  MYC    &lt;NA&gt; NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       -  01-23942_tumorB  MYC    &lt;NA&gt; NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       -  04-14093_tumorA  MYC    &lt;NA&gt; NA-MYC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       -  04-14093_tumorB  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       -         PD26401c  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       -  04-14093_tumorA  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       -  04-14093_tumorB  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       -        05-24065T  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       -        10-27119T  MYC    &lt;NA&gt; NA-MYC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       -         SU-DHL-6  MYC    &lt;NA&gt; NA-MYC</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">annotated_myc_incorrect</span><span class="op">$</span><span class="va">partner</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt; table of extent 0 &gt;</span>
 <span class="r-in"><span><span class="co"># The effect of specifying the wrong coordinate is evident</span></span></span>

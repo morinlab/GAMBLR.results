@@ -130,8 +130,8 @@ Optionally return a matrix of features instead</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Joining with `by = join_by(Sample.Name, BTG2)`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Joining with `by = join_by(Sample.Name)`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Joining with `by = join_by(Sample.Name, SOCS1)`</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lymphgen_all</span><span class="op">$</span><span class="va">features</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 64</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lymphgen_all</span><span class="op">$</span><span class="va">features</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 14</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id       BCL2  EZH2 SOCS1 KMT2D EP300 CREBBP TNFRSF14 MEF2B  IRF8  PIM2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 00-14595_tumo…     1     1     1     0     0      0        0     0     0     1</span>
@@ -140,16 +140,10 @@ Optionally return a matrix of features instead</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> 00-14595_tumo…     1     1     0     0     0      0        0     0     0     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> 00-15201_tumo…     0     0     0     1     0      0        0     0     0     0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> 00-15201_tumo…     0     0     0     0     1      0        0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 53 more variables: BTG2 &lt;dbl&gt;, TBL1XR1 &lt;dbl&gt;, KLHL14 &lt;dbl&gt;, PIM1 &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   `HLA-A` &lt;dbl&gt;, `HLA-B` &lt;dbl&gt;, ETV6 &lt;dbl&gt;, PRDM1 &lt;dbl&gt;, BTG1 &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   MPEG1 &lt;dbl&gt;, CD79B &lt;dbl&gt;, MYD88L265P &lt;dbl&gt;, GRHPR &lt;dbl&gt;, OSBPL10 &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   SETD1B &lt;dbl&gt;, FOXC1 &lt;dbl&gt;, DTX1 &lt;dbl&gt;, ETS1 &lt;dbl&gt;, TNFAIP3 &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   KLF2 &lt;dbl&gt;, CD70 &lt;dbl&gt;, BCL10 &lt;dbl&gt;, NOL9 &lt;dbl&gt;, BCL6 &lt;dbl&gt;, NOTCH2 &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   UBE2A &lt;dbl&gt;, SPEN &lt;dbl&gt;, NOTCH1 &lt;dbl&gt;, ID3 &lt;dbl&gt;, RFTN1 &lt;dbl&gt;, ITPKB &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   CD83 &lt;dbl&gt;, DUSP2 &lt;dbl&gt;, WEE1 &lt;dbl&gt;, DDX3X &lt;dbl&gt;, ACTG1 &lt;dbl&gt;, …</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 3 more variables: BTG2 &lt;dbl&gt;, TBL1XR1 &lt;dbl&gt;, KLHL14 &lt;dbl&gt;</span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lymphgen_all</span><span class="op">$</span><span class="va">lymphgen</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 22</span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lymphgen_all</span><span class="op">$</span><span class="va">lymphgen</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 14</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id       Copy.Number   BCL2.Translocation BCL6.Translocation Model   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 00-14595_tumorA Not Available Not Available      Not Available      NoFusCGH</span>
@@ -158,12 +152,10 @@ Optionally return a matrix of features instead</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> 00-14595_tumorD Not Available Not Available      Not Available      NoFusCGH</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> 00-15201_tumorA Not Available Not Available      Not Available      NoFusCGH</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> 00-15201_tumorB Not Available Not Available      Not Available      NoFusCGH</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 17 more variables: Confidence.BN2 &lt;dbl&gt;, Confidence.EZB &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: Confidence.BN2 &lt;dbl&gt;, Confidence.EZB &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   Confidence.MCD &lt;dbl&gt;, Confidence.N1 &lt;dbl&gt;, Confidence.ST2 &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   BN2.Feature.Count &lt;dbl&gt;, EZB.Feature.Count &lt;dbl&gt;, MCD.Feature.Count &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   N1.Feature.Count &lt;dbl&gt;, ST2.Feature.Count &lt;dbl&gt;, BN2.Features &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   EZB.Features &lt;chr&gt;, MCD.Features &lt;chr&gt;, N1.Features &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ST2.Features &lt;chr&gt;, Subtype.Prediction &lt;chr&gt;, LymphGen &lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   N1.Feature.Count &lt;dbl&gt;</span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
