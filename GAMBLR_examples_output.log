@@ -1,4 +1,4 @@
-[1] "=== STARTED AT 2025-02-24 15:19:37.819708 ==="
+[1] "=== STARTED AT 2025-02-24 16:09:27.166337 ==="
 ── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
@@ -566,20 +566,20 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 793 samples and 19 cohorts"
- [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "DLBCL_ICGC"          "FL_ICGC"             "MALY_Other_ICGC"     "BL_ICGC"             "CLL_ICGC"            "MCL_CellLines"       "cHL_Maura"           "MCL_Barcelona"       "MM_mmsanger"         "SMZL_Strefford"     
+[1] "No Manta SVs found for 327 samples and 13 cohorts"
+ [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
 
-> head(all_sv)
+> dplyr::select(all_sv, 1:14) %>% head()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-  CHROM_A START_A  END_A CHROM_B START_B  END_B                       manta_name SCORE STRAND_A STRAND_B          tumour_sample_id          normal_sample_id VAF_tumour  DP pair_status FILTER
-1       1   54732  54744       1   54790  54802  MantaDUP:TANDEM:56611:0:0:2:0:0    40        +        - BLGSP-71-06-00180-01A-01D BLGSP-71-06-00180-99A-01D      0.233  73     matched   PASS
-2       1  536206 536242       1  536520 536520         MantaDEL:19570:0:0:0:0:0    43        +        -                 14-11427T                 14-11427N      0.106  47     matched   PASS
-3       1  668630 668631       1  850204 850205 MantaDUP:TANDEM:240583:0:1:0:0:0    79        +        -                      CA46 BLGSP-71-06-00286-99A-01D      0.117 420   unmatched   PASS
-4       1  711805 711805       1  711829 711829      MantaINS:118418:18:18:0:9:0    58        +        - BLGSP-71-30-00667-01A-01E BLGSP-71-06-00286-99A-01D      0.397 116   unmatched   PASS
-5       1  711805 711805       1  711829 711829       MantaINS:914528:0:0:0:10:0    56        +        - BLGSP-71-30-00674-01A-01E BLGSP-71-06-00286-99A-01D      0.362 105   unmatched   PASS
-6       1  711805 711805       1  711829 711829         MantaINS:65113:0:0:0:8:0    60        +        -           00-14595_tumorD           00-14595_normal      0.266  94     matched   PASS
+  CHROM_A START_A END_A CHROM_B   START_B     END_B                   manta_name SCORE STRAND_A STRAND_B tumour_sample_id normal_sample_id VAF_tumour  DP
+1       1   10286 10286       8 146301391 146301391   MantaBND:5:1923:1927:0:0:0    46        +        +        09-41114T        14-11247N      0.118 110
+2       1   10309 10837      12     95038     95505   MantaBND:1:6049:6050:1:0:0    52        +        +     4687-03-01BD   14-11247Normal      0.250  52
+3       1   10347 10630      15 102520227 102520676  MantaBND:11:3940:4135:0:0:0    58        -        -        12-34927T        14-11247N      0.135 104
+4       1   10438 10438       8 146301391 146301391   MantaBND:2:7221:7224:0:1:0    84        +        +      102-01-01TD   14-11247Normal      0.520  25
+5       1   10438 10438       8 146301391 146301391   MantaBND:2:1723:1728:0:0:0    81        +        +    102-0202-1DVT   14-11247Normal      0.630  27
+6       1   10457 10839      12     94873     95291 MantaBND:3:26317:26320:0:0:0    56        +        +     4690-03-01BD   14-11247Normal      0.333  18
 
 > cohort_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(cohort == "DLBCL_cell_lines")
@@ -587,17 +587,17 @@ Showing first 10 rows:
 > some_sv <- get_manta_sv(these_samples_metadata = cohort_meta, 
 +     verbose = FALSE)
 
-> head(some_sv)
+> dplyr::select(some_sv, 1:14) %>% head()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-  CHROM_A START_A   END_A CHROM_B START_B   END_B               manta_name SCORE STRAND_A STRAND_B tumour_sample_id normal_sample_id VAF_tumour  DP pair_status FILTER
-1       1  963851  963870       1  964461  964461 MantaDEL:14848:0:0:0:0:0   144        +        -           Toledo        14-11247N      0.923  26   unmatched   PASS
-2       1 1142719 1142719       1 1143140 1143140 MantaDEL:14306:0:0:0:0:0    94        +        -            HBL-1        14-11247N      0.300 100   unmatched   PASS
-3       1 1142719 1142719       1 1143140 1143140 MantaDEL:14173:0:0:0:0:0    81        +        -         SU-DHL-4        14-11247N      0.256  78   unmatched   PASS
-4       1 1142719 1142719       1 1143140 1143140 MantaDEL:11910:0:0:0:0:0    55        +        -         SU-DHL-9        14-11247N      0.183  60   unmatched   PASS
-5       1 1161716 1161716       1 1161780 1161780 MantaDEL:15361:0:0:0:0:0    48        +        -               HT        14-11247N      0.273  44   unmatched   PASS
-6       1 1161716 1161716       1 1161780 1161780 MantaDEL:11880:0:0:0:0:0    58        +        -            MD903        14-11247N      0.471  34   unmatched   PASS
+  CHROM_A START_A   END_A CHROM_B START_B   END_B               manta_name SCORE STRAND_A STRAND_B tumour_sample_id normal_sample_id VAF_tumour  DP
+1       1  963851  963870       1  964461  964461 MantaDEL:14848:0:0:0:0:0   144        +        -           Toledo        14-11247N      0.923  26
+2       1 1142719 1142719       1 1143140 1143140 MantaDEL:14306:0:0:0:0:0    94        +        -            HBL-1        14-11247N      0.300 100
+3       1 1142719 1142719       1 1143140 1143140 MantaDEL:14173:0:0:0:0:0    81        +        -         SU-DHL-4        14-11247N      0.256  78
+4       1 1142719 1142719       1 1143140 1143140 MantaDEL:11910:0:0:0:0:0    55        +        -         SU-DHL-9        14-11247N      0.183  60
+5       1 1161716 1161716       1 1161780 1161780 MantaDEL:15361:0:0:0:0:0    48        +        -               HT        14-11247N      0.273  44
+6       1 1161716 1161716       1 1161780 1161780 MantaDEL:11880:0:0:0:0:0    58        +        -            MD903        14-11247N      0.471  34
 
 > nrow(some_sv)
 [1] 21216
@@ -609,55 +609,55 @@ Showing first 10 rows:
 > hg38_myc_locus_sv <- get_manta_sv(region = myc_region_hg38, 
 +     projection = "hg38", verbose = FALSE)
 
-> head(hg38_myc_locus_sv)
+> dplyr::select(hg38_myc_locus_sv, 1:14) %>% head()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
-  CHROM_A  START_A    END_A CHROM_B   START_B     END_B                   manta_name SCORE STRAND_A STRAND_B          tumour_sample_id          normal_sample_id VAF_tumour  DP pair_status FILTER
-1    chr2  9700440  9700440    chr8 127726024 127726024     MantaBND:80035:1:8:0:0:0   103        +        + BLGSP-71-06-00252-01A-01D BLGSP-71-06-00252-10A-01D      0.194 252     matched   PASS
-2    chr2 28983233 28983240    chr8 127711264 127711271 MantaBND:3:52907:52908:0:3:0    43        -        -           02-14764_tumorB           02-14764_normal      0.109  55     matched   PASS
-3    chr2 88860304 88860306    chr8 127751936 127751938  MantaBND:194837:0:1:0:0:0:0   102        +        + BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.171 280     matched   PASS
-4    chr2 88860417 88860417    chr8 127751955 127751955  MantaBND:194837:0:1:0:0:0:0    73        -        - BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.117 230     matched   PASS
-5    chr2 88861500 88861500    chr8 127748752 127748752   MantaBND:1102030:0:1:0:0:0    89        +        + BLGSP-71-30-00647-01A-01E BLGSP-71-06-00286-99A-01D      0.283  46   unmatched   PASS
-6    chr3 16508827 16508827    chr8 127755512 127755512     MantaBND:33202:0:1:0:2:0   222        +        +                 10-15025T                 14-11247N      0.663  98   unmatched   PASS
+  CHROM_A  START_A    END_A CHROM_B   START_B     END_B                   manta_name SCORE STRAND_A STRAND_B          tumour_sample_id          normal_sample_id VAF_tumour  DP
+1    chr2  9700440  9700440    chr8 127726024 127726024     MantaBND:80035:1:8:0:0:0   103        +        + BLGSP-71-06-00252-01A-01D BLGSP-71-06-00252-10A-01D      0.194 252
+2    chr2 28983233 28983240    chr8 127711264 127711271 MantaBND:3:52907:52908:0:3:0    43        -        -           02-14764_tumorB           02-14764_normal      0.109  55
+3    chr2 88858802 88858802    chr8 127744262 127744262    MantaBND:279432:0:1:0:0:0   148        +        +                   SP59344                   SP59342      0.386  88
+4    chr2 88860304 88860306    chr8 127751936 127751938  MantaBND:194837:0:1:0:0:0:0   102        +        + BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.171 280
+5    chr2 88860417 88860417    chr8 127751955 127751955  MantaBND:194837:0:1:0:0:0:0    73        -        - BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.117 230
+6    chr2 88861500 88861500    chr8 127748752 127748752   MantaBND:1102030:0:1:0:0:0    89        +        + BLGSP-71-30-00647-01A-01E BLGSP-71-06-00286-99A-01D      0.283  46
 
 > nrow(hg38_myc_locus_sv)
-[1] 410
+[1] 458
 
 > incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37, 
 +     projection = "hg38", verbose = FALSE)
 
-> head(incorrect_myc_locus_sv)
+> dplyr::select(incorrect_myc_locus_sv, 1:14) %>% head()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
-  CHROM_A   START_A     END_A CHROM_B   START_B     END_B                 manta_name SCORE STRAND_A STRAND_B tumour_sample_id normal_sample_id VAF_tumour DP pair_status FILTER
-1    chr4  77227094  77227100    chr8 128767241 128767247  MantaBND:658884:1:2:0:0:0    42        -        -  14-33798_tumorB  14-33798_normal      0.136 44     matched   PASS
-2    chr8 128726344 128727379   chr11  93629113  93629647   MantaBND:28037:1:9:0:0:0    66        -        +        01-20774T        14-11247N      0.280 25   unmatched   PASS
-3    chr8   1287381   1287381    chr8   1287384   1287384 MantaINS:1063533:0:0:0:4:0    51        +        -  97-28459_tumorB          FL3006N      0.308 26     matched   PASS
-4    chr8 128738979 128738983    chr8 128752584 128752588 MantaDEL:1407936:0:1:0:0:0   118        +        -  04-14093_tumorA  04-14093_normal      0.442 43     matched   PASS
-5    chr8 128738979 128738983    chr8 128752584 128752588  MantaDEL:883269:0:1:0:0:0   127        +        -  04-14093_tumorB  04-14093_normal      0.571 35     matched   PASS
-6    chr8 128738981 128738981    chr8 128752584 128752584  MantaDEL:829962:0:1:0:0:0   126        +        -        05-24065T        14-11247N      0.286 98   unmatched   PASS
+  CHROM_A   START_A     END_A CHROM_B   START_B     END_B                 manta_name SCORE STRAND_A STRAND_B tumour_sample_id normal_sample_id VAF_tumour  DP
+1    chr4  77227094  77227100    chr8 128767241 128767247  MantaBND:658884:1:2:0:0:0    42        -        -  14-33798_tumorB  14-33798_normal      0.136  44
+2    chr8   1287381   1287381    chr8   1287384   1287384 MantaINS:1063533:0:0:0:4:0    51        +        -  97-28459_tumorB          FL3006N      0.308  26
+3    chr8 128726344 128727379   chr11  93629113  93629647   MantaBND:28037:1:9:0:0:0    66        -        +        01-20774T        14-11247N      0.280  25
+4    chr8 128726820 128726820    chr8 128726825 128726825  MantaINS:242009:0:0:0:3:0    76        +        -         PD26403a         PD26403b      0.400 105
+5    chr8 128726820 128726820    chr8 128726825 128726825  MantaINS:226876:7:7:1:3:0    84        +        -         PD26403c         PD26403b      0.407 113
+6    chr8 128738979 128738983    chr8 128752584 128752588 MantaDEL:1407936:0:1:0:0:0   118        +        -  04-14093_tumorA  04-14093_normal      0.442  43
 
 > nrow(incorrect_myc_locus_sv)
-[1] 25
+[1] 28
 
 > annotated_myc_hg38 = suppressMessages(GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, 
 +     genome_build = "hg38"))
 
 > head(annotated_myc_hg38)
-  chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2          tumour_sample_id  gene partner   fusion
-1      2  28983233  28983240      8 127711264 127711271    .    43       -       -           02-14764_tumorB   ALK    <NA>   NA-ALK
-2      4   1746419   1746421      8 127723483 127723485    .    77       -       -                 09-41114T WHSC1    <NA> NA-WHSC1
-3      8 127741233 127741234     12  25049104  25049105    .   219       +       +                  FL1018T2   MYC    LRMP LRMP-MYC
-4      8 127713694 127713694     14 105857950 105857950    .   109       -       + BLGSP-71-06-00280-01A-01D   MYC     IGH  IGH-MYC
-5      8 127716025 127716934     14 105862581 105863164    .   112       +       - BLGSP-71-06-00084-01A-01D   MYC     IGH  IGH-MYC
-6      8 127716523 127716523     14 105862757 105862757    .   173       -       + BLGSP-71-06-00084-01A-01D   MYC     IGH  IGH-MYC
+  chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id  gene partner   fusion
+1      2  28983233  28983240      8 127711264 127711271    .    43       -       -  02-14764_tumorB   ALK    <NA>   NA-ALK
+2      4   1746419   1746421      8 127723483 127723485    .    77       -       -        09-41114T WHSC1    <NA> NA-WHSC1
+3      8 127226860 127226862      8 127759782 127759784    .    56       +       +          SP13307   MYC    <NA>   NA-MYC
+4      8 127226860 127226860      8 127759821 127759821    .    51       -       -          SP13307   MYC    <NA>   NA-MYC
+5      8 127301019 127301020      8 127742838 127742839    .    71       -       -      365-16-01TD   MYC    <NA>   NA-MYC
+6      8 127301020 127301022      8 127742838 127742840    .    65       +       +      365-16-01TD   MYC    <NA>   NA-MYC
 
 > table(annotated_myc_hg38$partner)
 
  BCL6 CCNL1   DMD   IGH   IGK   IGL  LRMP  PAX5 RFTN1 
-    3     1     2   264     3     4     1     5     1 
+    3     1     2   293     5     6     1     5     1 
 
 > annotated_myc_incorrect = suppressMessages(GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, 
 +     genome_build = "hg38"))
@@ -665,11 +665,11 @@ Showing first 10 rows:
 > head(annotated_myc_incorrect)
   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
 1      8 128726344 128727379     11  93629113  93629647    .    66       -       +        01-20774T  MYC    <NA> NA-MYC
-2      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
-3      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
-4      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
-5      8 128738981 128738981      8 128752584 128752584    .   250       +       -        10-27119T  MYC    <NA> NA-MYC
-6      8 128738981 128738981      8 128752584 128752584    .   194       +       -         SU-DHL-6  MYC    <NA> NA-MYC
+2      8 128726820 128726820      8 128726825 128726825    .    76       +       -         PD26403a  MYC    <NA> NA-MYC
+3      8 128726820 128726820      8 128726825 128726825    .    84       +       -         PD26403c  MYC    <NA> NA-MYC
+4      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
+5      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
+6      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -747,4 +747,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-02-24 15:25:29.200004 ==="
+[1] "=== COMPLETED AT 2025-02-24 16:15:27.86853 ==="
