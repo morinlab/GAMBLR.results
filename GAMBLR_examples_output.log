@@ -1,4 +1,4 @@
-[1] "=== STARTED AT 2025-02-24 16:09:27.166337 ==="
+[1] "=== STARTED AT 2025-02-26 10:08:26.548154 ==="
 ── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
@@ -132,7 +132,6 @@ Showing first 10 rows:
 
 > outputs = estimate_purity(these = my_meta, show_plots = TRUE, 
 +     projection = "grch37")
-[1] "Missing seg_data or maf_data. Will retrieve missing data for this sample"
 
 > outputs$sample_purity_estimation
 [1] 1
@@ -707,6 +706,38 @@ Showing first 10 rows:
 9       KLHL21                 15-26538T          1        6661607                G                 A
 10      KLHL21                 10-18191T          1        6661655                A                 G
 
+> maf_samp = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
++     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = FALSE)
+
+> nrow(maf_samp)
+[1] 4705
+
+> maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
++     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = TRUE)
+
+> nrow(maf_samp_aug)
+[1] 6118
+
+> some_maf = GAMBLR.results:::get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() %>% 
++     dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D", seq_type == 
++         "genome"), projection = "hg38")
+
+> dplyr::select(some_maf, 1:10)
+genomic_data Object
+Genome Build: hg38 
+Showing first 10 rows:
+       Hugo_Symbol Entrez_Gene_Id Center NCBI_Build Chromosome Start_Position End_Position Strand Variant_Classification Variant_Type
+1          Unknown              0      .     GRCh38       chr1        5446963      5446963      +                    IGR          SNP
+2           CAMTA1              0      .     GRCh38       chr1        7244319      7244319      +                 Intron          SNP
+3             PER3              0      .     GRCh38       chr1        7828459      7828459      +                 Intron          SNP
+4          TNFRSF9              0      .     GRCh38       chr1        7911008      7911008      +                3'Flank          SNP
+5  ENSR00000000893              0      .     GRCh38       chr1        8181883      8181883      +                    IGR          SNP
+6           PIK3CD              0      .     GRCh38       chr1        9726972      9726972      +      Missense_Mutation          SNP
+7            CASZ1              0      .     GRCh38       chr1       10720942     10720942      +                 Intron          SNP
+8           CELA2A              0      .     GRCh38       chr1       15454068     15454068      +                5'Flank          SNP
+9          PLA2G2A              0      .     GRCh38       chr1       19975558     19975559      +                  3'UTR          DEL
+10         PLA2G2C              0      .     GRCh38       chr1       20172387     20172387      +                 Intron          SNP
+
 > my_meta = get_gambl_metadata() %>% dplyr::filter(sample_id %in% 
 +     c("HTMCP-01-06-00485-01A-01D", "14-35472_tumorA", "14-35472_tumorB"))
 
@@ -714,6 +745,29 @@ Showing first 10 rows:
 
 > hg38_ssms = get_ssm_by_samples(projection = "hg38", 
 +     these_samples_metadata = my_meta)
+
+> dplyr::group_by(hg38_ssms, Tumor_Sample_Barcode) %>% 
++     dplyr::count()
+genomic_data Object
+Genome Build: hg38 
+Showing first 10 rows:
+       Tumor_Sample_Barcode    n
+1           14-35472_tumorA 5265
+2           14-35472_tumorB 7966
+3 HTMCP-01-06-00485-01A-01D 2160
+
+> hg38_ssms_no_aug = get_ssm_by_samples(projection = "hg38", 
++     these_samples_metadata = my_meta, augmented = FALSE)
+
+> dplyr::group_by(hg38_ssms_no_aug, Tumor_Sample_Barcode) %>% 
++     dplyr::count()
+genomic_data Object
+Genome Build: hg38 
+Showing first 10 rows:
+       Tumor_Sample_Barcode    n
+1           14-35472_tumorA 4001
+2           14-35472_tumorB 7470
+3 HTMCP-01-06-00485-01A-01D 2160
 
 > myc_grch37 <- GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_lymphoma_genes_bed) %>% 
 +     dplyr::filter(name == "MYC")
@@ -747,4 +801,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-02-24 16:15:27.86853 ==="
+[1] "=== COMPLETED AT 2025-02-26 10:14:33.549058 ==="
