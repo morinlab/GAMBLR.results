@@ -18,7 +18,8 @@
 #' @param show_plots Optional. Show two faceted plots that display the VAF and purity distributions for each copy number state in the sample. Default is FALSE.
 #' @param assume_diploid Optional. If no local seg file is provided, instead of defaulting to a GAMBL sample, this parameter annotates every mutation as copy neutral. Default is FALSE.
 #' @param coding_only Optional. set to TRUE to restrict to only coding variants. Default is FALSE.
-#'
+#' @param verbose. Set to TRUE for more feedback.
+#' 
 #' @return A list containing a data frame (MAF-like format) with the segmented absolute copy number data and three extra columns:
 #' VAF is the variant allele frequency calculated from the t_ref_count and t_alt_count
 #' Ploidy is the number of copies of an allele in the tumour cell
@@ -46,13 +47,16 @@ estimate_purity = function(these_samples_metadata,
                            show_plots = FALSE,
                            assume_diploid = FALSE,
                            coding_only = FALSE,
-                           projection){
+                           projection,
+                           verbose = FALSE){
   if(missing(these_samples_metadata) | nrow(these_samples_metadata)>1){
     stop("these_samples_metadata must be presnt and must contain exactly one row")
   }
   this_seq_type = pull(these_samples_metadata,seq_type)
   if(missing(seg_data)|missing(maf_data)){
-    print("Missing seg_data or maf_data. Will retrieve missing data for this sample")
+    if(verbose){
+      print("Missing seg_data or maf_data. Will retrieve missing data for this sample")
+    }
   }
   if(missing(maf_data)){
     maf_data = get_ssm_by_sample(these = these_samples_metadata,

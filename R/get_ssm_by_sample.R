@@ -26,12 +26,12 @@
 #'
 #' @examples
 #' 
-#' maf_samp = get_ssm_by_sample(
+#' maf_samp = GAMBLR.results:::get_ssm_by_sample(
 #'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
 #'   augmented = FALSE
 #' )
 #' nrow(maf_samp)
-#' maf_samp_aug = get_ssm_by_sample(
+#' maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(
 #'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
 #'   augmented = TRUE
 #' )
