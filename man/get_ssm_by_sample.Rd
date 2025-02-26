@@ -56,18 +56,24 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 
-\dontrun{
- this_sample_df = GAMBLR.results:::get_ssm_by_sample(
+maf_samp = get_ssm_by_sample(
+  get_gambl_metadata() \%>\% dplyr::filter(sample_id=="13-27975_tumorA"),
+  augmented = FALSE
+)
+nrow(maf_samp)
+maf_samp_aug = get_ssm_by_sample(
+  get_gambl_metadata() \%>\% dplyr::filter(sample_id=="13-27975_tumorA"),
+  augmented = TRUE
+)
+nrow(maf_samp_aug)
+
+
+ some_maf = GAMBLR.results:::get_ssm_by_sample(
                           these_samples_metadata = get_gambl_metadata() \%>\%
-                                dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
+                            dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
                                      seq_type == "genome"),
-                         projection = "grch37")
+                         projection = "hg38")
+ dplyr::select(some_maf,1:10)
+ 
 
- capture_meta = get_gambl_metadata() \%>\% dplyr::filter(seq_type == "capture")
-
- ssm_sample = GAMBLR.results:::get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
-                               projection = "grch37",
-                               augmented = T,
-                               these_samples_metadata = capture_meta)
-}
 }
