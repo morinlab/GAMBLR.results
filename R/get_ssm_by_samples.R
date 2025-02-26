@@ -69,7 +69,6 @@ get_ssm_by_samples = function(these_samples_metadata,
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
-  remote_session = check_remote_configuration(auto_connect = TRUE)
 
   to_exclude = get_excluded_samples(tool_name)
 

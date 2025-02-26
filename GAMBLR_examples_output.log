@@ -1,4 +1,4 @@
-[1] "=== STARTED AT 2025-02-26 10:08:26.548154 ==="
+[1] "=== STARTED AT 2025-02-26 10:42:57.135744 ==="
 ── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
@@ -801,4 +801,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-02-26 10:14:33.549058 ==="
+[1] "=== COMPLETED AT 2025-02-26 10:48:59.265498 ==="
