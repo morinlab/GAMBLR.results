@@ -65,9 +65,13 @@ collate_results = function(sample_table,
 
   # important: if you are collating results from anything but WGS (e.g RNA-seq libraries) be sure to use biopsy ID as the key in your join
   # the sample_id should probably not even be in this file if we want this to be biopsy-centric
-  if(missing(sample_table)){
-    sample_table = get_gambl_metadata(seq_type_filter = seq_type_filter) %>%
-      dplyr::select(sample_id, patient_id, biopsy_id)
+  if(missing(these_samples_metadata)){
+    sample_table = get_gambl_metadata() %>%
+      dplyr::filter(seq_type %in% c("capture","genome")) %>%
+      dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
+  } else {
+    sample_table = these_samples_metadata %>%
+      dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
   }
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options
@@ -77,18 +81,20 @@ collate_results = function(sample_table,
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   output_file = paste0(output_base, output_file)
-  output_file = glue::glue(output_file)
+  output_file = lapply(unique(sample_table$seq_type), function(x) glue::glue(output_file, seq_type_filter=x))
   print(output_file)
   if(from_cache){
     #check for missingness
-    if(!file.exists(output_file)){
-      print(paste("missing: ", output_file))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
+    missing_cache = sapply(output_file, function(x) !file.exists(x)))
+    if(any(missing_cache){
+      print(paste("missing: ", output_file[missing_cache]))
+      message("Cannot find file(s) locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
 
     #read cached results
-    sample_table = suppressMessages(read_tsv(output_file) %>% dplyr::filter(sample_id %in% sample_table$sample_id))
+    sample_table = do.call(bind_rows, lapply(output_file, function(x) suppressMessages(read_tsv(x)))) %>% 
+      dplyr::filter(sample_id %in% sample_table$sample_id)
 
   }else{
     message("Slow option: not using cached result. I suggest from_cache = TRUE whenever possible")
