@@ -65,13 +65,25 @@ collate_results = function(sample_table,
 
   # important: if you are collating results from anything but WGS (e.g RNA-seq libraries) be sure to use biopsy ID as the key in your join
   # the sample_id should probably not even be in this file if we want this to be biopsy-centric
-  if(missing(these_samples_metadata)){
+  
+  if(!missing(these_samples_metadata)){
+    if(!missing(sample_table)){
+      print("Prioritizing these_samples_metadata as sample input")
+      sample_table = these_samples_metadata
+    }
+  } else if (missing(sample_table)){
+    print("Defaulting to genome and capture metadata. Pass a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type")
     sample_table = get_gambl_metadata() %>%
-      dplyr::filter(seq_type %in% c("capture","genome")) %>%
+      dplyr::filter(seq_type %in% c("capture","genome")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
-  } else {
-    sample_table = these_samples_metadata %>%
-      dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
+  }
+  
+  dep_msg=""
+  if(!missing(seq_type_filter)){
+    dep_msg = "Argument seq_type_filter is deprecated. "
+  }
+  if(!any(grepl("seq_type", names(sample_table)))){
+    print(paste0(dep_msg, "Please provide a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type"))
   }
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options
@@ -85,8 +97,8 @@ collate_results = function(sample_table,
   print(output_file)
   if(from_cache){
     #check for missingness
-    missing_cache = sapply(output_file, function(x) !file.exists(x)))
-    if(any(missing_cache){
+    missing_cache = sapply(output_file, function(x) !file.exists(x))
+    if(any(missing_cache)){
       print(paste("missing: ", output_file[missing_cache]))
       message("Cannot find file(s) locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
@@ -94,6 +106,7 @@ collate_results = function(sample_table,
 
     #read cached results
     sample_table = do.call(bind_rows, lapply(output_file, function(x) suppressMessages(read_tsv(x)))) %>% 
+      left_join(., sample_table) %>% # retain seq_type column
       dplyr::filter(sample_id %in% sample_table$sample_id)
 
   }else{
@@ -104,14 +117,14 @@ collate_results = function(sample_table,
     sample_table = collate_curated_sv_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_ashm_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_nfkbiz_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_csr_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
+    #sample_table = collate_csr_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_ancestry(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_sbs_results(sample_table = sample_table, sbs_manipulation = sbs_manipulation, seq_type_filter = seq_type_filter)
     sample_table = collate_qc_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table <- collate_pga(
-        these_samples_metadata = sample_table,
-        this_seq_type = seq_type_filter
-    )
+    #sample_table <- collate_pga(
+    #    these_samples_metadata = sample_table,
+    #    this_seq_type = seq_type_filter
+    #)
     sample_table <- collate_dlbclass(
         sample_table
     )
