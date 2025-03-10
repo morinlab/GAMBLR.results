@@ -93,7 +93,7 @@ collate_results = function(sample_table,
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   output_file = paste0(output_base, output_file)
-  output_file = lapply(unique(sample_table$seq_type), function(x) glue::glue(output_file, seq_type_filter=x))
+  output_file = lapply(unique(sample_table$seq_type), function(x) glue::glue(output_file, seq_type_filter = x))
   print(output_file)
   if(from_cache){
     #check for missingness
@@ -112,15 +112,24 @@ collate_results = function(sample_table,
   }else{
     message("Slow option: not using cached result. I suggest from_cache = TRUE whenever possible")
     #edit this function and add a new function to load any additional results into the main summary table
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ssm_results(sample_table = filter(sample_table, seq_type==x), seq_type_filter = x)))
-    sample_table = collate_sv_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_curated_sv_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_ashm_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_nfkbiz_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    #sample_table = collate_csr_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_ancestry(sample_table = sample_table, seq_type_filter = seq_type_filter)
-    sample_table = collate_sbs_results(sample_table = sample_table, sbs_manipulation = sbs_manipulation, seq_type_filter = seq_type_filter)
-    sample_table = collate_qc_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ssm_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_sv_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_curated_sv_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ashm_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_nfkbiz_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    #sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_csr_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ancestry(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_sbs_results(sample_table = filter(sample_table, seq_type == x), sbs_manipulation = sbs_manipulation, seq_type_filter = x)))
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) {
+      if(x != "mrna"){
+        result <- collate_qc_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)
+        result <- select(result, where(~ !all(is.na(.))))
+        return(result)
+      }else{
+        result <- filter(sample_table, seq_type == x)
+        return(result)
+      }
+    }))
     #sample_table <- collate_pga(
     #    these_samples_metadata = sample_table,
     #    this_seq_type = seq_type_filter
