@@ -72,9 +72,9 @@ collate_results = function(sample_table,
       sample_table = these_samples_metadata
     }
   } else if (missing(sample_table)){
-    print("Defaulting to genome and capture metadata. Pass a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type")
+    print("Defaulting to genome and capture metadata. Pass a dataframe that includes seq_type column as either the sample_table or these_samples_metadata argument to specify desired seq type")
     sample_table = get_gambl_metadata() %>%
-      dplyr::filter(seq_type %in% c("capture","genome")) %>% 
+      dplyr::filter(seq_type %in% c("genome","capture")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
   }
   
@@ -105,14 +105,14 @@ collate_results = function(sample_table,
     }
 
     #read cached results
-    sample_table = do.call(bind_rows, lapply(output_file, function(x) suppressMessages(read_tsv(x)))) %>% 
-      left_join(., sample_table) %>% # retain seq_type column
+    sample_table = do.call(bind_rows, lapply(output_file, function(x) read_tsv(x))) %>% 
+      left_join(., select(sample_table, sample_id, patient_id, biopsy_id, seq_type)) %>% # retain seq_type column
       dplyr::filter(sample_id %in% sample_table$sample_id)
 
   }else{
     message("Slow option: not using cached result. I suggest from_cache = TRUE whenever possible")
     #edit this function and add a new function to load any additional results into the main summary table
-    sample_table = collate_ssm_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
+    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ssm_results(sample_table = filter(sample_table, seq_type==x), seq_type_filter = x)))
     sample_table = collate_sv_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_curated_sv_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
     sample_table = collate_ashm_results(sample_table = sample_table, seq_type_filter = seq_type_filter)
