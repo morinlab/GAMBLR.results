@@ -83,7 +83,7 @@ collate_results = function(sample_table,
     dep_msg = "Argument seq_type_filter is deprecated. "
   }
   if(!any(grepl("seq_type", names(sample_table)))){
-    print(paste0(dep_msg, "Please provide a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type"))
+    stop(paste0(dep_msg, "Please provide a dataframe that includes seq_type column in either the sample_table or these_samples_metadata argument to specify desired seq type"))
   }
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options
@@ -112,31 +112,32 @@ collate_results = function(sample_table,
   }else{
     message("Slow option: not using cached result. I suggest from_cache = TRUE whenever possible")
     #edit this function and add a new function to load any additional results into the main summary table
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ssm_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_sv_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_curated_sv_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ashm_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_nfkbiz_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    #sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_csr_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_ancestry(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) collate_sbs_results(sample_table = filter(sample_table, seq_type == x), sbs_manipulation = sbs_manipulation, seq_type_filter = x)))
-    sample_table = do.call(bind_rows, lapply(unique(sample_table$seq_type), function(x) {
-      if(x != "mrna"){
-        result <- collate_qc_results(sample_table = filter(sample_table, seq_type == x), seq_type_filter = x)
-        result <- select(result, where(~ !all(is.na(.))))
-        return(result)
-      }else{
-        result <- filter(sample_table, seq_type == x)
-        return(result)
+    seen_cols = c()
+    original_cols = colnames(sample_table)
+    sample_table_final = slice(sample_table, 0)
+    for (seq in unique(sample_table$seq_type)){
+      sample_table_temp = collate_ssm_results(sample_table = select(filter(sample_table, seq_type==seq), all_of(original_cols)), seq_type_filter = seq)
+      sample_table_temp = collate_sv_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      sample_table_temp = collate_curated_sv_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      sample_table_temp = collate_ashm_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      sample_table_temp = collate_nfkbiz_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      #sample_table_temp = collate_csr_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      sample_table_temp = collate_ancestry(sample_table = sample_table_temp, seq_type_filter = seq)
+      sample_table_temp = collate_sbs_results(sample_table = sample_table_temp, sbs_manipulation = sbs_manipulation, seq_type_filter = seq)
+      if(seq != "mrna") {
+        sample_table_temp = collate_qc_results(sample_table = sample_table_temp, seq_type_filter = seq)
       }
-    }))
-    #sample_table <- collate_pga(
-    #    these_samples_metadata = sample_table,
-    #    this_seq_type = seq_type_filter
-    #)
-    sample_table <- collate_dlbclass(
-        sample_table
-    )
+      #sample_table_temp = collate_pga(sample_table = sample_table_temp, this_seq_type = seq)
+      sample_table_temp = collate_dlbclass(sample_table = (sample_table_temp))
+      if(length(seen_cols) != 0){
+        # Remove NA cols to prevent joining errors
+        na_cols = intersect(colnames(select(sample_table_temp, where(~ all(is.na(.))))), seen_cols)
+        sample_table_temp = select(sample_table_temp, -all_of(na_cols))
+      }
+      sample_table_final = bind_rows(sample_table_final, sample_table_temp)
+      seen_cols = setdiff(colnames(sample_table_final), original_cols)
+    }
+    sample_table = sample_table_final
   }
   if(write_to_file){
     #write results from "slow option" to new cached results file
