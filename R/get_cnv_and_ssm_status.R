@@ -32,6 +32,8 @@
 #' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include 
 #'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 #' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
+#' @param cn_matrix Instead of seg_data, you can provide a matrix of CN values for the samples in the metadata.
+#' See [GAMBLR.utils::segmented_data_to_cn_matrix] for more information on how to create this matrix.
 #' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
 #' @param adjust_for_ploidy Set to FALSE to disable scaling of CN values by the genome-wide average per sample
 #' @param this_seq_type Deprecated
@@ -77,6 +79,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   these_samples_metadata,
                                   maf_df,
                                   seg_data,
+                                  cn_matrix,
                                   only_cnv = "none",
                                   genome_build = "grch37",
                                   include_hotspots = TRUE,
@@ -104,8 +107,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   
   stopifnot('`only_cnv` argument must be "none", "all", or a subset of `genes_and_cn_threshs$gene_id`' = {
-    only_cnv == "none" |
-      only_cnv == "all" |
+    "none" %in% only_cnv|
+      "all" %in% only_cnv |
       all(only_cnv %in% genes_and_cn_threshs$gene_id)
   })
   
@@ -121,6 +124,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   ### cnv
   thresh_2 = genes_and_cn_threshs$cn_thresh == 2
   genes_and_cn_threshs_non_neutral = genes_and_cn_threshs[!thresh_2,]
+  genes_and_cn_threshs_neutral = genes_and_cn_threshs[thresh_2,]
   check_cnv = nrow(genes_and_cn_threshs_non_neutral) > 0
   these_samples_metadata = dplyr::filter(these_samples_metadata,
                                          seq_type != "mrna")
@@ -129,10 +133,33 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     regions=my_regions[genes_and_cn_threshs_non_neutral$gene_id]
     
     names(regions)=genes_and_cn_threshs_non_neutral$gene_id
-    if(missing(seg_data)){
-      seg_data = get_cn_segments(these = these_samples_metadata)
-    }
-    cn_matrix = segmented_data_to_cn_matrix(
+    if(!missing(cn_matrix)){
+      if(any(!these_samples_metadata$sample_id %in% rownames(cn_matrix))){
+        missing = these_samples_metadata$sample_id[!these_samples_metadata$sample_id %in% rownames(cn_matrix)]
+        if(verbose){
+          print("cn_matrix is missing some of the samples in these_samples_metadata, these will be dropped")
+          print(missing)
+        }
+
+        these_samples_metadata = dplyr::filter(these_samples_metadata, sample_id %in% rownames(cn_matrix))
+      }
+      #convert a bin-based CN matrix to a gene-centric matrix
+      gene_bins = unlist(map_regions_to_bins(
+        query_regions = genes_and_cn_threshs_non_neutral$gene_id,
+        regions = colnames(cn_matrix),
+        query_type = "gene",
+        first = TRUE
+      ))
+
+      cn_matrix = cn_matrix[these_samples_metadata$sample_id,gene_bins,drop = FALSE] %>% as.data.frame()
+  
+      colnames(cn_matrix) = names(gene_bins)
+
+    } else{ #create a gene-centric matrix
+      if(missing(seg_data)){
+        seg_data = get_cn_segments(these = these_samples_metadata)
+      }
+      cn_matrix = segmented_data_to_cn_matrix(
         seg_data = seg_data,
         regions=regions,
         strategy="custom_regions",
@@ -140,8 +167,17 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
         adjust_for_ploidy=adjust_for_ploidy
       )
 
-    cn_matrix = cn_matrix[these_samples_metadata$sample_id,, drop=FALSE]
-    
+      cn_matrix = cn_matrix[these_samples_metadata$sample_id,, drop=FALSE]
+    }
+    og_names = colnames(cn_matrix)
+    safe_names = make.names(og_names,unique = TRUE)
+    name_map = setNames(og_names,safe_names)
+
+    #order needs to match
+    idx = match(genes_and_cn_threshs_non_neutral$gene_id, colnames(cn_matrix))
+    genes_and_cn_threshs_non_neutral = genes_and_cn_threshs_non_neutral[order(idx),,drop=FALSE]
+
+
     # get cnv status
     cnv_status = mapply(function(cnstate, thresh){
       if(thresh < 2){
@@ -154,13 +190,25 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     }, cn_matrix, genes_and_cn_threshs_non_neutral$cn_thresh, USE.NAMES = TRUE, SIMPLIFY = FALSE) %>% 
       as.data.frame %>% 
       {. * 1}
+    idx = match(names(name_map), colnames(cnv_status))
+   
+
+    colnames(cnv_status)[idx] = unname(name_map)
     if("name" %in% colnames(genes_and_cn_threshs)){
       colnames(cnv_status) = genes_and_cn_threshs$name
     }
+    
+
     rownames(cnv_status) = rownames(cn_matrix)
+
+    
+    for(g_neutral in genes_and_cn_threshs_neutral$gene_id){
+      cnv_status = mutate(cnv_status, !!g_neutral := 0)
+    }
     cnv_status[is.na(cnv_status)]=0
-    # if only CNV statuses are desired, output them
-    if(only_cnv == "all"){
+
+    # if only CNV statuses (statii?) are desired, just return them and skip everything else
+    if("all" %in% only_cnv){
       return(cnv_status)
     }
     
@@ -175,7 +223,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   
   ### ssm
   # genes to get ssm status
-  if(only_cnv == "nome"){
+  if("none" %in% only_cnv){
     genes_to_check_ssm = genes_and_cn_threshs$gene_id
   }else{
     genes_to_check_ssm = genes_and_cn_threshs$gene_id [ !(genes_and_cn_threshs$gene_id %in% only_cnv) ]
