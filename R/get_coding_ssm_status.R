@@ -66,9 +66,10 @@
 #' @export
 #'
 #' @examples
-#' # FL Tier 1 and 2 genes
+#' # FL Tier 1 genes
 #' genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
-#'                       FL==TRUE) %>% dplyr::pull(Gene)
+#'              FL_Tier==1) %>% 
+#'              dplyr::pull(Gene)
 #' 
 #' # Metadata for FL genomes and exomes
 #' fl_meta = suppressMessages(get_gambl_metadata()) %>% 
@@ -84,6 +85,7 @@
 #'   genome_build = "hg38",
 #'   these_samples_metadata = fl_meta
 #'  )
+#'  length(genes)
 #'  dim(coding_tabulated_df)
 #'  head(colnames(coding_tabulated_df))
 #' 
