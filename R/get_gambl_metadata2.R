@@ -16,6 +16,9 @@
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
 #' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
+#' @param exclude Specify one or more seq_type to drop from the output. 
+#' This prevents metadata from containing anythong other than the three standard
+#' seq_type (genome, capture, mrna). Default setting will exclude "promethION".
 #' @param ... Additional arguments
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
@@ -106,6 +109,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                everything=FALSE,
                                verbose=FALSE,
                                invert=FALSE,
+                               exclude = "promethION",
                               ...){
   if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
     args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
@@ -210,10 +214,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   }
 
   sample_meta_tumour_dna = sample_meta_tumour %>%
-    dplyr::filter(seq_type %in% c("genome","capture", "promethION"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
   sample_meta_normal_dna = sample_meta_normal %>%
-    dplyr::filter(seq_type %in% c("genome","capture", "promethION"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
 
   #helper function to prioritize systematically on the values in a column specified by column_name

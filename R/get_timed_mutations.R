@@ -13,15 +13,16 @@
 #' @return a named list containing two data.frames with
 #' the ssm and cna timing information
 #' @examples
-#'
-#' my_meta = suppressMessages(get_gambl_metadata()) %>%
+#' \dontrun{
+#'  my_meta = suppressMessages(get_gambl_metadata()) %>%
 #'   dplyr::filter(sample_id=="01-20985T",
 #'                seq_type=="genome")
-#' timed = GAMBLR.results::get_timed_mutations(my_meta,"hg38")
+#'  timed = GAMBLR.results::get_timed_mutations(my_meta,"hg38")
 #'
-#' head(timed$CNA)
+#'  head(timed$CNA)
 #'
-#' head(timed$SSM)
+#'  head(timed$SSM)
+#' }
 get_timed_mutations <- function(this_sample_metadata, projection, verbose = FALSE) {
   if (nrow(this_sample_metadata) > 1) {
     stop("this_sample_metadata must contain exactly one row")
