@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-02-26 10:42:57.135744 ==="
-── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-03-22 12:42:07.343944 ==="
+── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -266,7 +266,6 @@ Showing first 10 rows:
 
 > genome_cnv_ssm_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     dplyr::filter(all_types_meta, seq_type == "genome"), only_cnv = "MIR17HG"))
-[1] "0 rows with NA values"
 
 > print(dim(genome_cnv_ssm_status))
 [1] 259   6
@@ -286,7 +285,6 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     all_types_meta, only_cnv = "MIR17HG"))
-[1] "0 rows with NA values"
 
 > print(dim(all_seq_type_status))
 [1] 433   6
@@ -360,10 +358,10 @@ capture  genome
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
 
 > dim(coding_tabulated_df)
-[1] 784 116
+[1] 784 111
 
 > head(colnames(coding_tabulated_df))
-[1] "sample_id" "TNFRSF14"  "ARID1A"    "LAPTM5"    "MAP7D1"    "ZC3H12A"  
+[1] "sample_id" "TNFRSF14"  "ARID1A"    "LAPTM5"    "MAP7D1"    "RRAGC"    
 
 > maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta, 
 +     projection = "grch37")
@@ -372,10 +370,10 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 784 118
+[1] 784 113
 
 > head(colnames(coding_tabulated2))
-[1] "sample_id" "TNFRSF14"  "ARID1A"    "LAPTM5"    "MAP7D1"    "ZC3H12A"  
+[1] "sample_id" "TNFRSF14"  "ARID1A"    "LAPTM5"    "MAP7D1"    "RRAGC"    
 
 > all_sv <- get_combined_sv()
 
@@ -801,4 +799,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-02-26 10:48:59.265498 ==="
+[1] "=== COMPLETED AT 2025-03-22 12:48:18.494087 ==="

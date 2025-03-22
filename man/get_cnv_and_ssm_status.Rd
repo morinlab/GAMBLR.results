@@ -9,6 +9,7 @@ get_cnv_and_ssm_status(
   these_samples_metadata,
   maf_df,
   seg_data,
+  cn_matrix,
   only_cnv = "none",
   genome_build = "grch37",
   include_hotspots = TRUE,
@@ -32,6 +33,9 @@ Can be created with \code{get_gambl_metadata} function.}
 \item{maf_df}{Optional data frame containing the coding variants for your samples (i.e. output from \code{get_all_coding_ssm})}
 
 \item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+
+\item{cn_matrix}{Instead of seg_data, you can provide a matrix of CN values for the samples in the metadata.
+See \link[GAMBLR.utils:segmented_data_to_cn_matrix]{GAMBLR.utils::segmented_data_to_cn_matrix} for more information on how to create this matrix.}
 
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
