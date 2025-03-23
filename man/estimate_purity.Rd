@@ -11,7 +11,8 @@ estimate_purity(
   show_plots = FALSE,
   assume_diploid = FALSE,
   coding_only = FALSE,
-  projection
+  projection,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ Can contain data from other samples, which will be ignored.}
 \item{in_seg}{Path to a local corresponding seg file for the same sample ID as the input maf.}
 
 \item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
+
+\item{verbose.}{Set to TRUE for more feedback.}
 }
 \value{
 A list containing a data frame (MAF-like format) with the segmented absolute copy number data and three extra columns:

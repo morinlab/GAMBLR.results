@@ -148,7 +148,7 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
   })
   
   
-  check_remote_configuration()
+  #check_remote_configuration()
   #this needs to be in any function that reads files from the bundled GAMBL outputs synced by Snakemake
   outcome_table = get_gambl_outcomes()
   

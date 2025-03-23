@@ -98,7 +98,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
     stop("limit_samples, limit_cohort, exclude_cohort and limit_pathology, these_sample_ids are deprecated. Use `these_samples_metadata` instead")
   }
   
-  remote_session = check_remote_configuration()
+  #remote_session = check_remote_configuration()
   
   if(!include_silent){
     coding_class = coding_class[coding_class != "Silent"]

@@ -38,6 +38,15 @@
 #'
 #' hg38_ssms = get_ssm_by_samples(projection="hg38",
 #'                                these_samples_metadata = my_meta)
+#' 
+#' dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) %>% 
+#'   dplyr::count()
+#' hg38_ssms_no_aug = get_ssm_by_samples(projection="hg38",
+#'                                these_samples_metadata = my_meta,augmented= FALSE)
+#' 
+#' dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) %>% 
+#'   dplyr::count()
+#' 
 #' \dontrun{
 #' my_metadata = dplyr::filter(my_metadata, pathology == "FL")
 #'
@@ -60,7 +69,6 @@ get_ssm_by_samples = function(these_samples_metadata,
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
-  remote_session = check_remote_configuration(auto_connect = TRUE)
 
   to_exclude = get_excluded_samples(tool_name)
 

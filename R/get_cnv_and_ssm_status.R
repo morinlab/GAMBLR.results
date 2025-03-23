@@ -37,6 +37,7 @@
 #' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
 #' @param adjust_for_ploidy Set to FALSE to disable scaling of CN values by the genome-wide average per sample
 #' @param this_seq_type Deprecated
+#' @param verbose. Set to TRUE for more text
 #' 
 #' @return A data frame with CNV and SSM combined status.
 #' 
@@ -86,7 +87,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   review_hotspots = TRUE,
                                   adjust_for_ploidy=TRUE,
                                   include_silent=FALSE,
-                                  this_seq_type){
+                                  this_seq_type, 
+                                  verbose = FALSE){
   
   # check parameters
   stopifnot('`genes_and_cn_threshs` argument is missing.' = !missing(genes_and_cn_threshs))
