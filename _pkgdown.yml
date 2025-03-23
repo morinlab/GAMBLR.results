@@ -1,0 +1,26 @@
+reference:
+  - title: Other
+    contents:
+      - annotate_hotspots
+      - annotate_maf_triplet
+      - annotate_ssm_blacklist
+      - annotate_ssm_motif_context
+      - ashm_rainbow_plot
+      - assign_cn_to_ssm
+      - calc_mutation_frequency_bin_region
+      - calc_mutation_frequency_bin_regions
+      - check_gene_expression
+      - collate_lymphgen
+      - collate_results
+      - estimate_purity
+      - maf_to_custom_track
+      - og_get_gambl_metadata
+      - populate_tool_results
+      - pretty_lymphoplot
+      - tidy_gene_expression
+    examples: true
+  - title: Functions
+    contents:
+      - starts_with("get_")
+      - starts_with("plot_")
+    examples: true
