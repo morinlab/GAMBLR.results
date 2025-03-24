@@ -22,6 +22,7 @@ Authors@R:
 Description: This package is part of the Genomic Analysis of Mature B-cell
     Lymphomas (GAMBL) project developed by the Morin Lab.
 License: MIT + file LICENSE
+URL: https://morinlab.github.io/GAMBLR.results/
 Depends:
     R (>= 4.1)
 Imports:
