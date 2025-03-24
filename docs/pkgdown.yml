@@ -1,6 +1,9 @@
 pandoc: '3.2'
-pkgdown: 2.1.1
+pkgdown: 2.0.7
 pkgdown_sha: ~
-articles:
-  articles/Overview: Overview.html
-last_built: 2025-02-25T18:11Z
+articles: {}
+last_built: 2025-03-24T18:43Z
+urls:
+  reference: https://morinlab.github.io/GAMBLR.results/reference
+  article: https://morinlab.github.io/GAMBLR.results/articles
+
