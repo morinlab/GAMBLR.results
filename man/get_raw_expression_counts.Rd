@@ -74,7 +74,7 @@ column_ha = HeatmapAnnotation(df=select(exp_out$metadata,COO_consensus,sex))
 Heatmap(assay(vsd)[show_genes,],
     row_names_gp = gpar(fontsize=5),
     bottom_annotation = column_ha,
-    show_column_names = F)
+    show_column_names = FALSE)
 }
 
 }

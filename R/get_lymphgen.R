@@ -60,7 +60,7 @@ get_lymphgen = function(these_samples_metadata,
       lg_path = lymphgen_file
     }else{
       message("please provide a path to your lymphgen output file or one of the following flavours")
-      print(check_config_value(config::get("results_merged_wildcards")$lymphgen_template))
+      print(check_config_and_value("results_merged_wildcards$lymphgen_template"))
       return(NULL)
     }
   }else{
@@ -70,7 +70,8 @@ get_lymphgen = function(these_samples_metadata,
     }else{
       message("NO A53")
     }
-    lg_path = paste0(check_config_value(config::get("repo_base")), check_config_value(config::get("results_versioned")$lymphgen_template$default))
+    lg_path = paste0(check_config_and_value("repo_base"),
+                     check_config_and_value("results_versioned$lymphgen_template$default"))
     lg_path = glue::glue(lg_path)
     if(verbose){
       message(paste("loading from:",lg_path))
