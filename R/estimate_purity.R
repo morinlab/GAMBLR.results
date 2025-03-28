@@ -2,22 +2,24 @@
 #'
 #' @description Annotate a MAF with segmented absolute copy number data and added additional columns (VAF, Ploidy and Final_purity).
 #'
-#' @details This function takes a sample ID with the `this_sample_id` parameter and calls [GAMBLR.results::assign_cn_to_ssm] to get CN information.
+#' @details This function takes a single row of metadata that defines a
+#' sample you wish to estimate the purity of. 
 #' The user can also use an already loaded maf file with `maf_df`. In addition, a path to the maf/seq file of interest can also be passed to this function with
 #' `in_maf` and `in_seg`. To visualize VAF and purity distributions, set the `show_plots` to TRUE (default is FALSE).
 #' For more information on how to run this function with the parameters at hand, refer to the parameter descriptions and function examples.
 #'
+#' @param these_samples_metadata Metadata for one sample
 #' @param in_maf Path to a local maf file.
-#' @param maf_df Optional. Instead of using the path to a maf file, use a local dataframe as the maf file.
+#' @param maf_data Optional. Instead of using the path to a maf file, use a local dataframe as the maf file.
 #' @param in_seg Path to a local corresponding seg file for the same sample ID as the input maf.
-#' @param this_sample_id Specify the sample_id or any other string you want embedded in the file name.
+#' @param seg_data Data frame or seg_data object for the sample of interest. 
+#' Can contain data from other samples, which will be ignored.
 #' @param this_seq_type Seq type for returned CN segments. One of "genome" (default) or "capture".
-#' @param seg_file_source Specify what copy number calling program the input seg file is from, as it handles ichorCNA differently than WisecondorX, battenberg, etc.
 #' @param show_plots Optional. Show two faceted plots that display the VAF and purity distributions for each copy number state in the sample. Default is FALSE.
 #' @param assume_diploid Optional. If no local seg file is provided, instead of defaulting to a GAMBL sample, this parameter annotates every mutation as copy neutral. Default is FALSE.
 #' @param coding_only Optional. set to TRUE to restrict to only coding variants. Default is FALSE.
-#' @param genes Genes of interest.
-#'
+#' @param verbose. Set to TRUE for more feedback.
+#' 
 #' @return A list containing a data frame (MAF-like format) with the segmented absolute copy number data and three extra columns:
 #' VAF is the variant allele frequency calculated from the t_ref_count and t_alt_count
 #' Ploidy is the number of copies of an allele in the tumour cell
@@ -27,60 +29,59 @@
 #' @export
 #'
 #' @examples
-#' #load a maf
-#' this_maf = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-#'                              this_seq_type = "genome")
+#' 
+#' # get metadata for one sample 
+#' my_meta = suppressMessages(get_gambl_metadata()) %>% 
+#'   dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D",
+#'   seq_type == "genome")
+
 #'
-#' #estimate purity based on an already loaded maf object
-#' estimate_purity(maf_df = this_maf,
-#'                 show_plots = TRUE)
-#'
-#' #estimate purity based sole on a smaple ID + added seg data.
-#' estimate_purity(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-#'                 show_plots = TRUE, coding_only = TRUE)
-#'
-estimate_purity = function(in_maf,
-                           maf_df,
-                           in_seg,
-                           this_sample_id,
-                           this_seq_type = "genome",
-                           seg_file_source = "battenberg",
+#' #estimate purity, allowing the data to be retrieved for you
+#' outputs = estimate_purity(these = my_meta,
+#'                 show_plots = TRUE,
+#'                 projection  = "grch37")
+#' outputs$sample_purity_estimation
+estimate_purity = function(these_samples_metadata,
+                           maf_data,
+                           seg_data,
                            show_plots = FALSE,
                            assume_diploid = FALSE,
                            coding_only = FALSE,
-                           genes){
-
-  # Merge the CN info to the corresponding MAF file, uses GAMBLR function
-  if(missing(in_maf) & missing(in_seg) & missing(maf_df)){
-    CN_new = assign_cn_to_ssm(
-      this_sample_id = this_sample_id,
-      coding_only = coding_only,
-      assume_diploid = assume_diploid,
-      genes = genes,
-      seg_file_source = seg_file_source,
-      this_seq_type = this_seq_type)$maf
-  }else if(!missing(in_seg)){
-    CN_new = assign_cn_to_ssm(
-      this_sample_id = this_sample_id,
-      maf_file = in_maf,
-      maf_df = maf_df,
-      seg_file = in_seg,
-      seg_file_source = seg_file_source,
-      coding_only = coding_only,
-      genes = genes,
-      this_seq_type = this_seq_type)$maf
-  }else{
-    # If no seg file was provided, assume_diploid parameter is automatically set to true
-    if(missing(in_seg)){
-      CN_new = assign_cn_to_ssm(
-        this_sample_id = this_sample_id,
-        maf_file = in_maf,
-        maf_df = maf_df,
-        assume_diploid = TRUE,
-        coding_only = coding_only,
-        genes = genes,
-        this_seq_type = this_seq_type)$maf
+                           projection,
+                           verbose = FALSE){
+  if(missing(these_samples_metadata) | nrow(these_samples_metadata)>1){
+    stop("these_samples_metadata must be presnt and must contain exactly one row")
+  }
+  this_seq_type = pull(these_samples_metadata,seq_type)
+  if(missing(seg_data)|missing(maf_data)){
+    if(verbose){
+      print("Missing seg_data or maf_data. Will retrieve missing data for this sample")
     }
+  }
+  if(missing(maf_data)){
+    maf_data = get_ssm_by_sample(these = these_samples_metadata,
+                                 projection = projection)
+  }
+    # If no CN data was provided, retrieve the seg_data for them unless assume_diploid == TRUE
+  if(missing(seg_data)){
+      if(assume_diploid){
+        CN_new = assign_cn_to_ssm(these_samples_metadata = these_samples_metadata,
+          maf_file = in_maf,
+          maf_df = maf_df,
+          assume_diploid = TRUE,
+          coding_only = coding_only,
+          this_seq_type = this_seq_type)$maf
+      }else{
+        seg_data = get_cn_segments(these_samples_metadata = these_samples_metadata,
+                                   projection = projection)
+        
+        CN_new = assign_cn_to_ssm(these_samples_metadata = these_samples_metadata,
+          maf_data = maf_data,
+          seg_data = seg_data,
+          coding_only = coding_only,
+          this_seq_type = this_seq_type)$maf
+      }
+      
   }
   # Change any homozygous deletions (CN = 0) to 1 for calculation purposes
   CN_new$CN[CN_new$CN<1] = 1
@@ -180,13 +181,13 @@ estimate_purity = function(in_maf,
     VAF_plot = CN_final %>%
       ggplot(aes(x = VAF)) +
       geom_histogram() +
-      facet_wrap(~CN)
+      facet_wrap(~CN,scales = "free_y")
 
     # Figure 2: Final purity distribution
     Purity_plot = CN_final %>%
       ggplot(aes(x = Purity)) +
       geom_histogram() +
-      facet_wrap(~CN)
+      facet_wrap(~CN, scales = "free_y")
 
      output[["VAF_plot"]] = VAF_plot
      output[["Purity_plot"]] = Purity_plot

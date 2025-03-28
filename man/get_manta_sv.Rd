@@ -5,85 +5,147 @@
 \title{Get Manta SVs}
 \usage{
 get_manta_sv(
-  these_sample_ids = NULL,
   these_samples_metadata = NULL,
   projection = "grch37",
-  chromosome,
-  qstart,
-  qend,
   region,
   min_vaf = 0.1,
   min_score = 40,
-  pass = TRUE,
-  pairing_status,
-  from_flatfile = TRUE,
+  pass_filters = TRUE,
   verbose = TRUE,
   from_cache = TRUE,
-  write_to_file = FALSE
+  write_to_file = FALSE,
+  chromosome,
+  qstart,
+  qend,
+  these_sample_ids = NULL,
+  pairing_status
 )
 }
 \arguments{
-\item{these_sample_ids}{A vector of multiple sample_id (or a single sample ID as a string) that you want results for.}
-
-\item{these_samples_metadata}{A metadata table to auto-subset the data to samples in that table before returning.}
+\item{these_samples_metadata}{A metadata data frame to limit the
+result to sample_ids within it}
 
 \item{projection}{The projection genome build. Default is grch37.}
 
-\item{chromosome}{Optional, the chromosome you are restricting to (can be prefixed or not prefixed).}
+\item{region}{Specify a single region to fetch SVs anchored within
+using the format "chrom:start-end"}
 
-\item{qstart}{Optional, query start coordinate of the range you are restricting to.}
+\item{min_vaf}{The minimum tumour VAF for a SV to be returned.
+Default is 0.1.}
 
-\item{qend}{Optional, query end coordinate of the range you are restricting to.}
+\item{min_score}{The lowest Manta somatic score for a SV to be returned.
+Default is 40.}
 
-\item{region}{Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.}
+\item{pass_filters}{If TRUE (default) only return SVs that are annotated with
+PASS in the FILTER column. Set to FALSE to keep all variants,
+regardless if they PASS the filters.}
 
-\item{min_vaf}{The minimum tumour VAF for a SV to be returned. Default is 0.1.}
+\item{verbose}{Set to FALSE to minimize the output to console.
+Default is TRUE. This parameter also dictates the verbose-ness of
+any helper function internally called inside the main function.}
 
-\item{min_score}{The lowest Manta somatic score for a SV to be returned. Default is 40.}
+\item{from_cache}{Boolean variable for using cached results, default is TRUE.
+If \code{write_to_file = TRUE}, this parameter auto-defaults to FALSE.}
 
-\item{pass}{If TRUE (default) only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters.}
+\item{write_to_file}{Boolean statement that outputs bedpe file if TRUE,
+default is FALSE.
+Setting this to TRUE forces \code{from_cache = FALSE}.}
 
-\item{pairing_status}{Use to restrict results (if desired) to matched or unmatched results (default is to return all). This parameter takes the filtering condition as a string ("matched" or "unmatched").}
+\item{chromosome}{DEPRECATED. Use \code{region} instead.}
 
-\item{from_flatfile}{Set to TRUE by default, FALSE is no longer supported (database).}
+\item{qstart}{DEPRECATED. Use \code{region} instead.}
 
-\item{verbose}{Set to FALSE to minimize the output to console. Default is TRUE. This parameter also dictates the verbose-ness of any helper function internally called inside the main function.}
+\item{qend}{DEPRECATED. Use \code{region} instead.}
 
-\item{from_cache}{Boolean variable for using cached results, default is TRUE. If \code{write_to_file = TRUE}, this parameter auto-defaults to FALSE.}
+\item{these_sample_ids}{DEPRECATED. Use \code{these_samples_metadata} instead.}
 
-\item{write_to_file}{Boolean statement that outputs bedpe file if TRUE, default is FALSE. Setting this to TRUE forces \code{from_cache = FALSE}.}
+\item{pairing_status}{DEPRECATED.
+Subset your metadata and supply these_samples_metadata instead.}
 }
 \value{
-A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
+A data frame in a bedpe-like format with additional
+columns that allow filtering of high-confidence SVs.
 }
 \description{
-Retrieve Manta SVs and filter.
+Retrieve Manta SVs for one or many samples
 }
 \details{
-Return Manta SVs with additional VCF information to allow for filtering of high-confidence variants.
-To return SV calls for multiple samples, give \code{these_sample_ids} a vector of sample IDs, if only one sample is desired,
-give this parameter one sample ID, as a string (or a vector of characters). The user can also call the \code{these_samples_metadata}
-parameter to make use of an already subset metadata table. In this case, the returned calls will be restricted to the sample_ids
-within that data frame. This function relies on a set of specific internal functions \link{id_ease} and \link{get_manta_sv_by_samples} (if \code{from_cache = FALSE}).
-This function can also restrict the returned calls to any genomic regions specified within \code{chromosome}, \code{qstart}, \code{qend},
-or the complete region specified under \code{region} (in chr:start-end format), note that chromosome can be either prefixed or not prefixed.
-Useful filtering parameters are also available, use \code{min_vaf} to set the minimum tumour VAF for a SV to be returned and \code{min_score}
-to set the lowest Manta somatic score for a SV to be returned. \code{pair_status} can be used to return variants from either matched or unmatched samples.
-In addition, the user can chose to return all variants, even the ones not passing the filter criteria. To do so, set \code{pass = FALSE} (default is TRUE).
-Is it adviseed to run this function with \code{from_cache = TRUE} (default) to read manta calls from a previous generated merge (cached result).
-If set to FALSE in combination with \code{write_to_file = TRUE}, the function will generate new merged manta calls, if the data access restriction allows it.
-Note, that if \code{write_to_file} is set to TRUE, the function autodefaults \code{from_cache = FALSE} to avoid nonsense parameter combinations.
-Is this function not what you are looking for? Try one of the following, similar, functions;
-\link{get_combined_sv}, \link{get_manta_sv_by_sample}, \link{get_manta_sv_by_samples}
+Retrieve Manta SVs with additional VCF information to allow for
+filtering of high-confidence variants.
+To get SV calls for multiple samples, supply a metadata table via
+\code{these_samples_metadata} that has been subset to only those samples.
+The results will be restricted to the sample_ids within that data frame.
+This function relies on a set of specific internal functions
+\link{get_manta_sv_by_samples} (if \code{from_cache = FALSE}).
+This function can also restrict the returned breakpoints within a genomic
+region specified via \code{region} (in chr:start-end format).
+Useful filtering parameters are also available, use \code{min_vaf} to set the
+minimum tumour VAF for a SV to be returned and \code{min_score}
+to set the lowest Manta somatic score for a SV to be returned.
+In addition, the user can chose to return all variants, even
+the ones not passing the filter criteria. To do so,
+set \code{pass_filters = FALSE} (defaults to TRUE).
+\subsection{\strong{Advanced settings (probably not for you)}}{
+
+Is it advised to leave the default \code{from_cache} setting to TRUE.
+To ensure manta results arre pulled from a pre-generated merge
+(i.e. the cached result).
+If set to FALSE in combination with \code{write_to_file = TRUE},
+the function will (re)generate new merged manta calls, if the user has
+the required file permissions.
+Note, that if \code{write_to_file} is set to TRUE, the function defaults
+\code{from_cache = FALSE} to avoid nonsense parameter combinations.
+Is this function not what you are looking for? You may want:
+\link{get_combined_sv}
+After running this or \link{get_combined_sv}, you most likely want to
+annotate the result using \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate_sv}
+}
 }
 \examples{
-#lazily get every SV in the table with default quality filters
-all_sv = get_manta_sv()
+# lazily get every SV in the table with default quality filters
+all_sv <- get_manta_sv()
+dplyr::select(all_sv,1:14) \%>\% head()
 
-#get all SVs for a single sample
-some_sv = get_manta_sv(these_sample_ids = "94-15772_tumorA")
+# get all SVs for just one cohort
+cohort_meta = suppressMessages(get_gambl_metadata()) \%>\% 
+              dplyr::filter(cohort == "DLBCL_cell_lines")
 
-#get the SVs in a region around MYC
-myc_locus_sv = get_manta_sv(region = "8:128723128-128774067")
+some_sv <- get_manta_sv(these_samples_metadata = cohort_meta, verbose=FALSE)
+dplyr::select(some_sv,1:14) \%>\% head()
+nrow(some_sv)
+
+# get the SVs in a region around MYC
+# WARNING: This is not the best way to find MYC SVs.
+# Use annotate_sv on the full SV set instead.
+myc_region_hg38 = "chr8:127710883-127761821"
+myc_region_grch37 = "8:128723128-128774067"
+
+hg38_myc_locus_sv <- get_manta_sv(region = myc_region_hg38,
+                                projection = "hg38",
+                                verbose = FALSE)
+dplyr::select(hg38_myc_locus_sv,1:14) \%>\% head()
+nrow(hg38_myc_locus_sv)
+
+incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37,
+                                projection = "hg38",
+                                verbose = FALSE)
+dplyr::select(incorrect_myc_locus_sv,1:14) \%>\% head()
+nrow(incorrect_myc_locus_sv)
+
+# Despite potentially being incomplete, we can nonetheless
+# annotate these directly for more details
+annotated_myc_hg38 = suppressMessages(
+         GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+)
+head(annotated_myc_hg38)
+table(annotated_myc_hg38$partner)
+# The usual MYC partners are seen here
+
+annotated_myc_incorrect = suppressMessages(
+         GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+)
+head(annotated_myc_incorrect)
+table(annotated_myc_incorrect$partner)
+# The effect of specifying the wrong coordinate is evident
 
 }

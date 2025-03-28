@@ -25,6 +25,7 @@
 #' get_study_info(dir = "path/to/study/", list_to_global = TRUE)
 #' }
 #' 
+#' @keywords internal
 get_study_info = function(dir,
                           list_to_global = FALSE){
 

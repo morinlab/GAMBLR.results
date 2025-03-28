@@ -33,17 +33,13 @@
 #'
 #' @examples
 #' #basic usage
-#' my_mutations = get_ssm_by_region(region = "chr8:128,723,128-128,774,067")
+#' my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-128774067")
 #'
-#' #specifying chromosome, start and end individually
-#' my_mutations = get_ssm_by_region(chromosome = "8",
-#'                                  qstart = 128723128,
-#'                                  qend = 128774067)
 #'
 #' #keep all 116 columns in the read MAF
-#' bcl2_all_details = get_ssm_by_region(region = "chr18:60796500-60988073",
+#' bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073",
 #'                                      basic_columns = FALSE)
-#'
+#' @keywords internal
 get_ssm_by_region = function(chromosome,
                              qstart,
                              qend,
@@ -61,16 +57,8 @@ get_ssm_by_region = function(chromosome,
                              mode = "slms-3",
                              verbose = FALSE){
   
-  # get sample ids according with the metadata
-  sample_ids = id_ease(these_samples_metadata = these_samples_metadata,
-                       these_sample_ids = these_sample_ids,
-                       verbose = verbose,
-                       this_seq_type = this_seq_type) %>% 
-    pull(sample_id)
   
-  #duplicate the seq type variable used for glue
   seq_type = this_seq_type
-
   if(mode == "strelka2"){
     message("Mode is set to strelka2. Streamlined = TRUE is hardcoded for this mode...")
     streamlined = TRUE #force streamlined to TRUE, if strelka2 output is requested.
@@ -111,22 +99,22 @@ get_ssm_by_region = function(chromosome,
   maf_indexes = unname(maf_indexes)
 
   #get config values
-  tabix_bin = GAMBLR.helpers::check_config_value(config::get("dependencies")$tabix)
-  table_name = GAMBLR.helpers::check_config_value(config::get("results_tables")$ssm)
-  db = GAMBLR.helpers::check_config_value(config::get("database_name"))
-  base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  base_path_remote = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
+  tabix_bin = check_config_and_value("dependencies$tabix")
+  table_name = check_config_and_value("results_tables$ssm")
+  db = check_config_and_value("database_name")
+  base_path = check_config_and_value("project_base")
+  base_path_remote = check_config_and_value("project_base",config_name="default")
 
   #get absolute file paths based on the selected mode and check existance for the file
   if(from_indexed_flatfile){
     if(mode == "slms-3"){
       if(augmented){
-        maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$augmented)
+        maf_partial_path = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
       }else{
-        maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
+        maf_partial_path = check_config_and_value("results_flatfiles$ssm$template$merged$deblacklisted")
       }
     }else if (mode == "strelka2"){
-      maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$all$strelka2)
+      maf_partial_path = check_config_and_value("results_flatfiles$ssm$all$strelka2")
     }else{
       stop("You requested results from indexed flatfile. The mode should be set to either slms-3 (default) or strelka2. Please specify one of these modes.")
     }
@@ -134,7 +122,10 @@ get_ssm_by_region = function(chromosome,
     #use glue to get the absolute path
     maf_path = glue::glue(maf_partial_path)
     full_maf_path = paste0(base_path, maf_path)
-    
+    if(verbose){
+      print(maf_partial_path)
+      print(full_maf_path)
+    }
     if(mode == "slms-3"){
       full_maf_path_comp = paste0(full_maf_path, ".bgz")
 
@@ -148,10 +139,10 @@ get_ssm_by_region = function(chromosome,
       print(paste("missing:", full_maf_path_comp))
       check_host(verbose=TRUE)
       if(verbose){
-        message("using local file")
+        print("using local file")
         print(paste("HERE:",full_maf_path_comp))
       }
-      stop("failed to find the file needed for this")
+      stop(paste("failed to find the file needed for this:",full_maf_path_comp))
     }
   }
 
@@ -197,17 +188,29 @@ get_ssm_by_region = function(chromosome,
       print(maf_column_types)
       print("NAMES:")
       print(maf_columns)
+      print("NUM:")
+      print(length(muts))
     }
 
     if(length(muts)==0){
       maf_types_sep = str_split(maf_column_types, pattern = "")[[1]] %>%
           str_replace_all("c", "character") %>%
-          str_replace_all("i|n", "numeric")
+          str_replace_all("l|i|n", "numeric")
+      if(verbose){
+        print("adding dummy line")
+      }
 
       muts_region = read.table(textConnection(""), col.names = maf_columns, colClasses = maf_types_sep)
+
+      
     }else{
       #this is what gets executed with default parameters
-      muts_region = vroom::vroom(I(muts), col_types = paste(maf_column_types, collapse = ""), col_names = maf_columns, delim = "\t")
+      muts_region = suppressMessages(vroom::vroom(I(muts),
+                                     progress = FALSE,
+                                     col_types = paste(maf_column_types,
+                                                      collapse = ""),
+                                     col_names = maf_columns,
+                                     delim = "\t"))
     }
 
     if(verbose){
@@ -222,10 +225,14 @@ get_ssm_by_region = function(chromosome,
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
     muts_region = dplyr::filter(maf_data, Chromosome == chromosome & Start_Position > qstart & Start_Position < qend)
   }
-  
-  # subset sample ids
-  muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% sample_ids)
-
+  if(!missing(these_sample_ids)){
+    stop("deprecated argument: these_sample_ids, please use these_samples_metadata instead")
+  }
+  if(!missing(these_samples_metadata)){
+    sample_ids = pull(these_samples_metadata,sample_id)
+    # subset sample ids
+    muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% sample_ids)
+  }
   if(streamlined){
     muts_region = muts_region %>%
       dplyr::select(Start_Position, Tumor_Sample_Barcode)

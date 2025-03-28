@@ -17,9 +17,11 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' sample_table <- get_gambl_metadata()
 #' bat <- collate_battenberg_purity(sample_table = sample_table)
-#'
+#' }
+#' @keywords internal
 collate_battenberg_purity = function(
     sample_table
     ){

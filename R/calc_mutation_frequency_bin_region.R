@@ -13,7 +13,6 @@
 #' @param end_pos End coordinate of region.
 #' @param these_samples_metadata Optional data frame containing a sample_id column. If not providing a maf file, seq_type is also a required column.
 #' @param these_sample_ids Optional vector of sample IDs. Output will be subset to IDs present in this vector.
-#' @param this_seq_type Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.
 #' @param maf_data Optional maf data frame. Will be subset to rows where Tumor_Sample_Barcode matches provided sample IDs or metadata table. If not provided, maf data will be obtained with get_ssm_by_regions().
 #' @param projection Specify which genome build to use. Required.
 #' @param slide_by Slide size for sliding window. Default 100.
@@ -22,27 +21,42 @@
 #' @param min_count_per_bin Minimum counts per bin, default is 0. Setting this greater than 0 will drop unmutated windows only when return_format is long.
 #' @param return_count Boolean statement to return mutation count per window (TRUE) or binary mutated/unmutated status (FALSE). Default is TRUE.
 #' @param drop_unmutated Boolean for whether to drop windows with 0 mutations. Only effective with "long" return format.
-#' @param from_indexed_flatfile Set to TRUE to avoid using the database and instead rely on flat-files (only works for streamlined data, not full MAF details). Default is TRUE.
-#' @param mode Only works with indexed flat-files. Accepts 2 options of "slms-3" and "strelka2" to indicate which variant caller to use. Default is "slms-3".
 #'
 #' @return Either a matrix or a long tidy table of counts per window.
 #'
 #' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr tidyr
+#' @import dplyr tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
-#' chr11_mut_freq = calc_mutation_frequency_bin_region(region = "chr11:69455000-69459900",
+#' meta = suppressMessages(get_gambl_metadata()) %>% 
+#'                         dplyr::filter(pathology=="MCL")
+#' 
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                               region = "11:69455000-69459900",
+#'                                               slide_by = 10,
+#'                                               window_size = 10000)
+#' head(mut_freq)
+#' 
+#' \dontrun{
+#' # This will fail because the chromosome naming doesn't match the default projection 
+#' misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                                          region = "chr11:69455000-69459900",
 #'                                                          slide_by = 10,
-#'                                                          window_size = 10000)
-#'
+#'                                                          window_size = 10000) 
+#' # This will work!
+#' mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+#'                                                          region = "chr11:69455000-69459900",
+#'                                                          slide_by = 10,
+#'                                                          window_size = 10000,projection="hg38")
+#' head(mut_freq)
+#' }
 calc_mutation_frequency_bin_region <- function(region,
                                           chromosome,
                                           start_pos,
                                           end_pos,
-                                          these_samples_metadata = NULL,
+                                          these_samples_metadata,
                                           these_sample_ids = NULL,
-                                          this_seq_type = c("genome", "capture"),
                                           maf_data = NULL,
                                           projection = "grch37",
                                           slide_by = 100,
@@ -50,9 +64,12 @@ calc_mutation_frequency_bin_region <- function(region,
                                           return_format = "long",
                                           min_count_per_bin = 0,
                                           return_count = TRUE,
-                                          drop_unmutated = FALSE,
-                                          from_indexed_flatfile = TRUE,
-                                          mode = "slms-3") {
+                                          drop_unmutated = FALSE
+                                          ) {
+  if(missing(these_samples_metadata)){
+    stop("metadata must be provided via the these_samples_metadata argument")
+  }
+  these_samples_metadata = dplyr::filter(these_samples_metadata, !seq_type == "mrna")
   # Create objects to describe region both as string and individual objects
   try(if (missing(region) & missing(chromosome)) {
     stop("No region information provided. Please provide a region as a string in the chrom:start-end format, or as individual arguments. ")
@@ -68,20 +85,17 @@ calc_mutation_frequency_bin_region <- function(region,
       end_pos
     )
   } else {
-    chunks <- GAMBLR.data::region_to_chunks(region)
+    chunks <- region_to_chunks(region)
     chromosome <- chunks$chromosome
     start_pos <- as.numeric(chunks$start)
     end_pos <- as.numeric(chunks$end)
   }
-
-  # Harmonize metadata and sample IDs
-  get_meta <- id_ease(
-    these_samples_metadata,
-    these_sample_ids,
-    this_seq_type
-  )
-  metadata <- get_meta
-  these_sample_ids <- get_meta$sample_id %>% unique
+  
+  metadata <- these_samples_metadata
+  if(!missing(these_sample_ids)){
+    stop("deprecated agrument these_sample_ids was provided. Please use these_samples_metadata instead")
+  }
+  these_sample_ids <- pull(metadata,sample_id) %>% unique
 
 
   if (
@@ -137,9 +151,7 @@ calc_mutation_frequency_bin_region <- function(region,
         region = region,
         projection = projection,
         streamlined = FALSE,
-        this_seq_type = st,
-        from_indexed_flatfile = TRUE,
-        mode = "slms-3"
+        this_seq_type = st
       ) %>%
         dplyr::mutate(end = Start_Position + 1) %>%
         dplyr::select(
@@ -157,7 +169,9 @@ calc_mutation_frequency_bin_region <- function(region,
         dplyr::filter(!is.na(mutated)) %>%
         dplyr::select(-seq_type)
     }
+
     region_ssm <- dplyr::bind_rows(region_ssm)
+
   } else {
     #  Subset provided maf to specified region
     message("Using provided maf...")

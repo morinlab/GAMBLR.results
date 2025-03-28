@@ -5,79 +5,114 @@
 \title{Get Coding SSM.}
 \usage{
 get_coding_ssm(
-  limit_cohort,
-  exclude_cohort,
-  limit_pathology,
-  limit_samples,
-  these_sample_ids = NULL,
   these_samples_metadata = NULL,
   force_unmatched_samples,
   projection = "grch37",
   this_seq_type = "genome",
   basic_columns = TRUE,
   maf_cols = NULL,
-  from_flatfile = TRUE,
   augmented = TRUE,
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
   include_silent = TRUE,
-  engine = "fread_maf",
-  verbose = TRUE
+  engine,
+  verbose = FALSE,
+  limit_cohort,
+  exclude_cohort,
+  limit_pathology,
+  limit_samples,
+  from_flatfile,
+  these_sample_ids
 )
 }
 \arguments{
-\item{limit_cohort}{Supply this to restrict mutations to one or more cohorts in a vector.}
+\item{these_samples_metadata}{Optional (but highly recommended) metadata
+table to tell the function how to subset the data. Only sample_id in
+this table with the matching seq_type will be in the output. Not all
+samples may be in the output, though, if they are missing SSM results
+or had no mutations detected.}
 
-\item{exclude_cohort}{Supply this to exclude mutations from one or more cohorts in a vector.}
+\item{force_unmatched_samples}{Optional argument for forcing unmatched
+samples, using \link{get_ssm_by_samples}.}
 
-\item{limit_pathology}{Supply this to restrict mutations to one pathology.}
+\item{projection}{Reference genome build for the coordinates in the MAF file.
+The default is grch37.}
 
-\item{limit_samples}{This parameter is deprecated, use \code{these_sample_ids} instead.}
+\item{this_seq_type}{The seq_type you want SSMs from, default is genome.}
 
-\item{these_sample_ids}{Optional, restrict the returned maf to a set of sample IDs (this parameter is replacing the \code{limit_samples} parameter).}
+\item{basic_columns}{Basic columns refers to the first 45 standard MAF
+columns. Set this to FALSE if you want all the available columns instead.}
 
-\item{these_samples_metadata}{Supply a metadata table to auto-subset the data to samples in that table before returning.}
+\item{maf_cols}{if basic_columns is set to FALSE, the user can specify
+which columns to be returned within the MAF. This parameter can either
+be a vector of indexes (integer) or a vector of characters (matching
+columns in MAF).}
 
-\item{force_unmatched_samples}{Optional argument for forcing unmatched samples, using \link{get_ssm_by_samples}.}
+\item{augmented}{Set to FALSE if you instead want the original MAF from
+each sample for multi-sample patients instead of the augmented MAF}
 
-\item{projection}{Reference genome build for the coordinates in the MAF file. The default is hg19 genome build.}
+\item{min_read_support}{Only returns variants with at least this many
+reads in t_alt_count (for cleaning up augmented MAFs)}
 
-\item{this_seq_type}{The seq_type you want back, default is genome.}
+\item{groups}{Deprecated. Use these_samples_metadata instead.}
 
-\item{basic_columns}{Set to FALSE to override the default behavior of returning only the first 45 columns of MAF data.}
+\item{include_silent}{Logical indicating whether to include
+silent mutations in coding regions (i.e. synonymous). Default is TRUE.}
 
-\item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters (matching columns in MAF).}
+\item{engine}{Deprecated. Ignored}
 
-\item{from_flatfile}{Set to TRUE to obtain mutations from a local flatfile instead of the database. This can be more efficient and is currently the only option for users who do not have ICGC data access.}
+\item{verbose}{Controls the "verboseness" of this function (and
+internally called helpers).}
 
-\item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF}
+\item{limit_cohort}{Deprecated. Use these_samples_metadata instead.}
 
-\item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs)}
+\item{exclude_cohort}{Deprecated. Use these_samples_metadata instead.}
 
-\item{groups}{Unix groups for the samples to be included. Default is both gambl and icgc_dart samples.}
+\item{limit_pathology}{Deprecated. Use these_samples_metadata instead.}
 
-\item{include_silent}{Logical parameter indicating whether to include silent mutations into coding mutations. Default is TRUE.}
+\item{limit_samples}{Deprecated. Use these_samples_metadata instead.}
 
-\item{engine}{Currently, only fread_maf (default) is supported.}
+\item{from_flatfile}{Deprecated. Ignored}
 
-\item{verbose}{Controls the "verboseness" of this function (and internally called helpers).}
+\item{these_sample_ids}{Deprecated. Use these_samples_metadata instead.}
 }
 \value{
-A data frame containing all the MAF data columns (one row per mutation).
+A data frame containing all the MAF data columns
+(one row per mutation).
 }
 \description{
-Retrieve all coding SSMs from the GAMBL database in MAF-like format.
+Retrieve all coding SSMs from one seq_type in GAMBL
+in MAF-like format.
 }
 \details{
-Effectively retrieve coding SSM calls. Multiple filtering parameters are available for this function.
-For more information on how to implement the filtering parameters, refer to the parameter descriptions as well as examples in the vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm_status},
-\link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_region}, \link{get_ssm_by_regions}
+Effectively retrieve simple somatic mutations (SSM) results for
+either capture or genome seq_type (but not both at once).
+The resulting data frame will be a maf_data object, which tracks the
+genome build (projection) for the variants and will have a
+maf_seq_type column that tracks the origin seq_type each variant.
+In most cases, users should be using the related function that
+is able to obtain SSMs across both genome and capture seq_type:
+\link{get_all_coding_ssm}
+Is this function not what you are looking for? Try one of:
+\link{get_coding_ssm_status},
+\link{get_ssm_by_patients},
+\link{get_ssm_by_sample},
+\link{get_ssm_by_samples},
+\link{get_ssm_by_region},
+\link{get_ssm_by_regions}
 }
 \examples{
-#basic usage
-maf_data = get_coding_ssm(limit_cohort = c("BL_ICGC"))
 
-maf_data = get_coding_ssm(limit_samples = "HTMCP-01-06-00485-01A-01D")
+  #basic usage (defaults to genome seq_type)
+  maf_genome = get_coding_ssm()
+
+  nrow(maf_genome)
+
+  dplyr::select(maf_genome,1,4,5,6,9,maf_seq_type)
+
+  maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",
+                                  projection="hg38") 
+
+  dplyr::select(maf_exome_hg38,1,4,5,6,9,maf_seq_type)
 
 }

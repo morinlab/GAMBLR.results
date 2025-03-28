@@ -6,6 +6,7 @@
 
 #' @param these_samples_metadata Supply a metadata table containing the sample/seq_type combinations you want. 
 #' @param include_silent If set to TRUE, silent/synonymous mutations in the coding regions will also be returned. 
+#' @param ... Additional arguments passed to get_coding_ssm
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
@@ -13,14 +14,43 @@
 #' @export
 #'
 #' @examples
+#' my_meta = suppressMessages(get_gambl_metadata())
+#' maf_all_seqtype = get_all_coding_ssm(my_meta)
 #' 
-#' maf_data_all_exome_and_genome = get_coding_ssm(these_samples_metadata = get_gambl_metadata(seq_type_filter=c("genome","capture")))
-#'
-#'
+#' table(maf_all_seqtype$maf_seq_type)
+#' 
+#' # most common mutations by gene and Variant_Classification
+#' dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>% 
+#'   dplyr::count() %>% 
+#'   dplyr::arrange(desc(n))
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               ...){
-  capture_ssm = get_coding_ssm(these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type=="capture"),this_seq_type = "capture", ...) %>% mutate(seq_type="capture")
-  genome_ssm = get_coding_ssm(these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type=="genome"),this_seq_type = "genome", ...) %>% mutate(seq_type="genome")
-  return(bind_rows(capture_ssm,genome_ssm))
+  if(missing(these_samples_metadata)){
+    stop("these_samples_metadata is required")
+  }
+  these_samples_metadata = dplyr::filter(these_samples_metadata,
+                                         seq_type!="mrna")
+  seq_types_in_metadata = unique(these_samples_metadata$seq_type)
+  if("capture" %in% seq_types_in_metadata){
+    capture_ssm = suppressWarnings(suppressMessages(get_coding_ssm(these_samples_metadata = 
+                                 dplyr::filter(these_samples_metadata,
+                                               seq_type=="capture"),
+                               this_seq_type = "capture", ...))) 
+  }
+  if("genome" %in% seq_types_in_metadata){
+    genome_ssm = suppressWarnings(suppressMessages(get_coding_ssm(these_samples_metadata = 
+                                dplyr::filter(these_samples_metadata,
+                                              seq_type=="genome"),
+                              this_seq_type = "genome", ...)))
+     
+  }
+  if(length(seq_types_in_metadata)>1){
+    merged_ssm = bind_genomic_data(capture_ssm,genome_ssm)
+    return(merged_ssm)
+  }else if("capture" %in% seq_types_in_metadata){
+    return(capture_ssm)
+  }else if("genome" %in% seq_types_in_metadata){
+    return(genome_ssm)
+  }
 }

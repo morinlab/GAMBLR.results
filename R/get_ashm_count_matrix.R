@@ -14,6 +14,7 @@
 #'      sample_id for all samples if you are using non-GAMBL data.
 #' @param this_seq_type The seq_type to return results for. Must be a single value. Only used if no
 #'      metadata is provided with these_samples_metadata.
+#' @param projection The genome build we are working with
 #'
 #' @return A data frame with a row for every sample in these_samples_metadata and a column for every region in regions_bed
 #'
@@ -22,28 +23,34 @@
 #'
 #' @examples
 #' 
-#'\dontrun{
-#'   DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology=="DLBCL")
-#' regions_bed <- dplyr::mutate(
-#'      GAMBLR.data::grch37_ashm_regions,
-#'      name = paste(gene, region, sep = "_")
-#' )
 #'
-#' matrix <- get_ashm_count_matrix(
-#'      regions_bed = regions_bed,
+#'   DLBCL_genome_meta = get_gambl_metadata() %>% 
+#'     dplyr::filter(pathology=="DLBCL")
+#' #get ashm regions
+#' some_regions = GAMBLR.utils::create_bed_data(
+#'                               GAMBLR.data::grch37_ashm_regions,
+#'                               fix_names = "concat",
+#'                               concat_cols = c("gene","region"),
+#'                               sep="-") %>%
+#'   dplyr::filter(grepl("PAX5",name))
+#'
+#' pax5_matrix <- get_ashm_count_matrix(
+#'      regions_bed = some_regions,
 #'      this_seq_type = "genome",
 #'      these_samples_metadata = DLBCL_genome_meta
 #' )
-#'}
+#' head(pax5_matrix)
+#' colMeans(pax5_matrix)
+#'
 get_ashm_count_matrix = function(
         regions_bed,
         maf_data,
         these_samples_metadata,
         this_seq_type = "genome",
-        projection = "grch37"
+        projection
     ){
     if(missing(these_samples_metadata)){
-        these_samples_metadata <- get_gambl_metadata() %>%
+        these_samples_metadata <- suppressMessages(get_gambl_metadata()) %>%
             dplyr::filter(seq_type == this_seq_type) 
     }else{
         these_samples_metadata <- these_samples_metadata %>%
@@ -51,11 +58,41 @@ get_ashm_count_matrix = function(
     }
     
     if(missing(regions_bed)){
+      if(!missing(projection)){
         message(
-            "Using aSHM regions in grch37 projection as regions_bed"
+          paste("Using aSHM regions in",projection,"projection as regions_bed")
         )
-        regions_bed <- GAMBLR.data::grch37_ashm_regions %>%
-            mutate(name = paste(gene, region, sep = "_"))
+        if(projection=="grch37"){
+          regions_bed <- create_bed_data(GAMBLR.data::grch37_ashm_regions,
+                                         fix_names = "concat",
+                                         concat_cols = c("gene","region"),
+                                         sep="-")
+            
+        }else if(projection == "hg38"){
+          regions_bed <- create_bed_data(GAMBLR.data::hg38_ashm_regions,
+                                         fix_names = "concat",
+                                         concat_cols = c("gene","region"),
+                                         sep="-")
+          
+        }else{
+          stop("unsupported projection")
+        }
+      }else{
+        stop("either projection or a regions_bed containing a genome_build is required")
+      }
+    }else{
+      if("bed_data" %in% class(regions_bed)){
+        if(missing(projection)){
+          projection = get_genome_build(regions_bed)
+        }else{
+          print("HERE")
+          if(!projection == get_genome_build(regions_bed) ){
+            stop("genome_build in regions_bed does not match projection!")
+          } 
+        }
+      }else{
+        stop("regions_bed must be a bed_data object created with create_bed_data")
+      }
     }
     
     ashm_maf <- get_ssm_by_regions(
@@ -64,7 +101,8 @@ get_ashm_count_matrix = function(
         maf_data = maf_data,
         use_name_column = TRUE,
         these_samples_metadata=these_samples_metadata,
-        projection=projection
+        projection=projection,
+        this_seq_type=this_seq_type
     )
 
     ashm_counted <- ashm_maf %>%

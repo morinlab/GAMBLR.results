@@ -20,6 +20,8 @@ This function determines if a user is working in GAMBLR remotely and, if so, wil
 check if their config is loaded properly and ssh_session is available.
 }
 \examples{
+\dontrun{
 check_remote_configuration()
-
 }
+}
+\keyword{internal}

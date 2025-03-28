@@ -1,199 +1,199 @@
-#' @title Assign CN to SSM.
+#' @title Assign CN state to SSMs.
 #'
 #' @description Annotate mutations with their copy number information.
 #'
-#' @details This function takes a sample ID with the `this_sample_id` parameter and annotates mutations with copy number information.
-#' A variety of parameters are at hand for a customized workflow. For example, the user can specify if only coding mutations are of interest.
-#' To do so, set `coding_only = TRUE`. It is also possible to point the function to already loaded maf/seq files, or a path to these files.
-#' See parameters; `maf_file`, `maf_path`, `seq_file` and `seg_path` for more information on how to use these parameters.
-#' This function can also take a vector with genes of interest (`genes`) that the returned data frame will be restricted to.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_cn_segments], [GAMBLR.results::get_cn_states], [GAMBLR.results::get_sample_cn_segments]
+#' @details This function takes a metadata table and returns all mutations
+#'      for the samples in that metadata. Each mutation is annotated with the 
+#'      local copy number state of each mutated site. The user can specify if
+#'      only coding mutations are of interest. To do so,
+#'      set `coding_only = TRUE`. When necessary, this function relies on
+#'      `get_ssm_by_samples` and `get_cn_segments` to obtain the required data. 
+#' @param these_samples_metadata Metadata table with one or more rows to specify
+#'      the samples to process.
+#' @param maf_data A data frame of mutations in MAF format or maf_data object 
+#'      (e.g. from `get_coding_ssm` or `get_ssm_by_sample`).
+#' @param seg_data A data frame of segmented copy number data or seg_data object
+#' @param projection Specified genome projection that returned data is relative to. 
+#'      This is only required when it cannot be inferred from maf_df or seg_df
+#'      (or they are not provided).
+#' @param coding_only Optional. Set to TRUE to restrict to only variants in coding space
+#'      Default is to work with genome-wide variants.
+#' @param assume_diploid Optional, this parameter annotates every mutation as
+#'      copy neutral. Default is FALSE.
+#' @param include_silent Logical parameter indicating whether to include silent
+#'      mutations in coding space. Default is FALSE. This parameter only
+#'      makes sense if `coding_only` is set to TRUE.
+#' @param ... Any additional parameters.
 #'
-#' @param this_sample_id Sample ID of the sample you want to annotate.
-#' @param coding_only Optional. set to TRUE to restrict to only coding variants.
-#' @param from_flatfile Optional. Instead of the database, load the data from a local MAF and seg file.
-#' @param use_augmented_maf Boolean statement if to use augmented maf, default is FALSE.
-#' @param tool_name name of tool to be used, default is "battenberg".
-#' @param maf_file Path to maf file.
-#' @param maf_df Optional. Use a maf dataframe instead of a path.
-#' @param seg_file path to seq file.
-#' @param seg_file_source Specify what copy number calling program the input seg file is from, as it handles ichorCNA differently than WisecondorX, Battenberg, etc.
-#' @param assume_diploid Optional. If no local seg file is provided, instead of defaulting to a GAMBL sample, this parameter annotates every mutation as copy neutral.
-#' @param genes Genes of interest.
-#' @param include_silent Logical parameter indicating whether to include silent mutations into coding mutations. Default is FALSE
-#' @param this_seq_type Specified seq type for returned data.
-#' @param projection specified genome projection that returned data is in reference to.
+#' @return A list containing a data frame (MAF-like format) with three extra
+#'      columns:
+#'      - log.ratio is the log ratio from the seg file (NA when no overlap).
+#'      - LOH
+#'      - CN (the rounded absolute copy number estimate of the region based on
+#'          log.ratio, NA when no overlap was found).
 #'
-#' @return A list containing a data frame (MAF-like format) with two extra columns:
-#' log.ratio is the log ratio from the seg file (NA when no overlap was found)
-#' as well as the segmented copy number data with the same copy number information
-#' CN is the rounded absolute copy number estimate of the region based on log.ratio (NA when no overlap was found)
-#'
-#' @rawNamespace import(data.table, except = c("last", "first", "between", "transpose"))
-#' @import dplyr readr RMariaDB DBI ssh glue GAMBLR.helpers
+#' @import dplyr
 #' @export
 #'
 #' @examples
-#' cn_list = assign_cn_to_ssm(this_sample_id = "HTMCP-01-06-00422-01A-01D",
-#'                            coding_only = TRUE)
 #'
-assign_cn_to_ssm = function(this_sample_id,
-                            coding_only = FALSE,
-                            from_flatfile = TRUE,
-                            use_augmented_maf = TRUE,
-                            tool_name = "battenberg",
-                            maf_file,
-                            maf_df,
-                            seg_file,
-                            seg_file_source = "battenberg",
-                            assume_diploid = FALSE,
-                            genes,
-                            include_silent = FALSE,
-                            this_seq_type = "genome",
-                            projection = "grch37"){
-
-  seq_type = this_seq_type
-
-  remote_session = check_remote_configuration(auto_connect = TRUE)
-  database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
-  project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  if(!include_silent){
-    coding_class = coding_class[coding_class != "Silent"]
-  }
-  if(!missing(maf_file)){
-    maf_sample = fread_maf(maf_file) %>%
-      dplyr::mutate(Chromosome = gsub("chr", "", Chromosome))
-  }
-  else if(!missing(maf_df)){
-    maf_sample = maf_df %>%
-      dplyr::mutate(Chromosome = gsub("chr", "", Chromosome))
-  }
-  else if(from_flatfile){
-    #get the genome_build and other wildcards for this sample
-    wildcards = get_sample_wildcards(this_sample_id,seq_type)
-    genome_build = wildcards$genome_build
-    unix_group = wildcards$unix_group
-    seq_type = wildcards$seq_type
-    tumour_sample_id = wildcards$tumour_sample_id
-    normal_sample_id = wildcards$normal_sample_id
-    pairing_status = wildcards$pairing_status
-    maf_sample = get_ssm_by_sample(this_sample_id = this_sample_id, this_seq_type = this_seq_type, augmented = use_augmented_maf)
-
-  }else{
-    #get all the segments for a sample and filter the small ones then assign CN value from the segment to all SSMs in that region
-    con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
-    maf_table = GAMBLR.helpers::check_config_value(config::get("results_tables")$ssm)
-    maf_sample = dplyr::tbl(con, maf_table) %>%
-      dplyr::filter(Tumor_Sample_Barcode == this_sample_id) %>%
-      as.data.frame()
-  }
-  if(coding_only){
-    maf_sample = dplyr::filter(maf_sample, Variant_Classification %in% coding_class)
-  }
-
-  if(!missing(genes)){
-    maf_sample = dplyr::filter(maf_sample, Hugo_Symbol %in% genes)
-  }
-
-  if(!missing(seg_file)){
-    seg_sample = suppressMessages(read_tsv(seg_file)) %>%
-      dplyr::mutate(size = end - start) %>%
-      dplyr::filter(size > 100)
-
-    colnames(seg_sample)[c(1:4)] = c("ID", "chrom", "start", "end")
-    seg_sample = seg_sample %>%
-      dplyr::mutate(chrom = gsub("chr", "", chrom)) %>%
-      dplyr::rename(Chromosome = chrom, Start_Position = start, End_Position = end) %>%
-      data.table::as.data.table()
-
-    data.table::setkey(seg_sample, Chromosome, Start_Position, End_Position)
-    a = data.table::as.data.table(maf_sample)
-  }else if(assume_diploid == TRUE){
-    if(missing(seg_file)){
-      print("WARNING: A seg file was not provided! Annotating all mutation calls as copy neutral")
+#' \dontrun{
+#'  # long-handed way (mostly for illustration)
+#'  # 1. get some metadata for a collection of samples
+#'  some_meta = suppressMessages(get_gambl_metadata()) %>%
+#'         dplyr::filter(cohort=="DLBCL_ICGC")
+#'
+#'  # 2. Get the SSMs for these samples
+#'
+#'  ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
+#'                                   these_samples_metadata = some_meta)
+#'  # peek at the results
+#'  ssm_genomes_grch37 %>% dplyr::select(1:8)
+#'
+#'  # 3. Lazily let this function obtain the corresponding seg_data
+#'  #  for the right genome_build
+#'  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
+#'
+#'  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+#'  # or using the other genome build:
+#'  ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
+#'                                   these_samples_metadata = some_meta)
+#'  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
+#'  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+#' }
+#'
+#' # Easiest/laziest way: Let the function obtain
+#' # the seg_data and maf_data for you
+#'
+#'  # 1. get some metadata for a collection of samples
+#'  some_meta = suppressMessages(get_gambl_metadata()) %>%
+#'         dplyr::filter(cohort=="DLBCL_ICGC") %>% head(3)
+#' 
+#' cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,
+#'                            projection = "grch37")
+#'
+#' cn_list$maf %>% dplyr::group_by(Tumor_Sample_Barcode,CN) %>%
+#'   dplyr::count()
+#'
+assign_cn_to_ssm = function(
+    these_samples_metadata,
+    maf_data,
+    seg_data,
+    projection,
+    coding_only = FALSE,
+    assume_diploid = FALSE,
+    include_silent = FALSE,
+    ...
+){
+    if(missing(these_samples_metadata)){
+        stop("No metadata provided. these_samples_metadata is required")
+    }
+    
+    genomic_data = list()
+    if(!missing(maf_data)){
+      genomic_data[["maf_data"]] = maf_data
+    }
+    if(!missing(seg_data)){
+      genomic_data[["seg_data"]] = seg_data
     }
 
-    a = data.table::as.data.table(maf_sample)
-    a_diploid = dplyr::mutate(a, CN = 2)
-    return(list(maf = a_diploid))
+    projection <- check_get_projection(genomic_data, suggested = projection)
 
-  }else if(from_flatfile){
-    message(paste("trying to find output from:", tool_name))
-    project_base = GAMBLR.helpers::check_config_value(config::get("project_base",config="default"))
-    local_project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
-
-    results_path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$cnv$battenberg)
-    results_path = paste0(project_base, results_path_template)
-    local_results_path = paste0(local_project_base, results_path_template)
-
-    ## NEED TO FIX THIS TO contain tumour/normal ID from metadata and pairing status
-    battenberg_file = glue::glue(results_path)
-    local_battenberg_file = glue::glue(local_results_path)
-
-
-    message(paste("looking for flatfile:", battenberg_file))
-    if(remote_session){
-      print(local_battenberg_file)
-      dirN = dirname(local_battenberg_file)
-
-      suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
-      if(!file.exists(local_battenberg_file)){
-
-        ssh::scp_download(ssh_session,battenberg_file,dirN)
+    if(missing(seg_data)){
+      seg_sample = get_cn_segments(
+        these_samples_metadata =  these_samples_metadata,
+        projection = projection
+      )
+      missing_from_seg = dplyr::filter(these_samples_metadata,
+                                  !sample_id %in% seg_sample$ID) %>% 
+        pull(sample_id) %>%
+        unique()
+      if(length(missing_from_seg) == length(unique(these_samples_metadata$sample_id))){
+        stop(paste("No seg_data could be found for ANY of the samples provided for",projection))
       }
-      battenberg_file = local_battenberg_file
-    }
-
-    #check for missingness
-    if(!file.exists(battenberg_file)){
-      print(paste("missing: ", battenberg_file))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
-
-    seg_sample = suppressMessages(read_tsv(battenberg_file)) %>%
-      as.data.table() %>%
-      dplyr::mutate(size = end - start) %>%
-      dplyr::filter(size > 100) %>%
-      dplyr::mutate(chrom = gsub("chr", "", chrom)) %>%
-      dplyr::rename(Chromosome = chrom, Start_Position = start, End_Position = end)
-
-    data.table::setkey(seg_sample, Chromosome, Start_Position, End_Position)
-    a = data.table::as.data.table(maf_sample)
-  }else{
-    seg_sample = get_sample_cn_segments(these_sample_ids = this_sample_id, this_seq_type = this_seq_type) %>%
-      dplyr::mutate(size = end - start) %>%
-      dplyr::filter(size > 100) %>%
-      dplyr::mutate(chrom = gsub("chr", "", chrom)) %>%
-      dplyr::rename(Chromosome = chrom, Start_Position = start, End_Position = end) %>%
-      data.table::as.data.table()
-
-    data.table::setkey(seg_sample, Chromosome, Start_Position, End_Position)
-    a = data.table::as.data.table(maf_sample)
-    a.seg = data.table::foverlaps(a, seg_sample, type = "any")
-    a$log.ratio = a.seg$log.ratio
-    a$LOH = factor(a.seg$LOH_flag)
-    a = dplyr::mutate(a, CN = round(2*2^log.ratio))
-    seg_sample = dplyr::mutate(seg_sample, CN = round(2*2^log.ratio))
-    seg_sample$LOH_flag = factor(seg_sample$LOH_flag)
-  }
-  if(seg_file_source == "ichorCNA"){
-      message("defaulting to ichorCNA format")
-      seg_sample = dplyr::rename(seg_sample, c("log.ratio" = "median", "CN" = "copy.number"))
-      a.seg = data.table::foverlaps(a, seg_sample, type = "any")
-      a$log.ratio = a.seg$log.ratio
-      a$LOH = factor(a.seg$LOH_flag)
-      a$CN = a.seg$CN
-
+      if(length(missing_from_seg)){
+        warning(paste("missing seg_data for",length(missing_from_seg),"samples"))
+      }
     }else{
-      a.seg = data.table::foverlaps(a, seg_sample, type = "any")
-      a$log.ratio = a.seg$log.ratio
-      a$LOH = factor(a.seg$LOH_flag)
-      a = dplyr::mutate(a, CN = round(2*2^log.ratio))
-      seg_sample = dplyr::mutate(seg_sample, CN = round(2*2^log.ratio))
-      seg_sample$LOH_flag = factor(seg_sample$LOH_flag)
-  }
-  if(!missing(seg_sample)){
-    return(list(maf = a, seg = seg_sample))
-  }
+      seg_sample = seg_data
+    }
+    
+    if(missing(maf_data)){
+      #get maf
+      maf_sample = get_ssm_by_samples(
+        these_samples_metadata = these_samples_metadata,
+        projection = projection
+      )
+      missing_from_maf = dplyr::filter(these_samples_metadata,
+                                       !sample_id %in% maf_sample$Tumor_Sample_Barcode) %>% 
+        pull(sample_id) %>%
+        unique()
+      if(length(missing_from_maf) == length(unique(these_samples_metadata$sample_id))){
+        stop(paste("No mutation could be found for ANY of the samples provided for",projection))
+      }
+      if(length(missing_from_maf)){
+        warning(paste("missing mutation for",length(missing_from_maf),"samples"))
+      }
+    }else{
+      maf_sample = maf_data
+    }
+
+    #maf filtering
+    #silent mutations
+    if(!include_silent){
+        coding_class = coding_class[coding_class != "Silent"]
+    }
+
+    #coding mutations
+    if(coding_only){
+        maf_sample = dplyr::filter(
+            maf_sample,
+            Variant_Classification %in% coding_class
+        )
+    }
+
+
+
+    #annotate all CN segments as copy number neutral
+    if(assume_diploid){
+        diploid = dplyr::mutate(maf_sample, CN = 2)
+        return(list(maf = diploid))
+    }
+
+    #wrangle the seg file
+    seg_sample = seg_sample %>%
+        dplyr::filter(end - start > 100) %>%
+        rename(
+            Chromosome = chrom,
+            Start_Position = start,
+            End_Position = end,
+            LOH = LOH_flag,
+            Tumor_Sample_Barcode = ID
+        ) %>%
+        mutate(across(LOH, as.factor))
+   
+    #perform an overlap join and add CN columns from the seg file and subset
+    # MAF to basic columns (first 45)
+    maf_tmp = cool_overlaps(maf_sample, seg_sample, 
+                            type = "any",
+                            columns1=c("Chromosome","Start_Position","End_Position","Tumor_Sample_Barcode"),
+                            columns2=c("Chromosome","Start_Position","End_Position","Tumor_Sample_Barcode"))
+
+    #rename and change order of columns to match expected format
+    maf_with_segs = maf_tmp %>%
+        rename(
+            Start_Position = Start_Position.x,
+            End_Position = End_Position.x
+        ) %>%
+        dplyr::select(
+            colnames(maf_sample),
+            LOH, log.ratio, CN
+        )
+
+    return(
+        list(
+            maf = maf_with_segs,
+            seg = seg_sample
+        )
+    )
 }

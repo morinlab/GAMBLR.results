@@ -45,9 +45,14 @@ Get a specific flavour of LymphGen from the main GAMBL outputs and tidy the comp
 Optionally return a matrix of features instead
 }
 \examples{
-\dontrun{
-lymphgens = get_lymphgen(flavour = "no_cnvs.no_sv.with_A53")
-lymphgen_simple = get_lymphgen(flavour = "no_cnvs.no_sv.no_A53")
-}
+my_meta = get_gambl_metadata()
+lymphgen_all <- get_lymphgen(
+           flavour = "no_cnvs.no_sv.with_A53", 
+           these = my_meta,
+            keep_original_columns = TRUE
+        )
+head(lymphgen_all$features[,c(1:14)])
+
+head(lymphgen_all$lymphgen[,c(1:14)])
 
 }

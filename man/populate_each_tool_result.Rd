@@ -34,6 +34,8 @@ Lastly, the user can subset the returned results to only silent mutations.
 This is done with setting \code{include_silent = TRUE} (default is FALSE).
 }
 \examples{
-tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
-
+\dontrun{
+  tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
 }
+}
+\keyword{internal}

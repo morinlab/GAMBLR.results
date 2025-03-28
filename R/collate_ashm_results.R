@@ -14,8 +14,10 @@
 #' @noRd
 #'
 #' @examples
-#' sample_table = collate_ashm_results(sample_table = sample_table)
-#'
+#' \dontrun{
+#'   sample_table = collate_ashm_results(sample_table = sample_table)
+#' }
+#' @keywords internal
 collate_ashm_results = function(sample_table,
                                 seq_type_filter = "genome"){
 

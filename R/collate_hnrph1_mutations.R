@@ -14,8 +14,9 @@
 #' @noRd
 #'
 #' @examples
-#' sample_table = collate_nfkbiz_results(sample_table = sample_table)
-#'
+#' \dontrun{
+#'   sample_table = collate_nfkbiz_results(sample_table = sample_table)
+#' }
 collate_hnrnph1_mutations = function(sample_table,
                                   seq_type_filter = "genome"){
   

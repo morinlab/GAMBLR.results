@@ -41,6 +41,7 @@
 #' ids = cbio_setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
 #' }
 #'
+#' @keywords internal
 cbio_setup_study = function(
     these_samples_metadata = NULL,
     maf_data = NULL,

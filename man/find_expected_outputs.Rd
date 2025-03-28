@@ -35,9 +35,11 @@ Optionally, the user can provide an already loaded data frame with all the file 
 for more information and examples, refer to the parameter descriptions as well as function examples.
 }
 \examples{
+\dontrun{
 #get paths to unmatched manta bedpe files
 ex_outs = find_expected_outputs(tool_name = "manta",
                                unix_group = "gambl",
                                filename_end_pattern = "unmatched.somaticSV.bedpe")
-
 }
+}
+\keyword{internal}

@@ -6,7 +6,6 @@
 \usage{
 maf_to_custom_track(
   maf_data,
-  these_sample_ids = NULL,
   these_samples_metadata = NULL,
   this_seq_type = "genome",
   output_file,
@@ -18,13 +17,12 @@ maf_to_custom_track(
   verbose = FALSE,
   padding_size = 0,
   projection = "grch37",
-  bedToBigBed_path = "config"
+  bedToBigBed_path = "config",
+  these_sample_ids = NULL
 )
 }
 \arguments{
-\item{maf_data}{Either a maf loaded from disk or from the database using a get_ssm function.}
-
-\item{these_sample_ids}{A vector of sample IDs to subset the samples of interest from the input \code{maf_data}. If NULL (the default), all samples in \code{maf_data} are kept.}
+\item{maf_data}{maf_data obtained from of the \code{get_ssm} family of functions.}
 
 \item{these_samples_metadata}{A metadata table to subset the samples of interest from the input \code{maf_data}. If NULL (the default), all samples in \code{maf_data} are kept.}
 
@@ -44,7 +42,8 @@ maf_to_custom_track(
 
 \item{verbose}{Default is FALSE.}
 
-\item{padding_size}{Optional parameter specifying the padding size in the returned file, default is 0.}
+\item{padding_size}{Optional parameter specifying the padding size in the
+returned file, default is 0.}
 
 \item{projection}{Specify which genome build to use. Possible values are "grch37" (default) or "hg38". This parameter has
 effect only when \code{as_bigbed} or \code{as_biglolly} is TRUE.}
@@ -54,21 +53,52 @@ effect only when \code{as_bigbed} or \code{as_biglolly} is TRUE.}
 is called internally and the \code{bedToBigBed} path is obtained from the \code{config.yml}
 file saved in the current working directory. This parameter is ignored if both
 \code{as_bigbed} and \code{as_biglolly} is set to \code{FALSE}.}
+
+\item{these_sample_ids}{DEPRECATED}
 }
 \value{
 Nothing.
 }
 \description{
-Convert a maf-formatted data frame into a bed custom track file for UCSC.
+Convert mutations into a UCSC custom track file
 }
 \details{
-This function takes an incoming MAF and converts it to a UCSC Genome Browser ready BED (or bigbed/biglolly) file.
-Optional parameters available for further customization of the returned file. For more information, refer to the parameter descriptions and function examples.
+This function takes a set of mutations as maf_data and converts it
+to a UCSC Genome Browser ready BED (or bigbed/biglolly) file complete with
+the required header. Upload the resulting file to
+\href{https://genome.ucsc.edu/cgi-bin/hgCustom}{UCSC genome browser}
+to view your data as a custom track.
+Optional parameters available for further customization of the returned file.
+For more information, refer to the parameter descriptions
+and function examples.
 }
 \examples{
-library(GAMBLR.data)
-region_myc <- dplyr::filter(grch37_lymphoma_genes_bed, hgnc_symbol == "MYC")
-my_maf <- get_ssm_by_regions(regions_bed = region_myc, streamlined = FALSE)
-maf_to_custom_track(maf_data = my_maf, output_file = "../mutations.bed")
+# using grch37 coordinates
+myc_grch37 <- GAMBLR.utils::create_bed_data(
+                GAMBLR.data::grch37_lymphoma_genes_bed
+              ) \%>\%
+              dplyr::filter(name == "MYC")
+
+print(myc_grch37)
+# desired projection will be automatically set to the
+# genome_build of your region object
+genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
+                             these_samples_metadata = get_gambl_metadata(),
+                             this_seq_type = "genome",
+                             streamlined = FALSE)
+
+# myc_hg19.bed will be created in your working directory
+
+maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
+
+#lazy/concise way:
+my_region = "8:128747680-128753674"
+
+capture_maf <- get_ssm_by_regions(regions_list = my_region,
+                             these_samples_metadata = get_gambl_metadata(),
+                             this_seq_type = "genome",
+                             projection = "grch37",
+                             streamlined = FALSE)
+maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
 
 }

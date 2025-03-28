@@ -7,5 +7,6 @@
 #' @importFrom GAMBLR.helpers check_config_value
 #' @importFrom GAMBLR.helpers maf_header
 #' @importFrom utils read.table
+#' @importFrom magrittr %>%
 ## usethis namespace: end
 NULL

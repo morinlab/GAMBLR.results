@@ -17,6 +17,7 @@
 #' @examples
 #' refresh_full_table(table_x, con,file_x)
 #'
+#' @keywords internal
 refresh_full_table = function(table_name,
                               connection,
                               file_path){

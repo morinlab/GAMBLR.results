@@ -15,8 +15,9 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' gambl_results_derived = collate_derived_results(samples_df)
-#'
+#' }
 collate_derived_results = function(sample_table,
                                    seq_type_filter = "genome",
                                    from_flatfile = FALSE){

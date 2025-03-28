@@ -3,25 +3,48 @@
 #'
 #' @description Get the expression for one or more genes for all GAMBL samples.
 #'
-#' @details Efficiently retrieve variance-stabilized and batch effect corrected gene expression values for one, multiple or all genes for all GAMBL samples.
-#' For examples and more info, refer to the parameter descriptions as well as vignette examples.
+#' @details Efficiently retrieve variance-stabilized and batch effect
+#' corrected gene expression values for one, multiple or all genes
+#' for all GAMBL samples.
+#' For more information, refer to the parameter descriptions and examples.
 #'
-#' Warnings: 
+#' Warnings:
 #'
-#' 1) The speed of loading data is heavily impacted by how many samples you load. For the sake of efficiency, be sure not to specify extraneous samples. 
-#' 2) To reduce impact on memory (RAM), load only the data for the genes you need. 
-#' 3) Combining lazy_join with all_genes will result in a data table with samples on rows and genes on columns. Use with caution. This is practically guaranteed to use more RAM than you want. 
-#' 4) Before you run this function, it's recommended that you run `check_gene_expression` to determine which samples are available  
+#' 1) The speed of loading data is heavily impacted by how many samples
+#' you load. For the sake of efficiency, be sure not to specify
+#' extraneous samples.
+#' 2) To reduce impact on memory (RAM), load only the data for the genes
+#' you need.
+#' 3) Combining lazy_join with all_genes will result in a data table
+#' with samples on rows and genes on columns. *Use with caution*.
+#' This is practically guaranteed to use more RAM than you want.
+#' 4) Before you run this function, it's recommended that you run
+#' `check_gene_expression` to determine which samples are available  
 #'
-#' @param these_samples_metadata The data frame with sample metadata. Usually output of the get_gambl_metadata().
-#' @param hugo_symbols One or more gene symbols. Cannot be used in conjunction with ensembl_gene_ids. 
-#' @param ensembl_gene_ids One or more ensembl gene IDs. Cannot be used in conjunction with hugo_symbols. 
-#' @param all_genes Set to TRUE to return the full expression data frame without any subsetting (see warnings below). 
-#' @param engine Either readr or grep. The grep engine usually will increase the speed of loading but doesn't work if you want all genes or a very long list.
-#' @param format Either `wide` or `long`. Wide format returns one column of expression values per gene. Long format returns one column of expression values with the gene stored in a separate column. 
-#' @param lazy_join If TRUE, your data frame will also have capture_sample_id and genome_sample_id columns provided. See `check_gene_expression` for more information.
-#' @param arbitrarily_pick A stop-gap for handling the rare scenario where the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only if you encounter an error that states "Values are not uniquely identified; output will contain list-cols."
-#' @param HGNC When you request the wide matrix and all genes, this forces the columns to contain hgnc_id rather than ensembl_gene_id
+#' @param these_samples_metadata The data frame with sample metadata.
+#' Usually output of the get_gambl_metadata().
+#' @param hugo_symbols One or more gene symbols.
+#' Cannot be used in conjunction with ensembl_gene_ids. 
+#' @param ensembl_gene_ids One or more ensembl gene IDs.
+#' Cannot be used in conjunction with hugo_symbols. 
+#' @param all_genes Set to TRUE for the full expression data without
+#' any subsetting (*see warnings below*).
+#' @param engine Either readr or grep. The grep engine usually will increase
+#' the speed of loading but doesn't work if you want all genes or a very
+#' long list.
+#' @param format Either `wide` or `long`. Wide format returns one column
+#' of expression values per gene. Long format returns one column of expression
+#' values with the gene stored in a separate column. 
+#' @param lazy_join If TRUE, your data frame will also have capture_sample_id
+#' and genome_sample_id columns provided. See `check_gene_expression` for more
+#' information.
+#' @param arbitrarily_pick A stop-gap for handling the rare scenario where
+#' the same Hugo_Symbol has more than one ensembl_gene_id. Set to TRUE only
+#' if you encounter an error that states "Values are not uniquely identified;
+#' output will contain list-cols."
+#' @param HGNC When you request the wide matrix and all genes, this forces
+#' the columns to contain hgnc_id rather than ensembl_gene_id
+#' @param verbose Set to TRUE for a more chatty output
 #' @param ... Optional parameters to pass along to `get_gambl_metadata` (only used in conjunction with lazy_join)
 #'
 #' @return A data frame with the first 9 columns identical to the columns from check_gene_expression and the remaining columns containing the expression values for each gene requested. 
@@ -31,44 +54,61 @@
 #' @export
 #'
 #' @examples
-#' 
-#' # Get the expression for a single gene for every sample with RNA-seq data in GAMBL
-#' # This uses the default (grep) engine, which may be intolerably slow on some systems
+#' \dontrun{
+#' # Get the expression for a single gene for every sample with RNA-seq
+#' data in GAMBL
+#' # This uses the default (grep) engine, which may be intolerably
+#' slow on some systems
 #' SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
 #'                                        
-#' # Get the expression for a few genes for all available samples AND get all available linkages to genome/capture samples without dropping anything
-#' my_favourite_gene_exp_long = get_gene_expression(hugo_symbols = c("MYC","BCL2","EZH2"),lazy_join=TRUE,format="long")
+#' # Get the expression for a few genes for all available samples AND get
+#' # all available linkages to genome/capture samples without dropping anything
+#' my_fave_gene_exp_long = get_gene_expression(
+#'                         hugo_symbols = c("MYC","BCL2","EZH2"),
+#'                         lazy_join=TRUE,
+#'                         format="long")
 #' 
-#' # Get the expression values for the Wright gene set from every sample in the DLBCL_DLC cohort
-#' # This is one example where the grep engine is significantly slower than using the readr engine. This example shows the more efficient approach:
-#' wright_gene_expr_all_DLBCL_with_DNA = get_gene_expression(engine="readr",hugo_symbols = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol,
-#'                                                  these_samples_metadata = get_gambl_metadata() %>% 
-#'                                                  dplyr::filter(cohort=="DLBCL_DLC"),seq_type %in% c('genome','capture'))
+#' # Get the expression values for the Wright gene set from every
+#' # sample in the DLBCL_DLC cohort
+#' # This is one example where the grep engine is significantly slower
+#' than using the readr engine. This example shows the more efficient approach:
+#' my_genes = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol
+#' my_meta = get_gambl_metadata() %>%
+#'   dplyr::filter(cohort=="DLBCL_DLC"),
+#'     seq_type %in% c('genome','capture')
+#' wright_expr_with_DNA = get_gene_expression(engine="readr",
+#'                                            hugo_symbols = my_genes,
+#'                                            these_samples_metadata = my_meta)
 #'
-#' #Load the full expression values for every FL sample with no subsetting on genes
+#' #Load the full expression values for every FL sample and all genes
 #' # When tested on a gphost, this took less than a minute to run
-#' FL_expression_df = get_gene_expression(these_samples_metadata = 
-#'                                                  get_gambl_metadata() %>% 
-#'                                                      dplyr::filter(pathology=="FL",seq_type=="mrna"),
-#'                                                  all_genes = TRUE)
+#' my_meta = get_gambl_metadata() %>%
+#'   dplyr::filter(pathology=="FL",
+#'     seq_type=="mrna")
+#' FL_expression_df = get_gene_expression(these_samples_metadata = my_meta,
+#'                                        all_genes = TRUE)
 #'
-#' #Load the full expression table for every sample available in GAMBL (in the wide format)
+#' # Get the full expression table for every sample available
+#' # in GAMBL (in the wide format)
 #' all_exp_wide = get_gene_expression(all_genes=T)
 #'
-#' #Load the full expression table for every sample available in GAMBL (in the wide format) AND lazy-join to the minimal metadata 
-#' # NOTE: This will transpose the matrix, which makes it significantly slower. 
-#' # Also, due to incomplete Hugo_Symbols, it has to use the ENSG identifiers for column names. 
+#' # Get the full expression table for every sample available in GAMBL
+#' # (in the wide format) AND lazy-join to the minimal metadata
+#' # NOTE: This will transpose the matrix, which makes it significantly slower.
+#' # Also, due to incomplete Hugo_Symbols, it has to use the ENSG
+#' # identifiers for column names. 
 #' all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
 #'
 #'
-#' #If you want hgnc_symbol instead of Ensembl_gene_id you need to force the function to arbitrarily drop duplicates. Not ideal
-#' all_exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
+#' # If you want hgnc_symbol instead of Ensembl_gene_id you need to force
+#' # the function to arbitrarily drop duplicates. *Not ideal*
+#' exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
 #'                                    all_genes = T,
 #'                                    lazy_join = T,
 #'                                    HGNC=TRUE,
 #'                                    arbitrarily_pick = T)
 #'
-#'
+#' }
 get_gene_expression = function(these_samples_metadata,
                                hugo_symbols,
                                ensembl_gene_ids,

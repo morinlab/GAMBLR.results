@@ -32,6 +32,7 @@
 #'                      dir = "../path/to/study_directory/")
 #' }
 #' 
+#' @keywords internal
 cbio_custom_caselist = function(these_sample_ids,
                                 caselist_name,
                                 caselist_description,

@@ -41,10 +41,11 @@ First, specify the name of the tool with \code{tool}, then set the seq type (\co
 together with the genome build (\code{genome_build}). A data frame will be returned with one row per file and sample IDs together with GAMBL wildcards.
 }
 \examples{
-
+\dontrun{
 ex_outs = fetch_output_files(tool = "manta",
                              base_path = "gambl/sequenza_current",
                              this_seq_type = "capture",
                              build = "hg38")
-
 }
+}
+\keyword{internal}

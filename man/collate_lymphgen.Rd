@@ -30,11 +30,12 @@ If this is done, the function will join the lymphgen data with this table. Curre
 For more information refer to the function examples.
 }
 \examples{
+\dontrun{
 this_meta = get_gambl_metadata()
 dlbcl_meta = dplyr::filter(this_meta, pathology == "DLBCL")
 
 wide_lymphgen = collate_lymphgen(these_samples_metadata = dlbcl_meta,
                                  lymphgen_version = "default",
                                  tidy = FALSE)
-
+}
 }

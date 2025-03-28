@@ -32,12 +32,12 @@
 #' @export
 #'
 #' @examples 
-#'
-#' #annotate MAF
-#' deblacklisted_maf = annotate_ssm_blacklist(grande_maf,
+#' \dontrun{
+#'  #annotate MAF
+#'  deblacklisted_maf = annotate_ssm_blacklist(grande_maf,
 #'                                            this_seq_type = "genome",
 #'                                            genome_build = "hg38")
-#'
+#' }
 annotate_ssm_blacklist = function(mutations_df,
                                   this_seq_type,
                                   tool_name = "slms_3",
@@ -57,7 +57,7 @@ annotate_ssm_blacklist = function(mutations_df,
     message("User must specify this_seq_type of the mutations to select the right blacklist file. More than one this_seq_type can be specified as a vector if desired.")
     return()
   }
-
+  seq_type = this_seq_type
   projection = genome_build
 
   if(missing(blacklist_file_template)){

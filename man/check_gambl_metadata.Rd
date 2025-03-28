@@ -28,7 +28,9 @@ Give this function a metadata output, preferably from \link{get_gambl_metadata},
 The function then checks for duplicate sample IDs, colours for all values in all columns that map to a colour with \code{map_metadata_to_colours} and missing columns.
 }
 \examples{
+\dontrun{
 this_metadata = get_gambl_metadata()
 check_gambl_metadata(metadata_df = this_metadata)
-
 }
+}
+\keyword{internal}

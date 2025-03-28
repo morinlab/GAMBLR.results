@@ -5,75 +5,70 @@
 \title{Get CN Segments.}
 \usage{
 get_cn_segments(
-  region,
-  chromosome,
-  qstart,
-  qend,
+  these_samples_metadata,
   projection = "grch37",
-  weighted_average = FALSE,
-  seg_data,
+  flavour = "combined",
   this_seq_type,
-  with_chr_prefix = FALSE,
-  streamlined = FALSE,
-  from_flatfile = TRUE,
-  these_samples_metadata
+  fill_missing_with = "nothing",
+  verbose = FALSE
 )
 }
 \arguments{
-\item{region}{Region formatted like chrX:1234-5678 or X:1234-56789.}
+\item{these_samples_metadata}{User must provide a metadata table to restrict the data to the samples in your table.
+The metadata also ensures the proper handling of duplicate sample_id across seq_types and ensures the
+seq_type in the metadata faithfully represents the seq_type of the data}
 
-\item{chromosome}{The chromosome you are restricting to. Required parameter if region is not specified.}
+\item{projection}{Desired genome coordinate system for returned CN segments. Default is "grch37".}
 
-\item{qstart}{Start coordinate of the range you are restricting to. Required parameter if region is not specified.}
+\item{flavour}{Specify what pipeline or source of data to use.
+Available options are "combined" or "battenberg". Battenberg outputs are incomplete.}
 
-\item{qend}{End coordinate of the range you are restricting to. Required parameter if region is not specified.}
+\item{this_seq_type}{Deprecated.}
 
-\item{projection}{Selected genome projection for returned CN segments. Default is "grch37".}
+\item{fill_missing_with}{Specify how to fill values in dummy segments that were created to satisfy GISTIC.
+The default is "nothing", which causes these to be dropped so empty regions
+can be handled in subsequent processing steps. For creating a GISTIC input,
+you would typically want to set this to "avg_ploidy".
+This is taken care of for you by \link[GAMBLR.utils:prepare_gistic_inputs]{GAMBLR.utils::prepare_gistic_inputs}}
 
-\item{weighted_average}{Enable a more accurate estimation of the copy number for a region that uses a weighted average of all overlapping/contained segments.}
-
-\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
-
-\item{this_seq_type}{Seq type for returned CN segments. One of "genome" (default) or "capture".}
-
-\item{with_chr_prefix}{Boolean parameter for toggling if chr prefixes should be present in the return, default is FALSE.}
-
-\item{streamlined}{Return a basic rather than full MAF format. Default is FALSE.}
-
-\item{from_flatfile}{Set to TRUE by default.}
-
-\item{these_samples_metadata}{Provide a metadata table to restrict the data to the samples in your table}
+\item{verbose}{Set to TRUE for a chattier experience}
 }
 \value{
 A data frame with CN segments for the specified region.
 }
 \description{
-Retrieve all copy number segments from the GAMBL database that overlap with a single genomic coordinate range.
+Retrieve all copy number segments from the GAMBL outputs
 }
 \details{
-This function returns CN segments for s specified region, chromosome, or with no filtering on region (i.e. everything).
-There are multiple ways a region can be specified.
-For example, the user can provide the full region in a "region" format (chr:start-end) to the \code{region} parameter.
-Or, the user can provide chromosome, start and end coordinates individually with \code{chr}, \code{start}, and \code{end} parameters.
-For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{assign_cn_to_ssm}, \link{get_cn_states}, \link{get_sample_cn_segments}
+This merely loads and returns all the seg_data available for a projection
+(genome build) and can assign a single value to dummy segments if they are
+present/identified in the source file
 }
 \examples{
-#Example using chromosome, qstart and qend parameters:
-segments_region_grch37 = get_cn_segments(chromosome = "chr8",
-                                         qstart = 128723128,
-                                         qend = 128774067)
-# Example for the capture samples:
-capture_segments_region_grch37 = get_cn_segments(
- chromosome = "chr8",
- qstart = 128723128,
- qend = 128774067,
- this_seq_type = "capture"
+# Example for just exome/capture samples:
+# Get metadata for just a few capture samples
+capture_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(seq_type == "capture") \%>\%
+  head()
+
+# Load the copy number segments for capture samples using hg38 projection
+capture_segments_hg38 <- get_cn_segments(
+  these_samples_metadata = capture_metadata,
+  projection = "hg38"
 )
+print(capture_segments_hg38)
 
-#Example using the regions parameter:
-segments_region_hg38 = get_cn_segments(region = "chr8:128,723,128-128,774,067",
-                                       projection = "hg38",
-                                       with_chr_prefix = TRUE)
-
+genome_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(seq_type == "genome") \%>\%
+  head()
+# Create a metadata table with a mix of seq_types
+mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
+## We can load the copy number segments for all samples across seq_types
+capture_segments_default <- get_cn_segments(
+  these_samples_metadata = mixed_seq_type_meta
+)
+dplyr::group_by(capture_segments_default, ID) \%>\%
+  dplyr::summarize(n = dplyr::n())
+# Note the default projection is "grch37"
+print(capture_segments_default)
 }

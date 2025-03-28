@@ -5,43 +5,93 @@
 \title{Get Combined SV.}
 \usage{
 get_combined_sv(
-  min_vaf = 0,
-  these_sample_ids,
-  with_chr_prefix = FALSE,
+  these_samples_metadata,
   projection = "grch37",
   oncogenes,
-  region
+  region,
+  min_vaf = 0,
+  these_sample_ids
 )
 }
 \arguments{
-\item{min_vaf}{The minimum tumour VAF for a SV to be returned. Recommended: 0. (default: 0)}
-
-\item{these_sample_ids}{A character vector of tumour sample IDs you wish to retrieve SVs for.}
-
-\item{with_chr_prefix}{Prepend all chromosome names with chr (required by some downstream analyses). Default is FALSE.}
+\item{these_samples_metadata}{a GAMBL metadata frame containing
+only the samples you want returned}
 
 \item{projection}{The projection genome build. Default is "grch37".}
 
-\item{oncogenes}{A character vector of genes commonly involved in translocations. Possible values: CCND1, CIITA, SOCS1, BCL2, RFTN1, BCL6, MYC, PAX5.}
+\item{oncogenes}{A character vector of genes commonly involved in translocations.}
 
 \item{region}{Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.}
+
+\item{min_vaf}{The minimum tumour VAF for a SV to be returned.
+Recommended: 0. (default: 0)}
+
+\item{these_sample_ids}{DEPRECATED
+
+You may want to include one or more e.g.: c("CCND1", "BCL2","MYC")
+NOTE: If you are looking for SV affecting oncogenes you are more likely
+going to want to pass the full output to \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate_sv}}
 }
 \value{
 A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 }
 \description{
-Retrieve Combined Manta and GRIDSS-derived SVs from a flatfile and filter.
+Retrieve Combined Manta and GRIDSS-derived SVs.
 }
 \details{
-The bedpe files used as input to this function were pre-filtered for a minimum VAF of 0.05, and SVs affecting.
-common translocation regions (BCL2, BCL6, MYC, CCND1) were whitelisted (e.g. no VAF filter applied).
-Therefore if you wish to post-filter the SVs we recommend doing so carefully after loading this data frame.
-Further, the input bedpe file is annotated with oncogenes and superenhancers from naive and germinal centre B-cells.
-You can subset to events affecting certain loci using the "oncogenes" argument.
-Is this function not what you are looking for? Try one of the following, similar, functions;
-\link{get_manta_sv}, \link{get_manta_sv_by_sample}, \link{get_manta_sv_by_samples}
+The bedpe files this function loads were pre-filtered
+for a minimum VAF of 0.05, and SVs affecting common translocation regions
+(BCL2, BCL6, MYC, CCND1) were whitelisted (e.g. no VAF filter applied).
+Therefore if you wish to post-filter the SVs we recommend doing so as needed.
+Further, the input bedpe file is annotated with oncogenes and superenhancers
+from naive and germinal centre B-cells.
+You can subset to events affecting certain loci using the
+"oncogenes" argument. Try one of the following, similar, functions;
+\link{get_manta_sv}
 }
 \examples{
-get_combined_sv(oncogenes = c("MYC", "BCL2", "BCL6"))
+# lazily get every SV in the table with default quality filters
+all_sv <- get_combined_sv()
+dplyr::select(all_sv,1:14)
+
+# get all SVs for just one cohort
+cohort_meta = suppressMessages(get_gambl_metadata()) \%>\% 
+              dplyr::filter(cohort == "DLBCL_cell_lines")
+
+some_sv <- get_combined_sv(these_samples_metadata = cohort_meta)
+dplyr::select(some_sv,1:14)
+nrow(some_sv)
+
+# get the SVs in a region around MYC
+# WARNING: This is not the best way to find MYC SVs.
+# Use annotate_sv on the full SV set instead.
+myc_region_hg38 = "chr8:127710883-127761821"
+myc_region_grch37 = "8:128723128-128774067"
+
+hg38_myc_locus_sv <- get_combined_sv(region = myc_region_hg38,
+                                projection = "hg38")
+dplyr::select(hg38_myc_locus_sv,1:14)
+nrow(hg38_myc_locus_sv)
+
+incorrect_myc_locus_sv <- get_combined_sv(region = myc_region_grch37,
+                                projection = "hg38")
+dplyr::select(incorrect_myc_locus_sv,1:14)
+nrow(incorrect_myc_locus_sv)
+
+# Despite potentially being incomplete, we can nonetheless
+# annotate these directly for more details
+annotated_myc_hg38 = suppressMessages(
+         GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
+)
+head(annotated_myc_hg38)
+table(annotated_myc_hg38$partner)
+# The usual MYC partners are seen here
+
+annotated_myc_incorrect = suppressMessages(
+         GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
+)
+head(annotated_myc_incorrect)
+table(annotated_myc_incorrect$partner)
+# The effect of specifying the wrong coordinate is evident
 
 }

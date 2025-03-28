@@ -8,72 +8,85 @@
 #' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
 #' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
-#' @param this_sample_id Required. The sample_id you want the data from.
-#' @param this_seq_type Required if not specifying these_samples_metadata. The seq_type of the sample you want data from.
 #' @param these_samples_metadata Required if not specifying both this_sample_id and this_seq_type a single row or entire metadata table containing your sample_id.
 #' @param tool_name The name of the variant calling pipeline (currently only slms-3 is supported).
 #' @param projection The projection genome build. Supports hg38 and grch37.
-#' @param these_genes A vector of genes to subset ssm to.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.
 #' @param flavour Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
 #' @param basic_columns Return first 43 columns of MAF rather than full details. Default is TRUE.
 #' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.
 #' @param verbose Enable for debugging/noisier output.
+#' @param this_sample_id Deprecated. Inferred from these_samples_metadata
+#' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #'
 #' @return data frame in MAF format.
 #'
 #' @import dplyr tidyr glue GAMBLR.helpers
 #'
 #' @examples
-#' this_sample_df = get_ssm_by_sample(this_sample_id = "HTMCP-01-06-00485-01A-01D",
-#'                                    this_seq_type = "genome",
-#'                                    tool_name = "slims-3",
-#'                                    projection = "grch37")
+#' 
+#' maf_samp = GAMBLR.results:::get_ssm_by_sample(
+#'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
+#'   augmented = FALSE
+#' )
+#' nrow(maf_samp)
+#' maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(
+#'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
+#'   augmented = TRUE
+#' )
+#' nrow(maf_samp_aug)
+#' 
+#' 
+#'  some_maf = GAMBLR.results:::get_ssm_by_sample(
+#'                           these_samples_metadata = get_gambl_metadata() %>%
+#'                             dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
+#'                                      seq_type == "genome"),
+#'                          projection = "hg38")
+#'  dplyr::select(some_maf,1:10)
+#'  
 #'
-#' capture_meta = get_gambl_metadata(seq_type_filter = "capture")
-#'
-#' ssm_sample = get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
-#'                                projection = "grch37",
-#'                                augmented = T,
-#'                                these_samples_metadata = capture_meta)
-#'
-get_ssm_by_sample = function(this_sample_id,
-                             this_seq_type,
-                             these_samples_metadata,
+get_ssm_by_sample = function(these_samples_metadata,
                              tool_name = "slms-3",
                              projection = "grch37",
-                             these_genes,
                              augmented = TRUE,
                              flavour = "clustered",
                              min_read_support = 3,
                              basic_columns = TRUE,
                              maf_cols = NULL,
-                             verbose = FALSE
+                             verbose = FALSE,
+                             this_sample_id,
+                             this_seq_type
                              ){
-  remote_session = check_remote_configuration(auto_connect = TRUE)
-  if(missing(this_seq_type) & missing(these_samples_metadata)){
-    stop("Must provide both a sample_id and seq_type for that sample via this_sample_id and this_seq_type")
-  }
-  if(missing(this_seq_type)){
-    #get it from the metadata
-    this_seq_type = dplyr::filter(these_samples_metadata,sample_id==this_sample_id) %>% pull(seq_type)
-  }
-  #figure out which unix_group this sample belongs to
-  if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata(seq_type_filter = this_seq_type) %>%
-      dplyr::filter(sample_id == this_sample_id)
-
+  remote_session = check_host() #determine if GAMBLR is running remotely
+  #remote_session = check_remote_configuration(auto_connect = TRUE)
+  if(missing(this_sample_id) & missing(these_samples_metadata)){
+    stop("Must provide a sample_id or a single row of metadata")
+  }else if(missing(these_samples_metadata)){
+    these_samples_metadata = get_gambl_metadata() %>%
+      dplyr::filter(sample_id == this_sample_id) %>% 
+      dplyr::filter(seq_type != "mrna") 
   }else{
-    these_samples_metadata = these_samples_metadata %>%
-      dplyr::filter(sample_id == this_sample_id)
+    #just in case more than our row was provided
+    if(nrow(these_samples_metadata)>1){
+      these_samples_metadata = these_samples_metadata %>%
+        dplyr::filter(seq_type != "mrna") %>%
+        dplyr::filter(sample_id == this_sample_id)
+    }
   }
-  sample_id = this_sample_id
+  if(nrow(these_samples_metadata) > 1 | nrow(these_samples_metadata)==0){
+    print(nrow(these_samples_metadata))
+    print(these_samples_metadata)
+    stop("problem!")
+  }
+  
+  seq_type = pull(these_samples_metadata,seq_type)
+
+  sample_id = pull(these_samples_metadata,sample_id)
   tumour_sample_id = sample_id
   unix_group = pull(these_samples_metadata, unix_group)
   genome_build = pull(these_samples_metadata, genome_build)
   target_builds = projection
-  seq_type = pull(these_samples_metadata, seq_type)
   pair_status = pull(these_samples_metadata, pairing_status)
   if(verbose){
     print(paste("group:", unix_group, "genome:", genome_build))
@@ -81,8 +94,8 @@ get_ssm_by_sample = function(this_sample_id,
   # Get unmatched normal if necessary. This is done using the unmatched normals that were added to the GAMBLR config.
   # That will need to be kept up to date if/when any new references are added.
   if(pair_status == "unmatched"){
-    normal_sample_id = config::get("unmatched_normal_ids")[[unix_group]][[seq_type]][[genome_build]]
-
+    keys = paste0("unmatched_normal_ids$",unix_group,"$",seq_type,"$",genome_build)
+    normal_sample_id = check_config_and_value(keys)
   }else{
     normal_sample_id = pull(these_samples_metadata, normal_sample_id)
   }
@@ -95,118 +108,116 @@ get_ssm_by_sample = function(this_sample_id,
     return()
   }else if(flavour == "clustered"){
     vcf_base_name = "slms-3.final"
-    path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$deblacklisted)
+    path_template = check_config_and_value(
+      "results_flatfiles$ssm$template$clustered$deblacklisted",
+      config_name="default"
+      )
     path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
-    local_full_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
-    if(augmented){
-      path_template = GAMBLR.helpers::check_config_value(config::get("results_flatfiles",config="default")$ssm$template$clustered$augmented)
-      path_complete = unname(unlist(glue::glue(path_template)))
-      aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base",config="default")), path_complete)
-      local_aug_maf_path = paste0(GAMBLR.helpers::check_config_value(config::get("project_base")), path_complete)
-    }
+    full_maf_path = paste0(
+      check_config_and_value("project_base",
+      config_name="default"),
+      path_complete)
+    local_full_maf_path = paste0(
+      check_config_and_value("project_base"),
+      path_complete)
+    path_template = check_config_and_value(
+        "results_flatfiles$ssm$template$clustered$augmented",
+        config_name="default")
+    path_complete = unname(unlist(glue::glue(path_template)))
+    aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
+    local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
+
   }else{
     warning("Currently the only flavour available to this function is 'clustered'")
   }
+
+  #stop()
   if(remote_session){
-    #check if file exists
-    status = ssh::ssh_exec_internal(ssh_session,command=paste("stat",aug_maf_path),error=F)$status
-    #aug_maf_path = paste0(aug_maf_path,".gz")
-    #local_aug_maf_path = paste0(local_aug_maf_path,".gz")
-    #full_maf_path = paste0(full_maf_path,".gz")
-    #local_full_maf_path = paste0(local_full_maf_path,".gz")
-    #deprecate the usage of gzipped MAF for now
-
-    # first check if we already have a local copy
-    # Load data from local copy or get a local copy from the remote path first
-    if(status==0){
-      if(verbose){
-        print(paste("found:",aug_maf_path))
-        print(paste("local home:",local_aug_maf_path))
+    if(verbose){
+      if(augmented){
+        print(paste("seeking both files:",local_full_maf_path, local_aug_maf_path))
+      }else{
+        print(paste("seeking file:",local_full_maf_path))
       }
+    }
+    # Always sync all available files regardless of what the user requested
+    # so we don't have to check if they exist remotely every time
+    
+    if(!file.exists(local_aug_maf_path) & !file.exists(local_full_maf_path)){
+      #assume we need to sync everything that's available remotely
+      if(verbose){
+        print(paste("Missing both files:",local_aug_maf_path,local_full_maf_path))
+      }
+      #makes an ssh session only when necessary
+      remote_session = check_remote_configuration(auto_connect = TRUE)
+      #need to obtain a copy of the remote file(s)
+      #check if remote file actually exists
+      # augmented
       dirN = dirname(local_aug_maf_path)
-
-      suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
-      if(!file.exists(local_aug_maf_path)){
-
+      status = ssh::ssh_exec_internal(ssh_session,
+                                   command=paste("stat",aug_maf_path),
+                                   error=F)$status
+      if(status==0){
+        if(verbose){
+              print(paste("found:",aug_maf_path))
+              print(paste("local home:",local_aug_maf_path))
+        }
+        suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
         ssh::scp_download(ssh_session,aug_maf_path,dirN)
+      }else{
+            #assume augmented MAF doesn't exist remotely and move on
+            if(verbose){
+              print(paste("not found remotely:",aug_maf_path))
+            }
       }
+      
 
-     #check for missingness
-     if(!file.exists(local_aug_maf_path)){
-      print(paste("missing: ", local_aug_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-     }
-
-      sample_ssm = fread_maf(local_aug_maf_path) %>%
-      dplyr::filter(t_alt_count >= min_read_support)
-    }else{
-      if(verbose){
-        print(paste("will use",full_maf_path))
-        print(paste("local home:",local_full_maf_path))
-      }
+      # full
       dirN = dirname(local_full_maf_path)
-
-      suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
-      if(!file.exists(local_full_maf_path)){
-
+      status = ssh::ssh_exec_internal(ssh_session,
+                                   command=paste("stat",full_maf_path),
+                                   error=F)$status
+      if(status==0){
+          if(verbose){
+            print(paste("found:",full_maf_path))
+            print(paste("local home:",local_full_maf_path))
+        }
+        suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
         ssh::scp_download(ssh_session,full_maf_path,dirN)
+      }else{
+        print(ssh_session)
+        stop("failed getting full MAF in get_ssm_by_sample")
       }
-      #check for missingness
-      if(!file.exists(local_full_maf_path)){
-        print(paste("missing: ", local_full_maf_path))
-        message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-        message('Sys.setenv(R_CONFIG_ACTIVE = "remote"')
+    }
+    aug_maf_path = local_aug_maf_path
+    full_maf_path = local_full_maf_path
+    
+  }
+  if(augmented){
+    if(file.exists(aug_maf_path)){
+      if(verbose){
+        print(paste("setting full_maf_path to",aug_maf_path))
       }
-
-      sample_ssm = fread_maf(local_full_maf_path)
+      full_maf_path = aug_maf_path
     }
-  }else if(augmented && file.exists(aug_maf_path)){
-    full_maf_path = aug_maf_path
-
-    #check for missingness
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ",full_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
-
-    sample_ssm = fread_maf(full_maf_path)
-    if(min_read_support){
-      # drop poorly supported reads but only from augmented MAF
+  }
+  sample_ssm = fread_maf(full_maf_path)
+  if(min_read_support){
+    # drop poorly supported reads but only from augmented MAF
       sample_ssm = dplyr::filter(sample_ssm, t_alt_count >= min_read_support)
-    }
-  }else{
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ", full_maf_path))
-      message(paste("warning: file does not exist, skipping it.", full_maf_path))
-      return()
-    }
-    #check for missingness
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ", full_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
-
-    sample_ssm = fread_maf(full_maf_path)
   }
-
-  if(!missing(these_genes)){
-    sample_ssm = sample_ssm %>%
-      dplyr::filter(Hugo_Symbol %in% these_genes)
-  }
+  
 
   #subset maf to only include first 43 columns (default)
   if(basic_columns){
     sample_ssm = dplyr::select(sample_ssm, c(1:45))
-    }
+  }
 
   #subset maf to a specific set of columns (defined in maf_cols)
   if(!is.null(maf_cols) && !basic_columns){
     sample_ssm = dplyr::select(sample_ssm, all_of(maf_cols))
-    }
-
+  }
+  sample_ssm = mutate(sample_ssm,maf_seq_type = seq_type)
+  sample_ssm = create_maf_data(sample_ssm,projection)
   return(sample_ssm)
 }

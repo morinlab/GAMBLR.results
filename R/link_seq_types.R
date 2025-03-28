@@ -22,13 +22,15 @@
 #' @export
 #'
 #' @examples 
+#' \dontrun{
 #' link_seq_types(
 #'   these_sample_ids = c("00-14595_tumorA", "04-21622_tumorB", "01-20774T"), 
 #'   given_seq_type = "genome",
 #'   desired_seq_type = "mrna", 
 #'   intermediary = c("patient_id", "biopsy_id")
 #' )
-#' 
+#' }
+#' @keywords internal
 link_seq_types <- function(these_sample_ids, 
                            given_seq_type, 
                            desired_seq_type, 

@@ -17,11 +17,13 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' #get paths to unmatched manta bedpe files
 #'ex_outs = find_expected_outputs(tool_name = "manta",
 #'                                unix_group = "gambl",
 #'                                filename_end_pattern = "unmatched.somaticSV.bedpe")
-#'
+#' }
+#' @keywords internal
 find_expected_outputs = function(targ_df,
                                  tool_name,
                                  unix_group,

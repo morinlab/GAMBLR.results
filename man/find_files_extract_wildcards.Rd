@@ -36,8 +36,10 @@ Get wildcards for a set of samples.
 Specify the file extension with \code{search_pattern} and the seq type, unix group, and genome build and the function will return a tibble with sample wildcards.
 }
 \examples{
+\dontrun{
 file_details_manta = find_files_extract_wildcards(tool_name = "manta",
                                                   genome_build = c("hg38", "grch37"),
                                                   search_pattern = ".bed")
-
 }
+}
+\keyword{internal}

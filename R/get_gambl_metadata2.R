@@ -10,11 +10,16 @@
 #' @param dna_seq_type_priority The default is "genome" and the only other option is "capture". For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param capture_protocol_priority For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param exome_capture_space_priority A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available
+#' @param dna_preservation_priority Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
 #' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
+#' @param exclude Specify one or more seq_type to drop from the output. 
+#' This prevents metadata from containing anythong other than the three standard
+#' seq_type (genome, capture, mrna). Default setting will exclude "promethION".
+#' @param ... Additional arguments
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
 #'
@@ -78,20 +83,18 @@
 #'
 #' @examples
 #' #basic usage
-#' my_metadata = get_gambl_metadata()
-#'
-#' #use pre-defined custom sample sets
-#' only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
-#'
-#' #override default filters and request metadata for samples other than tumour genomes,
-#' #e.g. also get the normals
-#' tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
-#'
-#' non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
-#'                                                        seq_type_priority = "genome")
-#'
-#' absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
-#'
+#' my_metadata = suppressMessages(get_gambl_metadata())
+#' dplyr::group_by(my_metadata,pathology,seq_type) %>% dplyr::count()
+#' \dontrun{
+#'   # Rarely needed but can be useful for some applications:
+#'   # override default filters and request metadata for samples
+#'   # other than tumour genomes,
+#'   #e.g. also get the normals
+#'   tumour_and_normal_metadata = get_gambl_metadata(also_normals = TRUE))
+#' 
+#'   # prioritize exome results over genome results
+#'   non_redundant_genome_and_capture = get_gambl_metadata(dna_seq_type_priority = "capture")
+#'}
 get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                capture_protocol_priority = "Exome",
                                dna_preservation_priority = "frozen",
@@ -106,10 +109,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                everything=FALSE,
                                verbose=FALSE,
                                invert=FALSE,
+                               exclude = "promethION",
                               ...){
   if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
     args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
     message("one or more arguments for the original get_gambl_metadata detected, reverting to that function")
+    print("THE CODE THAT CAUSED THIS SHOULD BE FIXED TO USE THE NEW FUNCTION")
     print(args_match)
     return(og_get_gambl_metadata(...))
   }
@@ -117,14 +122,20 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   check_remote_configuration()
   #this needs to be in any function that reads files from the bundled GAMBL outputs synced by Snakemake
 
-  base = config::get("repo_base")
-  sample_flatfile = paste0(base, config::get("table_flatfiles")$samples)
-  sample_meta = suppressMessages(read_tsv(sample_flatfile, guess_max = 100000))
+  base = check_config_and_value("repo_base")
+  sample_flatfile = paste0(base,
+    check_config_and_value("table_flatfiles$samples"))
+  sample_meta = suppressMessages(read_tsv(sample_flatfile,
+                                          guess_max = 100000,
+                                          progress = FALSE))
 
 
 
-  biopsy_flatfile = paste0(base, config::get("table_flatfiles")$biopsies)
-  biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile, guess_max = 100000))
+  biopsy_flatfile = paste0(base,
+    check_config_and_value("table_flatfiles$biopsies"))
+  biopsy_meta = suppressMessages(read_tsv(biopsy_flatfile,
+                                          guess_max = 100000,
+                                          progress = FALSE))
 
 
 
@@ -143,9 +154,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   massage_tumour_metadata = function(tumour_metadata){
     #check that capture samples have a protocol, fill in missing values and warn about it
-    num_missing_protocol = filter(tumour_metadata,seq_type=="capture",is.na(protocol)) %>% nrow()
-    message(paste(num_missing_protocol,"capture samples are missing a value for protocol. Assuming Exome."))
-    tumour_metadata = mutate(tumour_metadata,protocol=case_when(seq_type == "capture" & is.na(protocol) ~ "Exome",
+    num_missing_protocol = filter(tumour_metadata,
+                                  seq_type=="capture",is.na(protocol)) %>% nrow()
+    message(paste(num_missing_protocol,
+                 "capture samples are missing a value for protocol. Assuming Exome."))
+    tumour_metadata = mutate(tumour_metadata,
+                             protocol=case_when(seq_type == "capture" & is.na(protocol) ~ "Exome",
                                                                 seq_type == "genome" & is.na(protocol) ~ "Genome",
                                                                 TRUE ~ protocol))
     return(tumour_metadata)
@@ -154,9 +168,10 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   #currently this function just nags the user
   check_biopsy_metadata = function(tumour_metadata){
-    base = config::get("repo_base")
-    flatfile = paste0(base, config::get("table_flatfiles")$biopsies)
-    b_meta = suppressMessages(read_tsv(flatfile, guess_max = 100000))
+    base = check_config_and_value("repo_base")
+    flatfile = paste0(base, 
+      check_config_and_value("table_flatfiles$biopsies"))
+    b_meta = suppressMessages(read_tsv(flatfile, guess_max = 100000, progress = FALSE))
     #sanity check biopsy_metadata contents
     missing_biopsies = filter(tumour_metadata,!biopsy_id %in% b_meta$biopsy_id) %>% select(sample_id,biopsy_id,cohort,pathology)
     n_missing_biopsies = nrow(missing_biopsies)
@@ -199,10 +214,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   }
 
   sample_meta_tumour_dna = sample_meta_tumour %>%
-    dplyr::filter(seq_type %in% c("genome","capture"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
   sample_meta_normal_dna = sample_meta_normal %>%
-    dplyr::filter(seq_type %in% c("genome","capture"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
 
   #helper function to prioritize systematically on the values in a column specified by column_name
@@ -237,6 +254,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   sample_meta_tumour_dna_capture = filter(sample_meta_tumour_dna,seq_type=="capture")
 
   sample_meta_tumour_dna_genome = filter(sample_meta_tumour_dna,seq_type=="genome")
+
+  sample_meta_tumour_dna_promethion = filter(sample_meta_tumour_dna,seq_type=="promethION")
 
   #prioritize within the genome seq_type (drop any FFPE where we have a frozen)
   if(verbose){
@@ -301,6 +320,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>%
     ungroup() %>% select(-priority)
+  all_meta_kept = bind_rows(all_meta_kept, sample_meta_tumour_dna_promethion)
   all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id"))
   all_meta_kept = GAMBLR.utils::tidy_lymphgen(all_meta_kept,
                                          lymphgen_column_in = "lymphgen_cnv_noA53",

@@ -67,15 +67,27 @@ Efficiently retrieve all mutations across a range of genomic regions.
 This function internally calls \link{get_ssm_by_region} to retrieve SSM calls for the specified regions.
 See parameter descriptions for \link{get_ssm_by_region} for more information on how the different parameters can be called.
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
-\link{get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample},
+\link{get_coding_ssm_status}, \link{get_ssm_by_sample},
 \link{get_ssm_by_samples}, \link{get_ssm_by_region}
 }
 \examples{
-regions_bed = GAMBLR.data::grch37_ashm_regions
 
-ashm_basic_details = get_ssm_by_regions(regions_bed = regions_bed)
+regions_bed = GAMBLR.utils::create_bed_data(
+   GAMBLR.data::grch37_ashm_regions,
+   fix_names = "concat",
+   concat_cols = c("gene","region"),sep="-"
+) \%>\% head(20)
 
-full_details_maf = get_ssm_by_regions(regions_bed = regions_bed, 
-                                      streamlined = FALSE, basic_columns=TRUE)
+DLBCL_meta = suppressMessages(get_gambl_metadata()) \%>\% 
+                dplyr::filter(pathology=="DLBCL")
+ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
+                             these_samples_metadata = DLBCL_meta,
+                             streamlined=F)
+ashm_MAF \%>\% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) \%>\%
+              dplyr::select(Hugo_Symbol,
+                    Tumor_Sample_Barcode,
+                    Chromosome,Start_Position,
+                    Reference_Allele,Tumor_Seq_Allele2)
+
 
 }

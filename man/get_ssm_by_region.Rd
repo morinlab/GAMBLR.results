@@ -72,15 +72,11 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 #basic usage
-my_mutations = get_ssm_by_region(region = "chr8:128,723,128-128,774,067")
+my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-128774067")
 
-#specifying chromosome, start and end individually
-my_mutations = get_ssm_by_region(chromosome = "8",
-                                 qstart = 128723128,
-                                 qend = 128774067)
 
 #keep all 116 columns in the read MAF
-bcl2_all_details = get_ssm_by_region(region = "chr18:60796500-60988073",
+bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073",
                                      basic_columns = FALSE)
-
 }
+\keyword{internal}

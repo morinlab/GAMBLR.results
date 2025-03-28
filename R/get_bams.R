@@ -14,13 +14,14 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' #example 1, using a sample ID
 #' bam_details = get_bams(this_sample_id = "HTMCP-01-06-00422-01A-01D")
 #'
 #' #example 2, using a patient ID
 #' bam_details = get_bams(this_patient_id = "HTMCP-01-06-00422")
-#'
+#' }
+#' @keywords internal
 get_bams = function(this_sample_id,
                     this_patient_id){
 

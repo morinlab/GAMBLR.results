@@ -24,7 +24,9 @@ Supplement the "lymphgen" column of the metadata with classification for additio
 Expects at least to have columns "patient_id" to bind on, and "lymphgen" to supplement the data on.
 }
 \examples{
-metadata = get_gambl_metadata()
-consolidate_lymphgen(sample_table = metadata)
-
+\dontrun{
+  metadata = get_gambl_metadata()
+  consolidate_lymphgen(sample_table = metadata)
 }
+}
+\keyword{internal}

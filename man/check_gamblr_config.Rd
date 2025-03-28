@@ -27,6 +27,8 @@ Check that the GAMBLR config you have loaded will work in your setup.
 This function is mostly for remote GAMBLRs to ensure they keep their local mirror of the GAMBL data up-to-date.
 }
 \examples{
+\dontrun{
 check_gamblr_config()
-
 }
+}
+\keyword{internal}

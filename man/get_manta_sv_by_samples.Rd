@@ -8,7 +8,7 @@ get_manta_sv_by_samples(
   these_samples_metadata,
   min_vaf = 0.1,
   min_score = 40,
-  pass = TRUE,
+  pass_filters = TRUE,
   projection = "grch37",
   verbose = TRUE
 )
@@ -20,7 +20,7 @@ get_manta_sv_by_samples(
 
 \item{min_score}{The lowest Manta somatic score for a SV to be returned. Default value is 40.}
 
-\item{pass}{If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.}
+\item{pass_filters}{If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.}
 
 \item{projection}{The projection of returned calls. Default is grch37.}
 
@@ -38,10 +38,14 @@ Is this function not what you are looking for? Try one of the following, similar
 \link{get_manta_sv}, \link{get_manta_sv_by_sample}
 }
 \examples{
+\dontrun{
 all_sv = get_manta_sv()
 metadata = get_gambl_metadata()
-missing_samples = dplyr::anti_join(metadata, all_sv, by = c("sample_id" = "tumour_sample_id"))
+missing_samples = dplyr::anti_join(metadata,
+  all_sv,
+  by = c("sample_id" = "tumour_sample_id"))
 
 missing_from_merge = get_manta_sv_by_samples(these_samples_metadata = missing_samples, verbose = FALSE)
-
 }
+}
+\keyword{internal}

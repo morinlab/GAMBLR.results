@@ -6,6 +6,8 @@
 \usage{
 get_raw_expression_counts(
   these_samples_metadata,
+  existing_sample_id_column,
+  new_sample_id_column,
   all_samples = FALSE,
   check = FALSE,
   from_flatfile = TRUE,
@@ -17,6 +19,10 @@ get_raw_expression_counts(
 \arguments{
 \item{these_samples_metadata}{The data frame with sample metadata. Usually output of the get_gambl_metadata().}
 
+\item{existing_sample_id_column}{Specify which column contains the sample_id you want replaced with the contents of new_sample_id_column}
+
+\item{new_sample_id_column}{Specify which column in your metadata contains the sample_id you want used instead of the existing_sample_id}
+
 \item{all_samples}{Set to TRUE to force the function to return all available data (should rarely be necessary)}
 
 \item{check}{For basic debugging. Set to TRUE to obtain basic information about the number of samples in your metadata with expression data available}
@@ -24,6 +30,8 @@ get_raw_expression_counts(
 \item{from_flatfile}{Set to FALSE to use the database instead of reading from flatfiles}
 
 \item{map_to_symbol}{Set to TRUE to obtain the mappings between the rows in the count matrix and HGNC gene symbol/alias}
+
+\item{verbose}{Set to TRUE for more print statements and such}
 
 \item{TPM}{Set to TRUE to get TPM estimates instead of counts}
 }
@@ -38,7 +46,7 @@ Efficiently retrieve raw gene expression values (read counts) for one, multiple 
 For examples and more info, refer to the parameter descriptions as well as vignette examples.
 }
 \examples{
-
+\dontrun{
 schmitz_meta = get_gambl_metadata() \%>\% 
     filter(seq_type=="mrna",cohort=="dlbcl_schmitz")
 exp_out = get_raw_expression_counts(these_samples_metadata = schmitz_meta)
@@ -67,6 +75,6 @@ Heatmap(assay(vsd)[show_genes,],
     row_names_gp = gpar(fontsize=5),
     bottom_annotation = column_ha,
     show_column_names = F)
-
+}
 
 }

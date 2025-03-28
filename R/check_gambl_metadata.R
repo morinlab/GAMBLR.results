@@ -14,9 +14,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' this_metadata = get_gambl_metadata()
 #' check_gambl_metadata(metadata_df = this_metadata)
-#'
+#' }
+#' @keywords internal
 check_gambl_metadata = function(metadata_df,
                                 to_check = "all",
                                 show_details = FALSE,
@@ -54,7 +56,7 @@ check_gambl_metadata = function(metadata_df,
     alias_in_meta = alias_names[alias_names %in% colnames(metadata_df)]
     #print(paste("will check for colour mapping of values in",alias_in_meta))
     for(alias in alias_in_meta){
-      mapped = data.frame(GAMBLR.viz::map_metadata_to_colours(alias,metadata_df,as_vector=F)) %>%
+      mapped = GAMBLR.viz::map_metadata_to_colours(alias,metadata_df)%>%
         rename("colour"=alias) %>%
         rownames_to_column(var=alias)
 

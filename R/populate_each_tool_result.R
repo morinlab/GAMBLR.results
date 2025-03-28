@@ -19,8 +19,10 @@
 #' @export
 #'
 #' @examples
-#' tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
-#'
+#' \dontrun{
+#'   tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
+#' }
+#' @keywords internal
 populate_each_tool_result = function(tool,
                                      genome_builds,
                                      unix_groups,

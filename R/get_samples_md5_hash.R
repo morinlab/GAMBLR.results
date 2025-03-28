@@ -21,6 +21,7 @@
 #' @import digest dplyr readr GAMBLR.helpers
 #' @export
 #'
+#' @keywords internal
 get_samples_md5_hash = function(these_samples_metadata,
                                 these_samples,
                                 sample_set_name,

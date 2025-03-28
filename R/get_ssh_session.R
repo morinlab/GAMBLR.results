@@ -12,12 +12,14 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_session = get_ssh_session()
-#'
+#' }
+#' @keywords internal
 get_ssh_session = function(host="gphost01.bcgsc.ca"){
 
-  if(!is.null(config::get("host"))){
-    host = config::get("host")
+  if(!is.null(check_config_and_value("host"))){
+    host = check_config_and_value("host")
   }
 
   if (!requireNamespace("ssh", quietly = TRUE)) {

@@ -98,6 +98,7 @@
 #' )
 #' }
 #' 
+#' @keywords internal
 build_browser_hub = function(maf_data,
                              regions_bed,
                              these_sample_ids = NULL,
@@ -140,13 +141,8 @@ build_browser_hub = function(maf_data,
   
   # get metadata with the dedicated helper function (for each seq type)
   these_seq_types = setNames(these_seq_types, these_seq_types)
-  these_samples_metadata = lapply(these_seq_types, function(these_seq_types_i){
-    id_ease(these_samples_metadata = these_samples_metadata,
-            these_sample_ids = these_sample_ids,
-            verbose = FALSE,
-            this_seq_type = these_seq_types_i)
-  }) %>% 
-    suppressMessages
+  these_samples_metadata = get_gambl_metadata() %>% 
+    dplyr::filter(seq_type %in% these_seq_types)
   
   # check provided splitColumnName parameter 
   stopifnot("`splitColumnName` must be a column name contained in the metadata." = 

@@ -22,11 +22,12 @@ Returns a list with BAM paths for tumour, normal and mrna data.
 This function expects a sample ID (\code{this_sample_id}) or a patient ID (\code{this_patient_id}).
 }
 \examples{
-
+\dontrun{
 #example 1, using a sample ID
 bam_details = get_bams(this_sample_id = "HTMCP-01-06-00422-01A-01D")
 
 #example 2, using a patient ID
 bam_details = get_bams(this_patient_id = "HTMCP-01-06-00422")
-
 }
+}
+\keyword{internal}

@@ -7,7 +7,6 @@
 get_coding_ssm_status(
   gene_symbols,
   these_samples_metadata,
-  from_flatfile = TRUE,
   augmented = TRUE,
   min_read_support = 3,
   maf_path = NULL,
@@ -15,13 +14,13 @@ get_coding_ssm_status(
   include_hotspots = TRUE,
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
-  this_seq_type = "genome",
-  projection = "grch37",
   review_hotspots = TRUE,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
-  genome_build = "hg19",
+  genome_build,
   include_silent = FALSE,
-  include_silent_genes
+  include_silent_genes,
+  suffix,
+  this_seq_type
 )
 }
 \arguments{
@@ -33,9 +32,6 @@ default.}
 included in the returned matrix. Only the column "sample_id" is
 required. If not provided, the matrix is tabulated for all available
 samples as default.}
-
-\item{from_flatfile}{Optional argument whether to use database or flat file
-to retrieve mutations. Default is TRUE.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want the original
 MAF from each sample for multi-sample patients instead of the augmented
@@ -62,11 +58,6 @@ presence.}
 
 \item{recurrence_min}{Integer value indicating minimal recurrence level.}
 
-\item{this_seq_type}{The seq_type you want back, default is genome.}
-
-\item{projection}{Specify projection (grch37 or hg38) of mutations. Default
-is grch37.}
-
 \item{review_hotspots}{Logical parameter indicating whether hotspots object
 should be reviewed to include functionally relevant mutations or rare
 lymphoma-related genes. Default is TRUE.}
@@ -83,6 +74,13 @@ mutations into coding mutations. Default is FALSE.}
 \item{include_silent_genes}{Optionally, provide a list of genes for which the
 Silent variants to be considered. If provided, the Silent variants for
 these genes will be included regardless of the include_silent argument.}
+
+\item{suffix}{Optionally provide a character that will be appended to the end of each name}
+
+\item{this_seq_type}{Deprecated. This is now determined from the metadata provided.}
+
+\item{projection}{Specify projection (grch37 or hg38) of mutations. Default
+is grch37.}
 }
 \value{
 A data frame with tabulated mutation status.
@@ -108,12 +106,41 @@ similar, functions; \link{get_coding_ssm},
 \link{get_ssm_by_regions}.
 }
 \examples{
-coding_tabulated_df = get_coding_ssm_status(
- maf_data = GAMBLR.data::sample_data$grch37$maf,
- gene_symbols = "EGFR"
-)
+# FL Tier 1 genes
+genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
+             FL_Tier==1) \%>\% 
+             dplyr::pull(Gene)
 
-#all lymphoma genes from bundled NHL gene list
-coding_tabulated_df = get_coding_ssm_status()
+# Metadata for FL genomes and exomes
+fl_meta = suppressMessages(get_gambl_metadata()) \%>\% 
+    dplyr::filter(pathology=="FL",
+                  cohort != "FL_Crouch",
+                  seq_type != "mrna")
+
+table(fl_meta$seq_type)
+# Here, we let the function load the data for us
+ coding_tabulated_df = get_coding_ssm_status(
+  gene_symbols=genes,
+  include_hotspots=FALSE,
+  genome_build = "hg38",
+  these_samples_metadata = fl_meta
+ )
+ length(genes)
+ dim(coding_tabulated_df)
+ head(colnames(coding_tabulated_df))
+
+# Alternatively, we can provide the MAF data directly
+
+# Load the MAF data (let's use the other genome build this time)
+
+maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta,
+                              projection = "grch37")
+
+coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
+                                          these_samples_metadata = fl_meta,
+                                          maf_data = maf_data,
+                                          include_hotspots=FALSE)
+ dim(coding_tabulated2)
+ head(colnames(coding_tabulated2))
 
 }

@@ -25,8 +25,6 @@
 #'      included in the returned matrix. Only the column "sample_id" is
 #'      required. If not provided, the matrix is tabulated for all available
 #'      samples as default.
-#' @param from_flatfile Optional argument whether to use database or flat file
-#'      to retrieve mutations. Default is TRUE.
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original
 #'      MAF from each sample for multi-sample patients instead of the augmented
 #'      MAF.
@@ -45,7 +43,6 @@
 #'      number of non-hotspot mutations instead of tabulating for just mutation
 #'      presence.
 #' @param recurrence_min Integer value indicating minimal recurrence level.
-#' @param this_seq_type The seq_type you want back, default is genome.
 #' @param projection Specify projection (grch37 or hg38) of mutations. Default
 #'      is grch37.
 #' @param review_hotspots Logical parameter indicating whether hotspots object
@@ -60,25 +57,55 @@
 #' @param include_silent_genes Optionally, provide a list of genes for which the
 #'      Silent variants to be considered. If provided, the Silent variants for
 #'      these genes will be included regardless of the include_silent argument.
+#' @param suffix Optionally provide a character that will be appended to the end of each name
+#' @param this_seq_type Deprecated. This is now determined from the metadata provided.
 #'
 #' @return A data frame with tabulated mutation status.
 #'
-#' @import dplyr tidyr GAMBLR.helpers
+#' @import dplyr tidyr GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
-#' coding_tabulated_df = get_coding_ssm_status(
-#'  maf_data = GAMBLR.data::sample_data$grch37$maf,
-#'  gene_symbols = "EGFR"
-#' )
-#'
-#' #all lymphoma genes from bundled NHL gene list
-#' coding_tabulated_df = get_coding_ssm_status()
-#'
+#' # FL Tier 1 genes
+#' genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
+#'              FL_Tier==1) %>% 
+#'              dplyr::pull(Gene)
+#' 
+#' # Metadata for FL genomes and exomes
+#' fl_meta = suppressMessages(get_gambl_metadata()) %>% 
+#'     dplyr::filter(pathology=="FL",
+#'                   cohort != "FL_Crouch",
+#'                   seq_type != "mrna")
+#' 
+#' table(fl_meta$seq_type)
+#' # Here, we let the function load the data for us
+#'  coding_tabulated_df = get_coding_ssm_status(
+#'   gene_symbols=genes,
+#'   include_hotspots=FALSE,
+#'   genome_build = "hg38",
+#'   these_samples_metadata = fl_meta
+#'  )
+#'  length(genes)
+#'  dim(coding_tabulated_df)
+#'  head(colnames(coding_tabulated_df))
+#' 
+#' # Alternatively, we can provide the MAF data directly
+#' 
+#' # Load the MAF data (let's use the other genome build this time)
+#' 
+#' maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta,
+#'                               projection = "grch37")
+#' 
+#' coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
+#'                                           these_samples_metadata = fl_meta,
+#'                                           maf_data = maf_data,
+#'                                           include_hotspots=FALSE)
+#'  dim(coding_tabulated2)
+#'  head(colnames(coding_tabulated2))
+#' 
 get_coding_ssm_status = function(
     gene_symbols,
     these_samples_metadata,
-    from_flatfile = TRUE,
     augmented = TRUE,
     min_read_support = 3,
     maf_path = NULL,
@@ -86,19 +113,17 @@ get_coding_ssm_status = function(
     include_hotspots = TRUE,
     keep_multihit_hotspot = FALSE,
     recurrence_min = 5,
-    this_seq_type = "genome",
-    projection = "grch37",
     review_hotspots = TRUE,
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
-    genome_build = "hg19",
+    genome_build,
     include_silent = FALSE,
-    include_silent_genes
+    include_silent_genes,
+    suffix,
+    this_seq_type
 ){
-  
-  message(
-    "Using the GAMBLR.results version of this function."
-  )
-
+  if(!missing(this_seq_type)){
+    stop("this_seq_type is deprecated. This is now determined from the metadata provided.")
+  }
   if(missing(gene_symbols)){
     message("defaulting to all lymphoma genes")
     gene_symbols = pull(GAMBLR.data::lymphoma_genes, Gene)
@@ -108,7 +133,7 @@ get_coding_ssm_status = function(
     message(
         strwrap(
             prefix = " ",
-            initial = "", 
+            initial = "",
             "Output will include all genes specified in gene_symbols
             and include_silent_genes parameters."
         )
@@ -121,7 +146,7 @@ get_coding_ssm_status = function(
   }
 
   if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata()
+    these_samples_metadata = suppressMessages(get_gambl_metadata())
   }
 
   if(include_silent){
@@ -133,22 +158,27 @@ get_coding_ssm_status = function(
 
   # call it once so the object can be reused if user wants to annotate hotspots
   if(!missing(maf_data)){
+    if(!missing(genome_build) & "maf_data" %in% class(maf_data)){
+      if(!genome_build == get_genome_build(maf_data)){
+        stop("you have specified a genome_build that doesn't match the genome_build attached to maf_data")
+      }
+    }else if("maf_data" %in% class(maf_data)){
+      genome_build = get_genome_build(maf_data)
+    }
     coding_ssm = maf_data
 
   }else if (!is.null(maf_path)){
-    coding_ssm = fread_maf(maf_path)
+    message(paste("setting genome_build for MAF to:",genome_build))
+    coding_ssm = GAMBLR.utils::create_maf_data(fread_maf(maf_path,genome_build))
   }
 
   if(missing(maf_data) & is.null(maf_path)){
-    coding_ssm = get_coding_ssm(
-        projection = projection,
-        this_seq_type = this_seq_type,
-        from_flatfile = from_flatfile,
-        augmented = augmented,
-        min_read_support = 3,
-        basic_columns = FALSE,
-        include_silent = include_silent
-    )
+      coding_ssm = get_all_coding_ssm(projection = genome_build,
+                                      these_samples_metadata = these_samples_metadata,
+                                      augmented = augmented,
+                                      basic_columns = FALSE,
+                                      include_silent = include_silent)
+
   }
 
   if(missing(include_silent_genes)){
@@ -160,7 +190,7 @@ get_coding_ssm_status = function(
     message(
         strwrap(
             prefix = " ",
-            initial = "", 
+            initial = "",
             "You have provided gene list with argument include_silent_genes.
             The Silent variants will be included even if the include_silent
             argument is set to FALSE.
@@ -196,7 +226,7 @@ get_coding_ssm_status = function(
     annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
     # review for the supported genes
     if(review_hotspots){
-      annotated = GAMBLR.data::review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
     }
     message("annotating hotspots")
     hotspots = annotated %>%
@@ -280,6 +310,10 @@ get_coding_ssm_status = function(
 
     }
 
+  }
+  if(!missing(suffix)){
+    colnames(all_tabulated) = unlist(lapply(colnames(all_tabulated),function(x){paste(x,suffix,sep="_")}))
+    colnames(all_tabulated)[1]="sample_id"
   }
   return(all_tabulated)
 }

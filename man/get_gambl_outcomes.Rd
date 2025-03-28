@@ -33,6 +33,10 @@ Get the patient-centric clinical metadata.
 INTERNAL FUNCTION called by \link{get_gambl_metadata}, not meant for out-of-package usage.
 }
 \examples{
-outcome_df = get_gambl_outcomes()
-
+\dontrun{
+  outcome_df = get_gambl_outcomes()
+  metadata_with_outcomes = dplyr::left_join(
+                            get_gambl_metadata(),
+                            outcome_df)
+}
 }

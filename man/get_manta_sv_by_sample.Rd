@@ -11,7 +11,7 @@ get_manta_sv_by_sample(
   return_anyway = FALSE,
   min_vaf = 0.1,
   min_score = 40,
-  pass = TRUE,
+  pass_filters = TRUE,
   projection = "grch37",
   verbose = TRUE
 )
@@ -29,7 +29,7 @@ get_manta_sv_by_sample(
 
 \item{min_score}{The lowest Manta somatic score for a SV to be returned. Default value is 40.}
 
-\item{pass}{If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.}
+\item{pass_filters}{If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.}
 
 \item{projection}{The projection of returned calls. Default is grch37.}
 
@@ -51,6 +51,7 @@ The value for this column is returned TRUE (for all rows) if the available genom
 Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_combined_sv}, \link{get_manta_sv}, \link{get_manta_sv_by_samples}
 }
 \examples{
+\dontrun{
 #example 1
 #get manta calls for a sample that needs to be lifted to "hg38" and let this function
 #take care of the liftover step for you.
@@ -67,5 +68,6 @@ my_metadata = dplyr::filter(my_metadata, sample_id=="99-27783_tumorA")
 my_sv = get_manta_sv_by_sample(these_samples_metadata = my_metadata,
                                projection = "hg38",
                                force_lift = TRUE)
-
 }
+}
+\keyword{internal}

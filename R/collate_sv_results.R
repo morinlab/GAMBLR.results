@@ -16,10 +16,11 @@
 #' @noRd
 #'
 #' @examples
+#' \dontrun{
 #' results = collate_samples_sv_results(sample_table = samples,
 #'                                      tool = "manta",
 #'                                      oncogenes = c("MYC", "BCL2"))
-#'
+#' }
 collate_sv_results = function(sample_table,
                               tool = "svar",
                               seq_type_filter = "genome",

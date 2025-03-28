@@ -37,11 +37,13 @@ If there is more than one sample id of the desired seq type associated with a sa
 in \code{intermediary}, the \code{multi_desired_id} column of the output table will show 1 instead of 0.
 }
 \examples{
+\dontrun{
 link_seq_types(
   these_sample_ids = c("00-14595_tumorA", "04-21622_tumorB", "01-20774T"), 
   given_seq_type = "genome",
   desired_seq_type = "mrna", 
   intermediary = c("patient_id", "biopsy_id")
 )
-
 }
+}
+\keyword{internal}

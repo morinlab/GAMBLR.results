@@ -9,7 +9,7 @@ get_ashm_count_matrix(
   maf_data,
   these_samples_metadata,
   this_seq_type = "genome",
-  projection = "grch37"
+  projection
 )
 }
 \arguments{
@@ -25,6 +25,8 @@ sample_id for all samples if you are using non-GAMBL data.}
 
 \item{this_seq_type}{The seq_type to return results for. Must be a single value. Only used if no
 metadata is provided with these_samples_metadata.}
+
+\item{projection}{The genome build we are working with}
 }
 \value{
 A data frame with a row for every sample in these_samples_metadata and a column for every region in regions_bed
@@ -38,17 +40,23 @@ Values are the number of mutations in that patient in the region.
 }
 \examples{
 
-\dontrun{
-  DLBCL_genome_meta = get_gambl_metadata() \%>\% dplyr::filter(pathology=="DLBCL")
-regions_bed <- dplyr::mutate(
-     GAMBLR.data::grch37_ashm_regions,
-     name = paste(gene, region, sep = "_")
-)
 
-matrix <- get_ashm_count_matrix(
-     regions_bed = regions_bed,
+  DLBCL_genome_meta = get_gambl_metadata() \%>\% 
+    dplyr::filter(pathology=="DLBCL")
+#get ashm regions
+some_regions = GAMBLR.utils::create_bed_data(
+                              GAMBLR.data::grch37_ashm_regions,
+                              fix_names = "concat",
+                              concat_cols = c("gene","region"),
+                              sep="-") \%>\%
+  dplyr::filter(grepl("PAX5",name))
+
+pax5_matrix <- get_ashm_count_matrix(
+     regions_bed = some_regions,
      this_seq_type = "genome",
      these_samples_metadata = DLBCL_genome_meta
 )
-}
+head(pax5_matrix)
+colMeans(pax5_matrix)
+
 }

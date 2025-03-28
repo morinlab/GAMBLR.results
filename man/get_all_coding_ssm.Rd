@@ -10,6 +10,8 @@ get_all_coding_ssm(these_samples_metadata = NULL, include_silent = FALSE, ...)
 \item{these_samples_metadata}{Supply a metadata table containing the sample/seq_type combinations you want.}
 
 \item{include_silent}{If set to TRUE, silent/synonymous mutations in the coding regions will also be returned.}
+
+\item{...}{Additional arguments passed to get_coding_ssm}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
@@ -21,8 +23,13 @@ Retrieve all coding SSMs from GAMBL in MAF-like format, regardless of seq_type.
 Effectively retrieve coding SSM calls from one or all DNA seq_type. For additional optional arguments, see \link{get_coding_ssm}
 }
 \examples{
+my_meta = suppressMessages(get_gambl_metadata())
+maf_all_seqtype = get_all_coding_ssm(my_meta)
 
-maf_data_all_exome_and_genome = get_coding_ssm(these_samples_metadata = get_gambl_metadata(seq_type_filter=c("genome","capture")))
+table(maf_all_seqtype$maf_seq_type)
 
-
+# most common mutations by gene and Variant_Classification
+dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) \%>\% 
+  dplyr::count() \%>\% 
+  dplyr::arrange(desc(n))
 }

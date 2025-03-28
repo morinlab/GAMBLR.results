@@ -16,6 +16,7 @@ get_gambl_metadata(
   everything = FALSE,
   verbose = FALSE,
   invert = FALSE,
+  exclude = "promethION",
   ...
 )
 }
@@ -23,6 +24,8 @@ get_gambl_metadata(
 \item{dna_seq_type_priority}{The default is "genome" and the only other option is "capture". For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.}
 
 \item{capture_protocol_priority}{For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.}
+
+\item{dna_preservation_priority}{Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")}
 
 \item{exome_capture_space_priority}{A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available}
 
@@ -35,6 +38,12 @@ get_gambl_metadata(
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
 \item{invert}{Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)}
+
+\item{exclude}{Specify one or more seq_type to drop from the output.
+This prevents metadata from containing anythong other than the three standard
+seq_type (genome, capture, mrna). Default setting will exclude "promethION".}
+
+\item{...}{Additional arguments}
 }
 \value{
 A data frame with metadata for each biopsy in GAMBL
@@ -105,18 +114,16 @@ types of redundancy caused by samples or biopsies that have data from >1 seq_typ
 }
 \examples{
 #basic usage
-my_metadata = get_gambl_metadata()
+my_metadata = suppressMessages(get_gambl_metadata())
+dplyr::group_by(my_metadata,pathology,seq_type) \%>\% dplyr::count()
+\dontrun{
+  # Rarely needed but can be useful for some applications:
+  # override default filters and request metadata for samples
+  # other than tumour genomes,
+  #e.g. also get the normals
+  tumour_and_normal_metadata = get_gambl_metadata(also_normals = TRUE))
 
-#use pre-defined custom sample sets
-only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
-
-#override default filters and request metadata for samples other than tumour genomes,
-#e.g. also get the normals
-tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
-
-non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
-                                                       seq_type_priority = "genome")
-
-absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
-
+  # prioritize exome results over genome results
+  non_redundant_genome_and_capture = get_gambl_metadata(dna_seq_type_priority = "capture")
+}
 }

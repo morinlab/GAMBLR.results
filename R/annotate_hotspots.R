@@ -18,28 +18,61 @@
 #' @export
 #'
 #' @examples
-#' my_metadata = get_gambl_metadata()
-#' all_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
+#' my_metadata = suppressMessages(get_gambl_metadata())
+#' # get a few SSMs to annotate
+#' some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
 #'                                 projection = "grch37",
-#'                                 this_seq_type = "genome")
+#'                                 this_seq_type = "genome") %>% 
+#'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
+#'                   dplyr::arrange(Hugo_Symbol)
+#' # peek at the data
+#' dplyr::select(some_coding_ssm,1:10,37) %>% head()
 #'
-#' hot_ssms = annotate_hotspots(all_coding_ssm)
+#' hot_ssms = annotate_hotspots(some_coding_ssm)
+#' hot_ssms %>% 
+#'    dplyr::filter(!is.na(hot_spot)) %>% 
+#'    dplyr::select(1:10,37,hot_spot) 
 #'
+#' \dontrun{
+#' #This example will raise an error due to the user supplying an unsupported genome build:
+#' more_coding_ssm = get_coding_ssm(
+#'                                 these_samples_metadata = my_metadata,
+#'                                 projection = "hg38",
+#'                                 this_seq_type = "capture") %>% 
+#'                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
+#'                   dplyr::arrange(Hugo_Symbol)
+#' # peek at the data
+#' dplyr::select(more_coding_ssm,1:10,37) %>% head()
+#'
+#' more_hot_ssms = annotate_hotspots(more_coding_ssm)
+#' more_hot_ssms %>% 
+#'    dplyr::filter(!is.na(hot_spot)) %>% 
+#'    dplyr::select(1:10,37,hot_spot) 
+#' }
 annotate_hotspots = function(mutation_maf,
                              recurrence_min = 5,
                              analysis_base = c("FL--DLBCL", "BL--DLBCL"),
                              p_thresh = 0.05){
-
+  genome_build = check_get_projection(list(this_maf=mutation_maf),"grch37",
+                                      custom_error="This function currently only supports grch37")
   hotspot_info = list()
   for(abase in analysis_base){
-    base_path = GAMBLR.helpers::check_config_value(config::get("repo_base"))
-
-    clust_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$clusters))
+    
+    base_path = GAMBLR.helpers::check_config_and_value("repo_base")
+    clust_full_path = paste0(base_path, 
+      check_config_and_value("results_versioned$oncodriveclustl$clusters"))
+    
+    #clust_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$clusters))
     clust_full_path = glue::glue(clust_full_path)
-    all_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$elements))
+    all_full_path = paste0(base_path, 
+      check_config_and_value("results_versioned$oncodriveclustl$elements"))
+    
+    #all_full_path = paste0(base_path, GAMBLR.helpers::check_config_value(config::get("results_versioned")$oncodriveclustl$elements))
     all_full_path = glue::glue(all_full_path)
-    clust_hotspot = suppressMessages(readr::read_tsv(clust_full_path))
-    all_hotspot = suppressMessages(readr::read_tsv(all_full_path))
+    clust_hotspot = suppressMessages(readr::read_tsv(clust_full_path,
+                                    progress = FALSE))
+    all_hotspot = suppressMessages(readr::read_tsv(all_full_path,
+                                  progress = FALSE))
 
   clustered_hotspots = clust_hotspot %>%
     dplyr::select(-RANK) %>%

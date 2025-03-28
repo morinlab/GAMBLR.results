@@ -9,18 +9,14 @@ calc_mutation_frequency_bin_regions(
   regions_bed = NULL,
   these_samples_metadata = NULL,
   these_sample_ids = NULL,
-  this_seq_type = c("genome", "capture"),
-  maf_data = NULL,
-  projection = "grch37",
+  projection,
   region_padding = 1000,
   drop_unmutated = FALSE,
   skip_regions = NULL,
   only_regions = NULL,
   slide_by = 100,
   window_size = 500,
-  return_format = "wide",
-  from_indexed_flatfile = TRUE,
-  mode = "slms-3"
+  return_format = "wide"
 )
 }
 \arguments{
@@ -31,10 +27,6 @@ calc_mutation_frequency_bin_regions(
 \item{these_samples_metadata}{Metadata with at least sample_id column. If not providing a maf data frame, seq_type is also required.}
 
 \item{these_sample_ids}{Vector of sample IDs. Metadata will be subset to sample IDs present in this vector.}
-
-\item{this_seq_type}{Optional vector of seq_types to include in heatmap. Default c("genome", "capture"). Uses default seq_type priority for samples with >1 seq_type.}
-
-\item{maf_data}{Optional maf data frame. Will be subset to rows where Tumor_Sample_Barcode matches provided sample IDs or metadata table. If not provided, maf data will be obtained with get_ssm_by_regions().}
 
 \item{projection}{Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default "grch37".}
 
@@ -51,10 +43,6 @@ calc_mutation_frequency_bin_regions(
 \item{window_size}{Size of sliding window. Default 500.}
 
 \item{return_format}{Return format of mutations. Accepted inputs are "long" and "wide". Long returns a data frame of one sample ID/window per row. Wide returns a matrix with one sample ID per row and one window per column. Using the "wide" format will retain all samples and windows regardless of the drop_unmutated or min_count_per_bin parameters. Default wide.}
-
-\item{from_indexed_flatfile}{Set to TRUE to avoid using the database and instead rely on flat files (only works for streamlined data, not full MAF details).}
-
-\item{mode}{Only works with indexed flat files. Accepts 2 options of "slms-3" and "strelka2" to indicate which variant caller to use. Default is "slms-3".}
 }
 \value{
 A table of mutation counts for sliding windows across one or more regions. May be long or wide.
@@ -68,20 +56,20 @@ to retrieve mutation counts for sliding windows across one or more regions. May 
 The heatmap plotting portion of this function has been moved to \link{heatmap_mutation_frequency_bin}.
 }
 \examples{
-#load metadata.
-metadata = get_gambl_metadata()
-dlbcl_bl_meta = dplyr::filter(metadata, pathology \%in\% c("DLBCL", "BL"))
+\dontrun{
+ #load metadata.
+ metadata = suppressMessages(get_gambl_metadata())
+ dlbcl_bl_meta = dplyr::filter(metadata, pathology \%in\% c("DLBCL", "BL"))
 
-#bring together all derived sample-level results from many GAMBL pipelines.
-dlbcl_bl_meta = collate_results(join_with_full_metadata = TRUE,
-                                these_samples_metadata = dlbcl_bl_meta)
-
-#get ashm regions
-some_regions = GAMBLR.data::grch37_ashm_regions
-
-mut_count_matrix <- calc_mutation_frequency_bin_region(
+ #get ashm regions
+ some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+                               fix_names = "concat",
+                               concat_cols = c("gene","region"),sep="-")
+ some_regions
+ mut_count_matrix <- calc_mutation_frequency_bin_regions(
    these_samples_metadata = dlbcl_bl_meta,
    regions_bed = some_regions
-)
+ )
+}
 
 }
