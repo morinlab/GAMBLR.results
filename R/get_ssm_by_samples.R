@@ -7,19 +7,31 @@
 #' In most situations, this should never need to be run with subset_from_merge = TRUE, which is very inefficient.
 #' This function does not scale well to many samples. In most cases, users will actually need either [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
 #' See [GAMBLR.results::get_ssm_by_sample] for more information.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_regions]
+#' Is this function not what you are looking for? Try one of the
+#' related functions; [GAMBLR.results::get_coding_ssm],
+#' [GAMBLR.results::get_ssm_by_regions]
 #'
 #' @param these_samples_metadata Optional metadata table.
 #' If provided, it will return SSM calls for the samples in the metadata table.
 #' @param tool_name Only supports slms-3 currently.
-#' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.
-#' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
-#' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
-#' @param basic_columns Return first 45 columns of MAF rather than full details. Default is TRUE.
-#' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.
-#' @param subset_from_merge Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified this_seq_type.
-#' @param engine Specify one of readr or fread_maf (default) to change how the large files are loaded prior to subsetting. You may have better performance with one or the other but for me fread_maf is faster and uses a lot less RAM.
+#' @param augmented default: TRUE. Set to FALSE if you instead want
+#' the original MAF from each sample for multi-sample patients instead.
+#' @param projection Obtain variants projected to this reference
+#' (one of grch37 or hg38).
+#' @param min_read_support Only returns variants with at least this
+#' many reads in t_alt_count (for cleaning up augmented MAFs).
+#' @param basic_columns Return first 45 columns of MAF rather than
+#' full details. Default is TRUE.
+#' @param maf_cols if basic_columns is set to FALSE, the user can
+#' specify which columns to be returned within the MAF. 
+#' This parameter can either be a vector of indexes (integer)
+#' or a vector of characters.
+#' @param subset_from_merge Instead of merging individual MAFs,
+#' the data will be subset from a pre-merged MAF of samples with
+#' the specified this_seq_type.
+#' @param engine Specify one of readr or fread_maf (default) to
+#' change how the large files are loaded prior to subsetting.
+#' You may have better performance with one or the other.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
 #'
@@ -29,22 +41,23 @@
 #' @export
 #'
 #' @examples
-#' 
-#' my_meta = get_gambl_metadata() %>% 
-#'                        dplyr::filter(sample_id %in% c("HTMCP-01-06-00485-01A-01D",
+#'
+#' my_meta = get_gambl_metadata() %>%
+#'             dplyr::filter(sample_id %in% c("HTMCP-01-06-00485-01A-01D",
 #'                                                "14-35472_tumorA",
 #'                                                "14-35472_tumorB"))
 #' sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
 #'
 #' hg38_ssms = get_ssm_by_samples(projection="hg38",
 #'                                these_samples_metadata = my_meta)
-#' 
-#' dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) %>% 
+#'
+#' dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) %>%
 #'   dplyr::count()
 #' hg38_ssms_no_aug = get_ssm_by_samples(projection="hg38",
-#'                                these_samples_metadata = my_meta,augmented= FALSE)
-#' 
-#' dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) %>% 
+#'                      these_samples_metadata = my_meta,
+#'                      augmented= FALSE)
+#'
+#' dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) %>%
 #'   dplyr::count()
 #' 
 #' \dontrun{
