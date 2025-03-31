@@ -10,13 +10,13 @@ add_icgc_metadata(incoming_metadata)
 \item{incoming_metadata}{A metadata table (probably output from \code{get_gambl_metadata}).}
 }
 \value{
-Metadata with layered information (ICGC).
+Metadata with layered information
 }
 \description{
 Layer on ICGC metadata from a supplemental table to fill in missing COO.
 }
 \details{
-INTERNAL FUNCTION called by \link{get_gambl_metadata}, not meant for out-of-package usage.
+INTERNAL FUNCTION
 }
 \examples{
 \dontrun{

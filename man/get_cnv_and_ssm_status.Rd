@@ -9,13 +9,15 @@ get_cnv_and_ssm_status(
   these_samples_metadata,
   maf_df,
   seg_data,
+  cn_matrix,
   only_cnv = "none",
   genome_build = "grch37",
   include_hotspots = TRUE,
   review_hotspots = TRUE,
   adjust_for_ploidy = TRUE,
   include_silent = FALSE,
-  this_seq_type
+  this_seq_type,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,6 +35,9 @@ Can be created with \code{get_gambl_metadata} function.}
 
 \item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
 
+\item{cn_matrix}{Instead of seg_data, you can provide a matrix of CN values for the samples in the metadata.
+See \link[GAMBLR.utils:segmented_data_to_cn_matrix]{GAMBLR.utils::segmented_data_to_cn_matrix} for more information on how to create this matrix.}
+
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
 of the genes, respectively.}
@@ -49,6 +54,8 @@ functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 \item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
 
 \item{this_seq_type}{Deprecated}
+
+\item{verbose.}{Set to TRUE for more text}
 }
 \value{
 A data frame with CNV and SSM combined status.

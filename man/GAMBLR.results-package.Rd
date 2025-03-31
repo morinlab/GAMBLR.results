@@ -8,6 +8,13 @@
 \description{
 This package is part of the Genomic Analysis of Mature B-cell Lymphomas (GAMBL) project developed by the Morin Lab.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://morinlab.github.io/GAMBLR.results/}
+}
+
+}
 \author{
 \strong{Maintainer}: Kostiantyn Dreval \email{kdreval@sfu.ca} (\href{https://orcid.org/0000-0002-6214-2843}{ORCID})
 
