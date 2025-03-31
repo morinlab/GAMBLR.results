@@ -1,4 +1,4 @@
-## GABMLR.results - an R package for obtaining and manipulating GAMBL results (restricted to Morin lab members and collaborators).
+## GABMLR.results - access and manipulate GAMBL results in R
 
 ## Installation
 

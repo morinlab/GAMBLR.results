@@ -1,4 +1,16 @@
 url: https://morinlab.github.io/GAMBLR.results
+template:
+  bootstrap: 5
+
+structure:
+  left:  [intro, reference, articles]
+  right: [search, github, lightswitch]
+
+articles:
+  - title: Guides
+    navbar: "Developers"
+    contents:
+      - testing
 
 reference:
   - title: Other
