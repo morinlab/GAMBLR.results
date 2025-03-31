@@ -4,15 +4,15 @@
 \alias{get_timed_mutations}
 \title{Load MutationTimeR Results}
 \usage{
-get_timed_mutations(this_sample_metadata, genome_build, verbose = FALSE)
+get_timed_mutations(this_sample_metadata, projection, verbose = FALSE)
 }
 \arguments{
 \item{this_sample_metadata}{Metadata with one row
 containing the details for the desired genome sample_id}
 
-\item{verbose}{Set to TRUE for a chattier experience. Default is FALSE.}
-
 \item{projection}{Genome build projection (e.g., "hg38" or "grch37").}
+
+\item{verbose}{Set to TRUE for a chattier experience. Default is FALSE.}
 }
 \value{
 a named list containing two data.frames with
@@ -22,4 +22,16 @@ the ssm and cna timing information
 This function retrieves and loads the MutationTimeR
 timing estimates for a single sample_id for all successfully timed
 and un-timed SSMs and CNAs.
+}
+\examples{
+\dontrun{
+ my_meta = suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(sample_id=="01-20985T",
+               seq_type=="genome")
+ timed = GAMBLR.results::get_timed_mutations(my_meta,"hg38")
+
+ head(timed$CNA)
+
+ head(timed$SSM)
+}
 }

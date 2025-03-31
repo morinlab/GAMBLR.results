@@ -16,6 +16,7 @@ get_gambl_metadata(
   everything = FALSE,
   verbose = FALSE,
   invert = FALSE,
+  exclude = "promethION",
   ...
 )
 }
@@ -37,6 +38,10 @@ get_gambl_metadata(
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
 \item{invert}{Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)}
+
+\item{exclude}{Specify one or more seq_type to drop from the output.
+This prevents metadata from containing anythong other than the three standard
+seq_type (genome, capture, mrna). Default setting will exclude "promethION".}
 
 \item{...}{Additional arguments}
 }

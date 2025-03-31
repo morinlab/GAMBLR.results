@@ -128,8 +128,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   genes_and_cn_threshs_non_neutral = genes_and_cn_threshs[!thresh_2,]
   genes_and_cn_threshs_neutral = genes_and_cn_threshs[thresh_2,]
   check_cnv = nrow(genes_and_cn_threshs_non_neutral) > 0
-  these_samples_metadata = dplyr::filter(these_samples_metadata,
-                                         seq_type != "mrna")
+  these_samples_metadata = these_samples_metadata %>% 
+    dplyr::filter(! seq_type  %in% c("mrna","promethION"))
   if(check_cnv){
     # get cn states
     regions=my_regions[genes_and_cn_threshs_non_neutral$gene_id]
