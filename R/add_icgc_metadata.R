@@ -19,14 +19,16 @@
 #' @keywords internal
 add_icgc_metadata = function(incoming_metadata){
   repo_base = GAMBLR.helpers::check_config_and_value("repo_base")
-  icgc_publ_file = paste0(repo_base,"data/metadata/raw_metadata/MALY_DE_tableS1.csv")
+  icgc_publ_file = paste0(repo_base,
+                          "data/metadata/raw_metadata/MALY_DE_tableS1.csv")
   icgc_publ = suppressMessages(suppressWarnings(read_csv(icgc_publ_file)))
   icgc_publ = icgc_publ[,c(1:20)]
   #fix commas as decimals
   icgc_publ = mutate(icgc_publ, purity = str_replace(purity, ",", "."))
   icgc_publ = mutate(icgc_publ, sex = str_to_upper(sex))
 
-  icgc_raw_path = paste0(repo_base,"data/metadata/raw_metadata/ICGC_MALY_seq_md.tsv")
+  icgc_raw_path = paste0(repo_base,
+                        "data/metadata/raw_metadata/ICGC_MALY_seq_md.tsv")
 
   #check for missingness
   if(!file.exists(icgc_raw_path)){

@@ -89,7 +89,8 @@ genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
 
 # myc_hg19.bed will be created in your working directory
 
-maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
+maf_to_custom_track(maf_data = genome_maf,
+                   output_file = "myc_genome_hg19.bed")
 
 #lazy/concise way:
 my_region = "8:128747680-128753674"
@@ -99,6 +100,7 @@ capture_maf <- get_ssm_by_regions(regions_list = my_region,
                              this_seq_type = "genome",
                              projection = "grch37",
                              streamlined = FALSE)
-maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
+maf_to_custom_track(maf_data = capture_maf,
+                   output_file = "myc_capture_hg19.bed")
 
 }

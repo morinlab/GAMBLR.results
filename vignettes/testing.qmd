@@ -1,0 +1,91 @@
+---
+title: "Testing GAMBLR packages"
+vignette: >
+  %\VignetteIndexEntry{quarto vignettes}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+format: html
+warning: false
+execute:
+    cache: false
+---
+
+
+Most GAMBLR repositories contain a `logExampleOutputs.R` script that you will find in your clone under the tools directory. If you are submitting a pull request, you are expected to have run this script and ensured that it completes. This guide explains how to do this. 
+
+::: {.callout-important}
+If you modified/added code in GAMBLR.results, this must be on a computer that has direct access to all the relevant GAMBL output files. In other words, this would be run on a ssh session on one of the gphosts. Theoretically, you can test all the other packages on any computer with GAMBLR and its dependencies installed. In practice, you will probably always be running these commands within the GSC network. 
+:::
+
+## Run the test script
+
+First, you need to be in the top level directory of the repository:
+
+```bash
+cd ~/git/GAMBLR.results/
+```
+
+Assuming the installation of R on your path has all the dependencies installed, you can then simply run this command and wait for it to complete. The time this takes can vary a lot. Testing GAMBLR.results might take more than 30 minutes. 
+
+```bash
+Rscript tools/logExampleOutputs.R
+```
+
+## Check outputs
+
+The top-level directory of each package should contain a file named `GAMBLR_examples_output.log`. This is the output of the script you just ran. Since it's tracked by git, you should be able to compare the newly created version with the one in the master branch. The first few lines of this file from `GAMBLR.results` is shown below. You can view the entire file [here](https://github.com/morinlab/GAMBLR.results/blob/main/GAMBLR_examples_output.log).
+
+```
+[1] "=== STARTED AT 2025-02-26 10:42:57.135744 ==="
+── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+
+> my_metadata = suppressMessages(get_gambl_metadata())
+
+> some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
++     projection = "grch37", this_seq_type = "genome") %>% dplyr::filter(Hugo_Symbol %in%
++     c("EZH2", "MEF2B", "MYD88", "KMT2D")) %>% dplyr::arrange(Hugo_Symbol)
+```
+
+::: {.callout-important}
+The easiest way to check this file for problems is to load it in Visual Studio Code after you've loaded the repository. As long as you have the git extension set up properly, you should see the differences automatically. The only changes you should see are the timestamps and possibly a few formatting differences in tabular output.
+:::
+
+## Fix problems
+
+Depending on what you've done to the existing code, you may find that the log file is either truncated or the output from one or more functions has changed in a way that is unexpected (e.g. different numbers etc).
+
+### Truncated file?
+
+A truncated log file indicates that one of the existing examples failed to run. To debug this, you'll need to determine which function is failing. You can usually determine the last function that ran successfully by looking at where the log was truncated. You should typically not have to change existing examples to fix these issues. Instead, you'll need to determine what change in your pull request caused the example to break and address that code. 
+
+### Different output
+
+You should identify the cause of these changes and, if necessary, fix any bugs that have caused them. 
+
+## Add examples, test again
+
+If you have created new functionality in the GAMBLR package, it's your responsibility to ensure the documentation for the affected function(s) is complete and up-to-date. This means that there should be an example in the documentation that demonstrates how the new functionality works. It's probably easier to add the new example after you've ensured the current tests are completing successfully. 
+
+::: {.callout-important}
+Don't forget that you have to update the documentation before an example will be runnable:
+:::
+
+```r
+devtools::document()
+```
+Before you submit a pull request, be sure you've added the relevant example(s) and have re-run the tests. The log file with its entire output should be committed and included as part of your pull request. 
+
+
+```bash
+git add GAMBLR_examples_output.log
+git commit -m "testing completed"
+```
+
+Once you've completed this, you should be ready to submit a pull request. 
+
+## Checklist before requesting a review
+- [ ] I tested the new function/functionality in a fresh workspace
+- [ ] I added at least one working example that demonstrates the new functionality (*if applicable*)
+- [ ] The test script tools/logExampleOutputs.R ran to completion
+- [ ] I included the file `GAMBLR_examples_output.log` in my pull request and confirm the changes to this file are expected
+

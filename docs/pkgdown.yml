@@ -1,9 +1,10 @@
 pandoc: '3.2'
-pkgdown: 2.0.7
-pkgdown_sha: ~
-articles: {}
-last_built: 2025-03-24T18:43Z
+pkgdown: 2.1.1.9000
+pkgdown_sha: 66477c0dbb4f4925ec872cf64d5eaa316cc70bac
+articles:
+  GAMBLR-results: GAMBLR-results.html
+  testing: testing.html
+last_built: 2025-04-02T22:29Z
 urls:
   reference: https://morinlab.github.io/GAMBLR.results/reference
   article: https://morinlab.github.io/GAMBLR.results/articles
-
