@@ -33,12 +33,14 @@
 #'
 #' @examples
 #' #basic usage
-#' my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-128774067")
+#' my_mutations = GAMBLR.results:::get_ssm_by_region(
+#'                  region = "chr8:128723128-128774067")
 #'
 #'
 #' #keep all 116 columns in the read MAF
-#' bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073",
-#'                                      basic_columns = FALSE)
+#' bcl2_all_details = GAMBLR.results:::get_ssm_by_region(
+#'                      region = "chr18:60796500-60988073",
+#'                      basic_columns = FALSE)
 #' @keywords internal
 get_ssm_by_region = function(chromosome,
                              qstart,

@@ -19,8 +19,8 @@
 tidy_gene_expression = function(return_df = FALSE){
 
   #read in the full matrix
-  ex_matrix_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$ex_matrix_file)
-  tidy_expression_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$tidy_expression_file)
+  ex_matrix_file = GAMBLR.helpers::check_config_and_value("results_merged$ex_matrix_file")
+  tidy_expression_file = GAMBLR.helpers::check_config_and_value("results_merged$tidy_expression_file")
   print("Loading and tidying the full matrix file...")
 
   ex_tidy = suppressMessages(read_tsv(ex_matrix_file)) %>%

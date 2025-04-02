@@ -52,7 +52,7 @@ get_gene_fusions = function(projection = "grch37",
     if(!missing(drop_genes)){
       blacklist = unique(c(blacklist,drop_genes))
     }
-    output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    output_base = GAMBLR.helpers::check_config_and_value("project_base")
     
     genome_build= "hg38"
     if(projection == "grch37"){

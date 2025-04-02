@@ -50,7 +50,7 @@
 #' Heatmap(assay(vsd)[show_genes,],
 #'     row_names_gp = gpar(fontsize=5),
 #'     bottom_annotation = column_ha,
-#'     show_column_names = F)
+#'     show_column_names = FALSE)
 #' }
 #'
 get_raw_expression_counts = function(these_samples_metadata,
@@ -82,7 +82,7 @@ get_raw_expression_counts = function(these_samples_metadata,
   
   if(from_flatfile){
     files_dir = paste0(config::get("project_base"),
-                       GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$expression$salmon$counts))
+              GAMBLR.helpers::check_config_and_value("results_flatfiles$expression$salmon$counts"))
     all_files = dir(files_dir)
     file_df = data.frame(name=all_files) %>% 
       mutate(sample_id = str_remove(name,".tsv.gz"))
