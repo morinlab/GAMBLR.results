@@ -1,4 +1,4 @@
-[1] "=== STARTED AT 2025-03-28 15:21:57.887441 ==="
+[1] "=== STARTED AT 2025-04-06 07:35:15.967857 ==="
 ── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
@@ -143,7 +143,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
-1214014  248643 
+ 875209  187836 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -153,14 +153,14 @@ Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
 1      IGLV3-1      Missense_Mutation 2952
 2     IGHV2-70      Missense_Mutation 2787
-3          TTN      Missense_Mutation 2474
+3          TTN      Missense_Mutation 2476
 4         BCL2      Missense_Mutation 2120
-5         BCL2                 Silent 2120
-6        IGLL5      Missense_Mutation 1888
-7     IGHV1-69      Missense_Mutation 1570
-8         PIM1      Missense_Mutation 1180
-9        MUC16      Missense_Mutation 1172
-10       IGLL5                 Silent 1135
+5        IGLL5      Missense_Mutation 1889
+6     IGHV1-69      Missense_Mutation 1570
+7         PIM1      Missense_Mutation 1180
+8        MUC16      Missense_Mutation 1179
+9          MYC      Missense_Mutation 1049
+10      CREBBP      Missense_Mutation 1004
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -352,7 +352,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    321     463 
+    333     463 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -361,7 +361,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 784  55
+[1] 796  55
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -373,7 +373,7 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 784  55
+[1] 796  55
 
 > head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -802,4 +802,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-03-28 15:28:39.819689 ==="
+[1] "=== COMPLETED AT 2025-04-06 07:41:57.715306 ==="
