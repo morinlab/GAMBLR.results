@@ -48,10 +48,9 @@
 #'                                       join_with_full_metadata = TRUE)
 #'
 #' #another example demonstrating correct usage of the sample_table parameter.
-#' fl_samples = dplyr::select(fl_metadata, sample_id, patient_id, biopsy_id)
+#' fl_samples = dplyr::select(fl_metadata, sample_id, patient_id, biopsy_id, seq_type)
 #'
 #' fl_collated = collate_results(sample_table = fl_samples,
-#'                               seq_type_filter = "genome",
 #'                               from_cache = TRUE)
 #' }
 collate_results = function(sample_table,
@@ -72,29 +71,29 @@ collate_results = function(sample_table,
       sample_table = these_samples_metadata
     }
   } else if (missing(sample_table)){
-    print("Defaulting to genome and capture metadata. Pass a dataframe that includes seq_type column as either the sample_table or these_samples_metadata argument to specify desired seq type")
+    print("No sample table or metadata df provided. Defaulting to genome samples. Pass a df that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type(s).")
     sample_table = get_gambl_metadata() %>%
-      dplyr::filter(seq_type %in% c("genome","capture")) %>% 
+      dplyr::filter(seq_type %in% c("genome")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
   }
-  
-  dep_msg=""
+
   if(!missing(seq_type_filter)){
-    dep_msg = "Argument seq_type_filter is deprecated. "
+    print("Argument seq_type_filter is deprecated. ")
   }
   if(!any(grepl("seq_type", names(sample_table)))){
-    stop(paste0(dep_msg, "Please provide a dataframe that includes seq_type column in either the sample_table or these_samples_metadata argument to specify desired seq type"))
+    stop(paste0("Please provide a dataframe that includes seq_type column in either the sample_table or these_samples_metadata argument to specify desired seq type"))
   }
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options
   }
 
+  seq_types = unique(sample_table$seq_type)
+
   #get paths to cached results, for from_cache = TRUE and for writing new cached results.
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   output_file = paste0(output_base, output_file)
-  output_file = lapply(unique(sample_table$seq_type), function(x) glue::glue(output_file, seq_type_filter = x))
-  print(output_file)
+  output_file = lapply(seq_types, function(x) glue::glue(output_file, seq_type_filter = x))
   if(from_cache){
     #check for missingness
     missing_cache = sapply(output_file, function(x) !file.exists(x))
@@ -105,9 +104,13 @@ collate_results = function(sample_table,
     }
 
     #read cached results
-    sample_table = do.call(bind_rows, lapply(output_file, function(x) read_tsv(x))) %>% 
-      left_join(., select(sample_table, sample_id, patient_id, biopsy_id, seq_type)) %>% # retain seq_type column
-      dplyr::filter(sample_id %in% sample_table$sample_id)
+    sample_table = do.call(bind_rows, lapply(
+      output_file, 
+      function(x) mutate(read_tsv(x), seq_type = case_when(
+        grepl("genome", x) ~ "genome",
+        grepl("capture", x) ~ "capture",
+        grepl("mrna", x) ~ "mrna")))) %>% 
+      right_join(., dplyr::select(sample_table, sample_id, patient_id, biopsy_id, seq_type))
 
   }else{
     message("Slow option: not using cached result. I suggest from_cache = TRUE whenever possible")
@@ -115,12 +118,14 @@ collate_results = function(sample_table,
     seen_cols = c()
     original_cols = colnames(sample_table)
     sample_table_final = slice(sample_table, 0)
-    for (seq in unique(sample_table$seq_type)){
-      sample_table_temp = collate_ssm_results(sample_table = select(filter(sample_table, seq_type==seq), all_of(original_cols)), seq_type_filter = seq)
+    for (seq in seq_types){
+      sample_table_temp = collate_ssm_results(sample_table = dplyr::filter(sample_table, seq_type == seq), seq_type_filter = seq)
       sample_table_temp = collate_sv_results(sample_table = sample_table_temp, seq_type_filter = seq)
       sample_table_temp = collate_curated_sv_results(sample_table = sample_table_temp, seq_type_filter = seq)
-      sample_table_temp = collate_ashm_results(sample_table = sample_table_temp, seq_type_filter = seq)
-      sample_table_temp = collate_nfkbiz_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      if(seq != "mrna") {
+        sample_table_temp = collate_ashm_results(sample_table = sample_table_temp, seq_type_filter = seq)
+        sample_table_temp = collate_nfkbiz_results(sample_table = sample_table_temp, seq_type_filter = seq)
+      }
       #sample_table_temp = collate_csr_results(sample_table = sample_table_temp, seq_type_filter = seq)
       sample_table_temp = collate_ancestry(sample_table = sample_table_temp, seq_type_filter = seq)
       sample_table_temp = collate_sbs_results(sample_table = sample_table_temp, sbs_manipulation = sbs_manipulation, seq_type_filter = seq)
@@ -129,11 +134,35 @@ collate_results = function(sample_table,
       }
       #sample_table_temp = collate_pga(sample_table = sample_table_temp, this_seq_type = seq)
       sample_table_temp = collate_dlbclass(sample_table = (sample_table_temp))
+
+      # Handle incompatible column types
       if(length(seen_cols) != 0){
-        # Remove NA cols to prevent joining errors
-        na_cols = intersect(colnames(select(sample_table_temp, where(~ all(is.na(.))))), seen_cols)
-        sample_table_temp = select(sample_table_temp, -all_of(na_cols))
+        common_cols = intersect(colnames(sample_table_temp), seen_cols)
+
+        diff_class_cols = data.frame(
+          Column = common_cols, 
+          prev_class = sapply(sample_table_final[,common_cols], class),
+          current_class = sapply(sample_table_temp[,common_cols], class)) %>%
+          dplyr::filter(prev_class != current_class)
+
+        for (col in pull(diff_class_cols, Column)) {
+          row = diff_class_cols[diff_class_cols$Column == col,]
+          
+          if(row$prev_class %in% c("numeric","double","integer") & row$current_class == "character") {
+            sample_table_temp[[col]] = as.numeric(sample_table_temp[[col]])
+          }
+          if(row$current_class %in% c("numeric","double","integer") & row$prev_class == "character") {
+            sample_table_final[[col]] = as.numeric(sample_table_final[[col]])
+          }
+          if(row$prev_class == "logical" & row$current_class == "character") {
+            sample_table_final[[col]] = as.character(sample_table_final[[col]])
+          }
+          if (row$current_class == "logical" & row$prev_class == "character") {
+            sample_table_temp[[col]] = as.character(sample_table_temp[[col]])
+          }
+        }
       }
+
       sample_table_final = bind_rows(sample_table_final, sample_table_temp)
       seen_cols = setdiff(colnames(sample_table_final), original_cols)
     }
@@ -141,14 +170,39 @@ collate_results = function(sample_table,
   }
   if(write_to_file){
     #write results from "slow option" to new cached results file
-    write_tsv(sample_table, file = output_file)
+    for (f in output_file) {
+      if (grepl("genome", f)) {
+        write_tsv(dplyr::filter(sample_table, seq_type == "genome"), file = f)
+      }
+      if (grepl("capture", f)) {
+        write_tsv(dplyr::filter(sample_table, seq_type == "capture"), file = f)
+      }
+      if (grepl("mrna", f)) {
+        write_tsv(dplyr::filter(sample_table, seq_type == "mrna"), file = f)
+      }
+    }
   }
   #convenience columns bringing together related information
   if(join_with_full_metadata){
     if(!missing(these_samples_metadata)){
       meta_data = these_samples_metadata
     }else{
-      meta_data = get_gambl_metadata(seq_type_filter = seq_type_filter)
+      if (all(c("capture","genome") %in% seq_types)) {
+        meta_data_genome = get_gambl_metadata(dna_seq_type_priority="genome")
+        meta_data_capture = get_gambl_metadata(dna_seq_type_priority="capture")
+        meta_data_capture = right_join(
+          meta_data_capture, 
+          anti_join(
+            dplyr::select(meta_data_capture, sample_id, patient_id, biopsy_id, seq_type),
+            dplyr::select(meta_data_genome, sample_id, patient_id, biopsy_id, seq_type)
+            )
+          )
+        meta_data = bind_rows(meta_data_genome, meta_data_capture)
+      } else {
+        meta_data = ifelse(
+          length(seq_types[!seq_types=="mrna"]==0), get_gambl_metadata(), 
+          get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"]))
+      }
     }
 
     full_table = left_join(meta_data, sample_table)
