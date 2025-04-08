@@ -88,12 +88,14 @@ collate_results = function(sample_table,
   }
 
   seq_types = unique(sample_table$seq_type)
+  seq_types_df = data.frame(seq_type = seq_types, cols = seq_types)
 
   #get paths to cached results, for from_cache = TRUE and for writing new cached results.
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
   output_file = paste0(output_base, output_file)
   output_file = lapply(seq_types, function(x) glue::glue(output_file, seq_type_filter = x))
+  print(output_file)
   if(from_cache){
     #check for missingness
     missing_cache = sapply(output_file, function(x) !file.exists(x))
@@ -135,6 +137,8 @@ collate_results = function(sample_table,
       #sample_table_temp = collate_pga(sample_table = sample_table_temp, this_seq_type = seq)
       sample_table_temp = collate_dlbclass(sample_table = (sample_table_temp))
 
+      seq_types_df[seq_types_df$seq_type==seq,]$cols = list(colnames(sample_table_temp))
+
       # Handle incompatible column types
       if(length(seen_cols) != 0){
         common_cols = intersect(colnames(sample_table_temp), seen_cols)
@@ -172,13 +176,22 @@ collate_results = function(sample_table,
     #write results from "slow option" to new cached results file
     for (f in output_file) {
       if (grepl("genome", f)) {
-        write_tsv(dplyr::filter(sample_table, seq_type == "genome"), file = f)
+        write_tsv(
+          dplyr::select(dplyr::filter(sample_table, seq_type == "genome"), 
+          all_of(seq_types_df[seq_types_df$seq_type=="genome",]$cols[[1]])), 
+          file = f)
       }
       if (grepl("capture", f)) {
-        write_tsv(dplyr::filter(sample_table, seq_type == "capture"), file = f)
+        write_tsv(
+          dplyr::select(dplyr::filter(sample_table, seq_type == "capture"),
+          all_of(seq_types_df[seq_types_df$seq_type=="capture",]$cols[[1]])), 
+          file = f)
       }
       if (grepl("mrna", f)) {
-        write_tsv(dplyr::filter(sample_table, seq_type == "mrna"), file = f)
+        write_tsv(
+          dplyr::select(dplyr::filter(sample_table, seq_type == "mrna"),
+          all_of(seq_types_df[seq_types_df$seq_type=="mrna",]$cols[[1]])),
+          file = f)
       }
     }
   }
