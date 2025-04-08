@@ -26,20 +26,26 @@
 #'
 #' @examples
 #' 
-#' \dontrun{
-#'  this_sample_df = GAMBLR.results:::get_ssm_by_sample(
+#' maf_samp = GAMBLR.results:::get_ssm_by_sample(
+#'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
+#'   augmented = FALSE
+#' )
+#' nrow(maf_samp)
+#' maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(
+#'   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
+#'   augmented = TRUE
+#' )
+#' nrow(maf_samp_aug)
+#' 
+#' 
+#'  some_maf = GAMBLR.results:::get_ssm_by_sample(
 #'                           these_samples_metadata = get_gambl_metadata() %>%
-#'                                 dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
+#'                             dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
 #'                                      seq_type == "genome"),
-#'                          projection = "grch37")
+#'                          projection = "hg38")
+#'  dplyr::select(some_maf,1:10)
+#'  
 #'
-#'  capture_meta = get_gambl_metadata() %>% dplyr::filter(seq_type == "capture")
-#'
-#'  ssm_sample = GAMBLR.results:::get_ssm_by_sample(this_sample_id = "CASA0002_2015-03-10",
-#'                                projection = "grch37",
-#'                                augmented = T,
-#'                                these_samples_metadata = capture_meta)
-#' }
 get_ssm_by_sample = function(these_samples_metadata,
                              tool_name = "slms-3",
                              projection = "grch37",
@@ -52,7 +58,8 @@ get_ssm_by_sample = function(these_samples_metadata,
                              this_sample_id,
                              this_seq_type
                              ){
-  remote_session = check_remote_configuration(auto_connect = TRUE)
+  remote_session = check_host() #determine if GAMBLR is running remotely
+  #remote_session = check_remote_configuration(auto_connect = TRUE)
   if(missing(this_sample_id) & missing(these_samples_metadata)){
     stop("Must provide a sample_id or a single row of metadata")
   }else if(missing(these_samples_metadata)){
@@ -113,107 +120,103 @@ get_ssm_by_sample = function(these_samples_metadata,
     local_full_maf_path = paste0(
       check_config_and_value("project_base"),
       path_complete)
-    if(augmented){
-      path_template = check_config_and_value(
+    path_template = check_config_and_value(
         "results_flatfiles$ssm$template$clustered$augmented",
         config_name="default")
-      path_complete = unname(unlist(glue::glue(path_template)))
-      aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
-      local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
-    }
+    path_complete = unname(unlist(glue::glue(path_template)))
+    aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
+    local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
+
   }else{
     warning("Currently the only flavour available to this function is 'clustered'")
   }
+
+  #stop()
   if(remote_session){
-    #check if file exists
-    status = ssh::ssh_exec_internal(ssh_session,command=paste("stat",aug_maf_path),error=F)$status
-
-    # first check if we already have a local copy
-    # Load data from local copy or get a local copy from the remote path first
-    if(status==0){
-      if(verbose){
-        print(paste("found:",aug_maf_path))
-        print(paste("local home:",local_aug_maf_path))
+    if(verbose){
+      if(augmented){
+        print(paste("seeking both files:",local_full_maf_path, local_aug_maf_path))
+      }else{
+        print(paste("seeking file:",local_full_maf_path))
       }
+    }
+    # Always sync all available files regardless of what the user requested
+    # so we don't have to check if they exist remotely every time
+    
+    if(!file.exists(local_aug_maf_path) & !file.exists(local_full_maf_path)){
+      #assume we need to sync everything that's available remotely
+      if(verbose){
+        print(paste("Missing both files:",local_aug_maf_path,local_full_maf_path))
+      }
+      #makes an ssh session only when necessary
+      remote_session = check_remote_configuration(auto_connect = TRUE)
+      #need to obtain a copy of the remote file(s)
+      #check if remote file actually exists
+      # augmented
       dirN = dirname(local_aug_maf_path)
-
-      suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
-      if(!file.exists(local_aug_maf_path)){
-        print(paste("DOWNLOADING:",aug_maf_path))
+      status = ssh::ssh_exec_internal(ssh_session,
+                                   command=paste("stat",aug_maf_path),
+                                   error=F)$status
+      if(status==0){
+        if(verbose){
+              print(paste("found:",aug_maf_path))
+              print(paste("local home:",local_aug_maf_path))
+        }
+        suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
         ssh::scp_download(ssh_session,aug_maf_path,dirN)
+      }else{
+            #assume augmented MAF doesn't exist remotely and move on
+            if(verbose){
+              print(paste("not found remotely:",aug_maf_path))
+            }
       }
+      
 
-     #check for missingness
-     if(!file.exists(local_aug_maf_path)){
-      print(paste("missing: ", local_aug_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-     }
-
-      sample_ssm = fread_maf(local_aug_maf_path) %>%
-      dplyr::filter(t_alt_count >= min_read_support)
-    }else{
-      if(verbose){
-        print(paste("will use",full_maf_path))
-        print(paste("local home:",local_full_maf_path))
-      }
+      # full
       dirN = dirname(local_full_maf_path)
-
-      suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
-      if(!file.exists(local_full_maf_path)){
-        print(paste("DOWNLOADING:",aug_maf_path))
+      status = ssh::ssh_exec_internal(ssh_session,
+                                   command=paste("stat",full_maf_path),
+                                   error=F)$status
+      if(status==0){
+          if(verbose){
+            print(paste("found:",full_maf_path))
+            print(paste("local home:",local_full_maf_path))
+        }
+        suppressMessages(suppressWarnings(dir.create(dirN,recursive = T)))
         ssh::scp_download(ssh_session,full_maf_path,dirN)
+      }else{
+        print(ssh_session)
+        stop("failed getting full MAF in get_ssm_by_sample")
       }
-      #check for missingness
-      if(!file.exists(local_full_maf_path)){
-        print(paste("missing: ", local_full_maf_path))
-        message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-        message('Sys.setenv(R_CONFIG_ACTIVE = "remote"')
-      }
-
-      sample_ssm = fread_maf(local_full_maf_path)
     }
-  }else if(augmented && file.exists(aug_maf_path)){
-    full_maf_path = aug_maf_path
-
-    #check for missingness
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ",full_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
-
-    sample_ssm = fread_maf(full_maf_path)
-    if(min_read_support){
-      # drop poorly supported reads but only from augmented MAF
-      sample_ssm = dplyr::filter(sample_ssm, t_alt_count >= min_read_support)
-    }
-  }else{
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ", full_maf_path))
-      message(paste("warning: file does not exist, skipping it.", full_maf_path))
-      return()
-    }
-    #check for missingness
-    if(!file.exists(full_maf_path)){
-      print(paste("missing: ", full_maf_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
-
-    sample_ssm = fread_maf(full_maf_path)
+    aug_maf_path = local_aug_maf_path
+    full_maf_path = local_full_maf_path
+    
   }
-
+  if(augmented){
+    if(file.exists(aug_maf_path)){
+      if(verbose){
+        print(paste("setting full_maf_path to",aug_maf_path))
+      }
+      full_maf_path = aug_maf_path
+    }
+  }
+  sample_ssm = fread_maf(full_maf_path)
+  if(min_read_support){
+    # drop poorly supported reads but only from augmented MAF
+      sample_ssm = dplyr::filter(sample_ssm, t_alt_count >= min_read_support)
+  }
+  
 
   #subset maf to only include first 43 columns (default)
   if(basic_columns){
     sample_ssm = dplyr::select(sample_ssm, c(1:45))
-    }
+  }
 
   #subset maf to a specific set of columns (defined in maf_cols)
   if(!is.null(maf_cols) && !basic_columns){
     sample_ssm = dplyr::select(sample_ssm, all_of(maf_cols))
-    }
+  }
   sample_ssm = mutate(sample_ssm,maf_seq_type = seq_type)
   sample_ssm = create_maf_data(sample_ssm,projection)
   return(sample_ssm)

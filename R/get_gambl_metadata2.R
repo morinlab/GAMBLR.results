@@ -16,6 +16,9 @@
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
 #' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
+#' @param exclude Specify one or more seq_type to drop from the output. 
+#' This prevents metadata from containing anythong other than the three standard
+#' seq_type (genome, capture, mrna). Default setting will exclude "promethION".
 #' @param ... Additional arguments
 #'
 #' @return A data frame with metadata for each biopsy in GAMBL
@@ -106,6 +109,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                everything=FALSE,
                                verbose=FALSE,
                                invert=FALSE,
+                               exclude = "promethION",
                               ...){
   if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
     args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
@@ -210,10 +214,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   }
 
   sample_meta_tumour_dna = sample_meta_tumour %>%
-    dplyr::filter(seq_type %in% c("genome","capture"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
   sample_meta_normal_dna = sample_meta_normal %>%
-    dplyr::filter(seq_type %in% c("genome","capture"))
+    dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+    dplyr::filter(!seq_type %in% exclude)
 
 
   #helper function to prioritize systematically on the values in a column specified by column_name
@@ -248,6 +254,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   sample_meta_tumour_dna_capture = filter(sample_meta_tumour_dna,seq_type=="capture")
 
   sample_meta_tumour_dna_genome = filter(sample_meta_tumour_dna,seq_type=="genome")
+
+  sample_meta_tumour_dna_promethion = filter(sample_meta_tumour_dna,seq_type=="promethION")
 
   #prioritize within the genome seq_type (drop any FFPE where we have a frozen)
   if(verbose){
@@ -312,6 +320,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
   all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>%
     ungroup() %>% select(-priority)
+  all_meta_kept = bind_rows(all_meta_kept, sample_meta_tumour_dna_promethion)
   all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id"))
   all_meta_kept = GAMBLR.utils::tidy_lymphgen(all_meta_kept,
                                          lymphgen_column_in = "lymphgen_cnv_noA53",
