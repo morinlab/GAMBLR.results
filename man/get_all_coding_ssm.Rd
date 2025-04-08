@@ -7,20 +7,25 @@
 get_all_coding_ssm(these_samples_metadata = NULL, include_silent = FALSE, ...)
 }
 \arguments{
-\item{these_samples_metadata}{Supply a metadata table containing the sample/seq_type combinations you want.}
+\item{these_samples_metadata}{Supply a metadata table containing the
+sample/seq_type combinations you want.}
 
-\item{include_silent}{If set to TRUE, silent/synonymous mutations in the coding regions will also be returned.}
+\item{include_silent}{If set to TRUE, silent/synonymous mutations in the
+coding regions will also be returned. Default is FALSE.}
 
 \item{...}{Additional arguments passed to get_coding_ssm}
 }
 \value{
-A data frame containing all the MAF data columns (one row per mutation).
+A data frame containing all the MAF data columns (one row per
+mutation).
 }
 \description{
-Retrieve all coding SSMs from GAMBL in MAF-like format, regardless of seq_type.
+Retrieve all coding SSMs from GAMBL in MAF-like format,
+regardless of seq_type.
 }
 \details{
-Effectively retrieve coding SSM calls from one or all DNA seq_type. For additional optional arguments, see \link{get_coding_ssm}
+Effectively retrieve coding SSM calls from one or all DNA seq_type.
+For additional optional arguments, see \link{get_coding_ssm}
 }
 \examples{
 my_meta = suppressMessages(get_gambl_metadata())

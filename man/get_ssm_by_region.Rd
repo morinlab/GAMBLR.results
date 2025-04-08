@@ -26,11 +26,12 @@ get_ssm_by_region(
 \arguments{
 \item{chromosome}{The chromosome you are restricting to (with or without a chr prefix).}
 
-\item{qstart}{Query start coordinate of the range you are restricting to.}
+\item{qstart}{Query start coordinate of the region of interest.}
 
-\item{qend}{Query end coordinate of the range you are restricting to.}
+\item{qend}{Query end coordinate of the region of interest.}
 
-\item{region}{Region formatted like chrX:1234-5678 instead of specifying chromosome, start and end separately.}
+\item{region}{Full region definition specified as a character vector e.g. "chrX:1234-5678"
+instead of specifying chromosome, start and end separately.}
 
 \item{these_sample_ids}{Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.}
 
@@ -63,12 +64,14 @@ A data frame containing all the MAF data columns (one row per mutation).
 Retrieve all SSMs from the GAMBL database within a single genomic coordinate range.
 }
 \details{
-This function lets the user specify a region of interest for returning SSM calls within that region.
-There are multiple ways a region can be specified. For example, the user can provide the full region in a "region" format (chr:start-end) to the \code{region} parameter.
-Or, the user can provide chromosome, start and end coordinates individually with \code{chr}, \code{start}, and \code{end} parameters.
-For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
-\link{get_coding_ssm_status}, \link{get_ssm_by_patients}, \link{get_ssm_by_sample}, \link{get_ssm_by_samples}, \link{get_ssm_by_regions}
+This function lets the user specify a region of interest
+for obtaining SSM calls within that region. In most cases, you
+should be using \link{get_ssm_by_regions} instead.
+There are multiple ways a region can be specified. For example,
+the user can provide the full region in a "region" format (chr:start-end)
+to the \code{region} parameter.
+Or, the user can provide chromosome, start and end coordinates individually
+with \code{chr}, \code{start}, and \code{end} parameters.
 }
 \examples{
 #basic usage

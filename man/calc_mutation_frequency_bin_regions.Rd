@@ -20,40 +20,63 @@ calc_mutation_frequency_bin_regions(
 )
 }
 \arguments{
-\item{regions_list}{Named vector of regions in the format c(name1 = "chr:start-end", name2 = "chr:start-end"). If neither regions nor regions_bed is specified, the function will use GAMBLR aSHM region information.}
+\item{regions_list}{Named vector of regions in the format
+c(name1 = "chr:start-end", name2 = "chr:start-end"). If neither regions
+nor regions_bed is specified, the function will use GAMBLR aSHM region
+information.}
 
-\item{regions_bed}{Data frame of regions with four columns (chrom, start, end, name).}
+\item{regions_bed}{Data frame of regions with four columns
+(chrom, start, end, name).}
 
-\item{these_samples_metadata}{Metadata with at least sample_id column. If not providing a maf data frame, seq_type is also required.}
+\item{these_samples_metadata}{Metadata with at least sample_id column.
+If not providing a maf data frame, seq_type is also required.}
 
-\item{these_sample_ids}{Vector of sample IDs. Metadata will be subset to sample IDs present in this vector.}
+\item{these_sample_ids}{Vector of sample IDs. Metadata will be subset to
+sample IDs present in this vector.}
 
-\item{projection}{Genome build the function will operate in. Ensure this matches your provided regions and maf data for correct chr prefix handling. Default "grch37".}
+\item{projection}{Genome build the function will operate in.
+Ensure this matches your provided regions and maf data for correct
+chr prefix handling. Default "grch37".}
 
-\item{region_padding}{Amount to pad the start and end coordinates by. Default 1000.}
+\item{region_padding}{Amount to pad the start and end coordinates by.
+Default 1000.}
 
-\item{drop_unmutated}{Whether to drop bins with 0 mutations. If returning a matrix format, this will only drop bins with no mutations in any samples.}
+\item{drop_unmutated}{Whether to drop bins with 0 mutations.
+If returning a matrix format, this will only drop bins with
+no mutations in any samples.}
 
-\item{skip_regions}{Optional character vector of genes to exclude from the default aSHM regions.}
+\item{skip_regions}{Optional character vector of genes to exclude
+from the default aSHM regions.}
 
-\item{only_regions}{Optional character vector of genes to include from the default aSHM regions.}
+\item{only_regions}{Optional character vector of genes to include
+from the default aSHM regions.}
 
 \item{slide_by}{Slide size for sliding window. Default 100.}
 
 \item{window_size}{Size of sliding window. Default 500.}
 
-\item{return_format}{Return format of mutations. Accepted inputs are "long" and "wide". Long returns a data frame of one sample ID/window per row. Wide returns a matrix with one sample ID per row and one window per column. Using the "wide" format will retain all samples and windows regardless of the drop_unmutated or min_count_per_bin parameters. Default wide.}
+\item{return_format}{Return format of mutations. Accepted inputs
+are "long" and "wide". Long returns a data frame of one sample
+ID/window per row. Wide returns a matrix with one sample ID
+per row and one window per column. Using the "wide" format will retain
+all samples and windows regardless of the drop_unmutated or min_count_per_bin
+parameters. Default is wide.}
 }
 \value{
-A table of mutation counts for sliding windows across one or more regions. May be long or wide.
+A table of mutation counts for sliding windows across
+one or more regions. May be long or wide.
 }
 \description{
-Obtain a long tidy or wide matrix of mutation counts across sliding windows for multiple regions.
+Obtain a long tidy or wide matrix of mutation counts across
+sliding windows for multiple regions.
 }
 \details{
-This function takes a metadata table with \code{these_samples_metadata} parameter and internally calls \link{calc_mutation_frequency_bin_region} (that internally calls \link{get_ssm_by_regions}).
-to retrieve mutation counts for sliding windows across one or more regions. May optionally provide any combination of a maf data frame, existing metadata, or a regions data frame or named vector.
-The heatmap plotting portion of this function has been moved to \link{heatmap_mutation_frequency_bin}.
+This function takes a metadata table with \code{these_samples_metadata}
+parameter and relies on \link{calc_mutation_frequency_bin_region}
+to retrieve mutation counts for sliding windows across one or more regions.
+Instead of using core results, the user may optionally provide any
+combination of a maf data frame, existing metadata, or a regions
+data frame or named vector.
 }
 \examples{
 \dontrun{

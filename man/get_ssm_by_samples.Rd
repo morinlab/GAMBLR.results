@@ -26,19 +26,30 @@ If provided, it will return SSM calls for the samples in the metadata table.}
 
 \item{tool_name}{Only supports slms-3 currently.}
 
-\item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
+\item{projection}{Obtain variants projected to this reference
+(one of grch37 or hg38).}
 
-\item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).}
+\item{min_read_support}{Only returns variants with at least this
+many reads in t_alt_count (for cleaning up augmented MAFs).}
 
-\item{basic_columns}{Return first 45 columns of MAF rather than full details. Default is TRUE.}
+\item{basic_columns}{Return first 45 columns of MAF rather than
+full details. Default is TRUE.}
 
-\item{maf_cols}{if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.}
+\item{maf_cols}{if basic_columns is set to FALSE, the user can
+specify which columns to be returned within the MAF.
+This parameter can either be a vector of indexes (integer)
+or a vector of characters.}
 
-\item{subset_from_merge}{Instead of merging individual MAFs, the data will be subset from a pre-merged MAF of samples with the specified this_seq_type.}
+\item{subset_from_merge}{Instead of merging individual MAFs,
+the data will be subset from a pre-merged MAF of samples with
+the specified this_seq_type.}
 
-\item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead.}
+\item{augmented}{default: TRUE. Set to FALSE if you instead want
+the original MAF from each sample for multi-sample patients instead.}
 
-\item{engine}{Specify one of readr or fread_maf (default) to change how the large files are loaded prior to subsetting. You may have better performance with one or the other but for me fread_maf is faster and uses a lot less RAM.}
+\item{engine}{Specify one of readr or fread_maf (default) to
+change how the large files are loaded prior to subsetting.
+You may have better performance with one or the other.}
 
 \item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata}
 
@@ -55,13 +66,14 @@ The user can specify a metadata table (\code{these_samples_metadata}), subset to
 In most situations, this should never need to be run with subset_from_merge = TRUE, which is very inefficient.
 This function does not scale well to many samples. In most cases, users will actually need either \link{get_coding_ssm} or \link{get_ssm_by_region}.
 See \link{get_ssm_by_sample} for more information.
-Is this function not what you are looking for? Try one of the following, similar, functions; \link{get_coding_ssm},
-\link{get_ssm_by_patients}, \link{get_ssm_by_regions}
+Is this function not what you are looking for? Try one of the
+related functions; \link{get_coding_ssm},
+\link{get_ssm_by_regions}
 }
 \examples{
 
-my_meta = get_gambl_metadata() \%>\% 
-                       dplyr::filter(sample_id \%in\% c("HTMCP-01-06-00485-01A-01D",
+my_meta = get_gambl_metadata() \%>\%
+            dplyr::filter(sample_id \%in\% c("HTMCP-01-06-00485-01A-01D",
                                                "14-35472_tumorA",
                                                "14-35472_tumorB"))
 sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
@@ -69,12 +81,13 @@ sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
 hg38_ssms = get_ssm_by_samples(projection="hg38",
                                these_samples_metadata = my_meta)
 
-dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) \%>\% 
+dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) \%>\%
   dplyr::count()
 hg38_ssms_no_aug = get_ssm_by_samples(projection="hg38",
-                               these_samples_metadata = my_meta,augmented= FALSE)
+                     these_samples_metadata = my_meta,
+                     augmented= FALSE)
 
-dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) \%>\% 
+dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) \%>\%
   dplyr::count()
 
 \dontrun{
