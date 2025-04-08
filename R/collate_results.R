@@ -73,7 +73,7 @@ collate_results = function(sample_table,
     }
     sample_table = these_samples_metadata
   } else if (missing(sample_table)){
-    print("No sample table or metadata df provided. Defaulting to genome samples. Provide a df that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type(s).")
+    print("No sample table or metadata dataframe provided, defaulting to genome samples. Provide a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired samples and seq type(s).")
     sample_table = get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
@@ -214,9 +214,7 @@ collate_results = function(sample_table,
           )
         meta_data = bind_rows(meta_data_genome, meta_data_capture)
       } else {
-        meta_data = ifelse(
-          length(seq_types[!seq_types=="mrna"]==0), get_gambl_metadata(), 
-          get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"]))
+        meta_data <- if(length(seq_types[!seq_types=="mrna"])==0){get_gambl_metadata()}else{get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"])}
       }
     }
 
