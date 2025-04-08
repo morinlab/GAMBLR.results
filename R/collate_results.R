@@ -95,7 +95,6 @@ collate_results = function(sample_table,
   #get paths to cached results, for from_cache = TRUE and for writing new cached results.
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  output_base = "/projects/rmorin_scratch/mcruz_temp/test_gamblr/"
   output_file = paste0(output_base, output_file)
   output_file = lapply(seq_types, function(x) glue::glue(output_file, seq_type_filter = x))
   print(output_file)
