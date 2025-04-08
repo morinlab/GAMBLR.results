@@ -167,9 +167,9 @@ get_gene_expression = function(these_samples_metadata,
                              verbose,
                              engine=engine,
                              all=all_genes){
-    tidy_expression_path = check_config_value(config::get("results_merged")$tidy_expression_path)
+    tidy_expression_path = check_config_and_value("results_merged$tidy_expression_path")
     tidy_expression_path = str_remove(tidy_expression_path,".gz$")
-    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    base_path = GAMBLR.helpers::check_config_and_value("project_base")
     #automatically default to file in tempfs if available
     tidy_expression_file = "/dev/shm/vst-matrix-Hugo_Symbol_tidy.tsv"
     if(file.exists(tidy_expression_file)){
@@ -256,8 +256,8 @@ get_gene_expression = function(these_samples_metadata,
                                   values_from="expression")
   }else{ #all genes
     #just directly load the matrix, skipping the tidy format version and unnecessary pivoting
-    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-    wide_expression_path = check_config_value(config::get("results_merged")$ex_matrix_path)
+    base_path = GAMBLR.helpers::check_config_and_value("project_base")
+    wide_expression_path = check_config_and_value("results_merged$ex_matrix_path")
     wide_expression_file = paste0(base_path,wide_expression_path)
     message(paste("loading all expression data from",wide_expression_file))
     expression_wide = suppressMessages(read_tsv(wide_expression_file))  %>%

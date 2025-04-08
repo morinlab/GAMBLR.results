@@ -94,15 +94,17 @@ get_combined_sv <- function(these_samples_metadata,
     qend <- startend[2]
   }
 
-  base_path <- GAMBLR.helpers::check_config_value(config::get("project_base"))
-  sv_file <- GAMBLR.helpers::check_config_value(config::get()$results_flatfiles$sv_combined$icgc_dart)
+  base_path <- GAMBLR.helpers::check_config_and_value("project_base")
+  key = "results_flatfiles$sv_combined$icgc_dart"
+  sv_file <- GAMBLR.helpers::check_config_and_value(key)
   if (projection == "hg38") {
     sv_file <- str_replace(sv_file, "--grch37", "--hg38")
   }
   sv_file <- paste0(base_path, sv_file)
   permissions <- file.access(sv_file, 4)
   if (permissions == -1) {
-    sv_file <- GAMBLR.helpers::check_config_value(config::get()$results_flatfiles$sv_combined$gambl)
+    key = "results_flatfiles$sv_combined$gambl"
+    sv_file <- GAMBLR.helpers::check_config_and_value(key)
     sv_file <- paste0(base_path, sv_file)
   }
 

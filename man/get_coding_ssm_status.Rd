@@ -101,7 +101,7 @@ the user full control of the return. For more information, refer to the
 parameter descriptions and examples.
 Is this function not what you are looking for? Try one of the following,
 similar, functions; \link{get_coding_ssm},
-\link{get_ssm_by_patients}, \link{get_ssm_by_sample},
+\link{get_ssm_by_sample},
 \link{get_ssm_by_samples}, \link{get_ssm_by_region},
 \link{get_ssm_by_regions}.
 }

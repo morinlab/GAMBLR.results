@@ -14,7 +14,7 @@
 #' parameter descriptions and examples.
 #' Is this function not what you are looking for? Try one of the following,
 #' similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample],
+#' [GAMBLR.results::get_ssm_by_sample],
 #' [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region],
 #' [GAMBLR.results::get_ssm_by_regions].
 #'

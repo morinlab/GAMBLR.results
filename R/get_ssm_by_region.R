@@ -2,17 +2,20 @@
 #'
 #' @description Retrieve all SSMs from the GAMBL database within a single genomic coordinate range.
 #'
-#' @details This function lets the user specify a region of interest for returning SSM calls within that region.
-#' There are multiple ways a region can be specified. For example, the user can provide the full region in a "region" format (chr:start-end) to the `region` parameter.
-#' Or, the user can provide chromosome, start and end coordinates individually with `chr`, `start`, and `end` parameters.
-#' For more usage examples, refer to the parameter descriptions and examples in the vignettes.
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm],
-#' [GAMBLR.results::get_coding_ssm_status], [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_sample], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_regions]
+#' @details This function lets the user specify a region of interest
+#' for obtaining SSM calls within that region. In most cases, you
+#' should be using [GAMBLR.results::get_ssm_by_regions] instead.
+#' There are multiple ways a region can be specified. For example,
+#' the user can provide the full region in a "region" format (chr:start-end)
+#' to the `region` parameter.
+#' Or, the user can provide chromosome, start and end coordinates individually
+#' with `chr`, `start`, and `end` parameters.
 #'
 #' @param chromosome The chromosome you are restricting to (with or without a chr prefix).
-#' @param qstart Query start coordinate of the range you are restricting to.
-#' @param qend Query end coordinate of the range you are restricting to.
-#' @param region Region formatted like chrX:1234-5678 instead of specifying chromosome, start and end separately.
+#' @param qstart Query start coordinate of the region of interest.
+#' @param qend Query end coordinate of the region of interest.
+#' @param region Full region definition specified as a character vector e.g. "chrX:1234-5678"
+#' instead of specifying chromosome, start and end separately.
 #' @param these_sample_ids Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.
 #' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param basic_columns Set to FALSE to return MAF with all columns (116). Default is TRUE, which returns the first 45 columns. Note that if streamlined is set to TRUE, only two columns will be returned, regardless of what's specified in this parameter.
@@ -130,7 +133,8 @@ get_ssm_by_region = function(chromosome,
       full_maf_path_comp = paste0(full_maf_path, ".bgz")
 
     }else if(mode == "strelka2"){
-      full_maf_path_comp = gsub('.{3}$', 'bed', full_maf_path) #do we instead want to add the exact path to the file in the config, or is this acceptable?
+      full_maf_path_comp = gsub('.{3}$', 'bed',
+                               full_maf_path)
       full_maf_path_comp = paste0(full_maf_path_comp, ".gz")
     }
 

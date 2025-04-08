@@ -15,7 +15,6 @@
 #' [GAMBLR.results::get_all_coding_ssm] 
 #' Is this function not what you are looking for? Try one of:
 #' [GAMBLR.results::get_coding_ssm_status],
-#' [GAMBLR.results::get_ssm_by_patients],
 #' [GAMBLR.results::get_ssm_by_sample],
 #' [GAMBLR.results::get_ssm_by_samples],
 #' [GAMBLR.results::get_ssm_by_region],
