@@ -4,7 +4,8 @@
 #'
 #' @details This function takes a data frame with sample IDs (in the first column) with the `sample_table` parameter and adds sample-level results from many of the available GAMBL pipelines.
 #' Optional parameters are `these_samples_metadata` and `join_with_full_metadata`. If `join_with_full_metadata` is set to TRUE, the function can either work with an already subset metadata
-#' table (`these_sampels_metadata`), or, if not provided, the function will default to all metadata returned with `get_gambl_metadata`, allowing the user to extend the available information in a metadata table.
+#' table (`these_samples_metadata`), or, if not provided, the function will default to all metadata returned with `get_gambl_metadata`, allowing the user to extend the available information in a metadata table. 
+#' If both `sample_table` and `these_samples_metadata` are set, the function will prioritize and exclusively use the samples in `these_samples_metadata`.
 #' This function has also been designed so that it can get cached results, meaning that not all individual collate helper functions would have to be run to get results back.
 #' To do so, run this function with `from_cache = TRUE` (default). In addition, it's also possible to regenerate the cached results, this is done by setting `write_to_file = TRUE`,
 #' This operation auto defaults `from_cache = FALSE`. `case_set` is an optional parameter available for subsetting the return to an already defined set of cases.
@@ -17,7 +18,7 @@
 #' @param these_samples_metadata Optional argument to use a user specified metadata df, overwrites get_gambl_metadata in join_with_full_metadata.
 #' @param case_set Optional short name for a pre-defined set of cases.
 #' @param sbs_manipulation Optional variable for transforming sbs values (e.g log, scale).
-#' @param seq_type_filter Filtering criteria, default is genomes.
+#' @param seq_type_filter Filtering criteria, default is genomes (deprecated. Include a column seq_type in sample_table or these_samples_metadata to specify seq_type).
 #' @param from_cache Boolean variable for using cached results (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv), default is TRUE. If write_to_file is TRUE, this parameter auto-defaults to FALSE.
 #'
 #' @return A table keyed on biopsy_id that contains a bunch of per-sample results from GAMBL
@@ -28,7 +29,8 @@
 #' @examples
 #' \dontrun{
 #' #get collated results for all capture samples, using cached results
-#' capture_collated_everything = collate_results(seq_type_filter = "capture",
+#' capture_metadata = get_gambl_metadata(dna_seq_type_priority = "capture") %>% dplyr::filter(seq_type == "capture")
+#' capture_collated_everything = collate_results(these_samples_metadata = capture_metadata,
 #'                                               from_cache = TRUE,
 #'                                               write_to_file = FALSE)
 #'
@@ -36,14 +38,14 @@
 #' my_metadata = get_gambl_metadata()
 #' fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 #'
-#' fl_collated = collate_results(seq_type_filter = "genome",
+#' fl_collated = collate_results(these_samples_metadata = fl_metadata,
 #'                               join_with_full_metadata = TRUE,
-#'                               these_samples_metadata = fl_metadata,
 #'                               write_to_file = FALSE,
 #'                               from_cache = TRUE)
 #'
 #' #get collated results for all genome samples and join with full metadata
-#' everything_collated = collate_results(seq_type_filter = "genome",
+#' genome_samples = dplyr::filter(my_metadata, seq_type=="genome") %>% dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
+#' everything_collated = collate_results(sample_table = genome_samples,
 #'                                       from_cache = TRUE,
 #'                                       join_with_full_metadata = TRUE)
 #'
@@ -68,10 +70,10 @@ collate_results = function(sample_table,
   if(!missing(these_samples_metadata)){
     if(!missing(sample_table)){
       print("Prioritizing these_samples_metadata as sample input")
-      sample_table = these_samples_metadata
     }
+    sample_table = these_samples_metadata
   } else if (missing(sample_table)){
-    print("No sample table or metadata df provided. Defaulting to genome samples. Pass a df that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type(s).")
+    print("No sample table or metadata df provided. Defaulting to genome samples. Provide a df that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired seq type(s).")
     sample_table = get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
@@ -93,6 +95,7 @@ collate_results = function(sample_table,
   #get paths to cached results, for from_cache = TRUE and for writing new cached results.
   output_file = GAMBLR.helpers::check_config_value(config::get("results_merged")$collated)
   output_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+  output_base = "/projects/rmorin_scratch/mcruz_temp/test_gamblr/"
   output_file = paste0(output_base, output_file)
   output_file = lapply(seq_types, function(x) glue::glue(output_file, seq_type_filter = x))
   print(output_file)
