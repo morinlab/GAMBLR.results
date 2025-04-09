@@ -45,7 +45,7 @@
 #'                 dplyr::filter(pathology=="DLBCL")
 #' ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
 #'                              these_samples_metadata = DLBCL_meta,
-#'                              streamlined=F)
+#'                              streamlined=FALSE)
 #' ashm_MAF %>% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) %>%
 #'               dplyr::select(Hugo_Symbol,
 #'                     Tumor_Sample_Barcode,

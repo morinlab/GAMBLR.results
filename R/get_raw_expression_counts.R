@@ -50,7 +50,7 @@
 #' Heatmap(assay(vsd)[show_genes,],
 #'     row_names_gp = gpar(fontsize=5),
 #'     bottom_annotation = column_ha,
-#'     show_column_names = F)
+#'     show_column_names = FALSE)
 #' }
 #'
 get_raw_expression_counts = function(these_samples_metadata,

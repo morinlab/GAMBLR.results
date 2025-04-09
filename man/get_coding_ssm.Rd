@@ -95,7 +95,6 @@ is able to obtain SSMs across both genome and capture seq_type:
 \link{get_all_coding_ssm}
 Is this function not what you are looking for? Try one of:
 \link{get_coding_ssm_status},
-\link{get_ssm_by_patients},
 \link{get_ssm_by_sample},
 \link{get_ssm_by_samples},
 \link{get_ssm_by_region},

@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-03-22 14:32:58.371643 ==="
-── Running 71 example files ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-04-06 07:35:15.967857 ==="
+── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -78,13 +78,13 @@ Showing first 10 rows:
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode       seq  WRCY
-1        BCL2         18       60795859                C                 T      CAR_126_PreCART   CTTCACT FALSE
-2        BCL2         18       60795894                A                 T            08-13706T   GCAAGCT MOTIF
-3        BCL2         18       60795911                A                 G    00-15336_CLC01491   CCAAACT MOTIF
-4        BCL2         18       60795911                A                 G    00-15336_CLC02290   CCAAACT MOTIF
-5        BCL2         18       60795947                C                 G             FL1010T2   AATCAAA FALSE
-6        BCL2         18       60985305              GTG               AAT             SP192988 CAAGTGCAC FALSE
+  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode     seq  WRCY
+1        BCL2         18       60795859                C                 T      CAR_126_PreCART CTTCACT FALSE
+2        BCL2         18       60795894                A                 T            08-13706T GCAAGCT MOTIF
+3        BCL2         18       60795911                A                 G    00-15336_CLC01491 CCAAACT MOTIF
+4        BCL2         18       60795911                A                 G    00-15336_CLC02290 CCAAACT MOTIF
+5        BCL2         18       60795947                C                 G             FL1010T2 AATCAAA FALSE
+6        BCL2         18       60985305              GTG               AAT             SP192988      NA FALSE
 
 > some_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(cohort == "DLBCL_ICGC") %>% head(3)
@@ -143,7 +143,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
-1214014  248643 
+ 875209  187836 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -153,14 +153,14 @@ Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
 1      IGLV3-1      Missense_Mutation 2952
 2     IGHV2-70      Missense_Mutation 2787
-3          TTN      Missense_Mutation 2474
+3          TTN      Missense_Mutation 2476
 4         BCL2      Missense_Mutation 2120
-5         BCL2                 Silent 2120
-6        IGLL5      Missense_Mutation 1888
-7     IGHV1-69      Missense_Mutation 1570
-8         PIM1      Missense_Mutation 1180
-9        MUC16      Missense_Mutation 1172
-10       IGLL5                 Silent 1135
+5        IGLL5      Missense_Mutation 1889
+6     IGHV1-69      Missense_Mutation 1570
+7         PIM1      Missense_Mutation 1180
+8        MUC16      Missense_Mutation 1179
+9          MYC      Missense_Mutation 1049
+10      CREBBP      Missense_Mutation 1004
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -352,7 +352,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    321     463 
+    333     463 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -361,7 +361,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 784  55
+[1] 796  55
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -373,7 +373,7 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 784  55
+[1] 796  55
 
 > head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -466,7 +466,7 @@ Showing first 10 rows:
 10   chr11  93629111  93629568    chr8 128726368 128727133      MantaBND:191300:0:1:0:0:0:1     NA        +        -          CLC03456        14-11247N  0.1850000 151
 
 > nrow(incorrect_myc_locus_sv)
-[1] 51
+[1] 52
 
 > annotated_myc_hg38 = suppressMessages(GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, 
 +     genome_build = "hg38"))
@@ -687,7 +687,7 @@ Showing first 10 rows:
 +     dplyr::filter(pathology == "DLBCL")
 
 > ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed, 
-+     these_samples_metadata = DLBCL_meta, streamlined = F)
++     these_samples_metadata = DLBCL_meta, streamlined = FALSE)
 
 > ashm_MAF %>% dplyr::arrange(Start_Position, Tumor_Sample_Barcode) %>% 
 +     dplyr::select(Hugo_Symbol, Tumor_Sample_Barcode, Chromosome, 
@@ -802,4 +802,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-03-22 14:39:19.483614 ==="
+[1] "=== COMPLETED AT 2025-04-06 07:41:57.715306 ==="

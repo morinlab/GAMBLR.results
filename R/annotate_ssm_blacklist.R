@@ -61,13 +61,13 @@ annotate_ssm_blacklist = function(mutations_df,
   projection = genome_build
 
   if(missing(blacklist_file_template)){
-    blacklist_template = GAMBLR.helpers::check_config_value(config::get("resources")$blacklist$template)
+    blacklist_template = GAMBLR.helpers::check_config_and_value("resources$blacklist$template")
   }else{
     blacklist_template = blacklist_file_template
   }
 
   if(missing(project_base)){
-    project_base = GAMBLR.helpers::check_config_value(config::get("project_base"))
+    project_base = GAMBLR.helpers::check_config_and_value("project_base")
   }
   
   if(!use_curated_blacklist){
@@ -122,8 +122,9 @@ annotate_ssm_blacklist = function(mutations_df,
     }
   
   }else{
-    repo_base = GAMBLR.helpers::check_config_value(config::get("repo_base"))
-    full_path = paste0(repo_base, GAMBLR.helpers::check_config_value(config::get("resources")$curated_blacklist))
+    repo_base = GAMBLR.helpers::check_config_and_value("repo_base")
+    full_path = paste0(repo_base,
+                       GAMBLR.helpers::check_config_and_value("resources$curated_blacklist"))
     
     additional_blacklist = glue::glue(full_path) %>% 
     readr::read_tsv()

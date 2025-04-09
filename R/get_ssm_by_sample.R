@@ -2,20 +2,37 @@
 #'
 #' @description Get the SSMs (i.e. load MAF) for a single sample.
 #'
-#' @details This was implemented to allow flexibility because there are some samples that we may want to use a different set of variants than those in the main GAMBL merge.
-#' The current use case is to allow a force_unmatched output to be used to replace the SSMs from the merge for samples with known contamination in the normal.
-#' This will also be useful to apply a blacklist to individual MAFs when coupled with [GAMBLR.results::annotate_ssm_blacklist].
-#' Is this function not what you are looking for? Try one of the following, similar, functions; [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
-#' [GAMBLR.results::get_ssm_by_patients], [GAMBLR.results::get_ssm_by_samples], [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
+#' @details This was implemented to allow flexibility because there are some
+#' samples that we may want to use a different set of variants than those in
+#' the main GAMBL merge.
+#' The current use case is to allow a force_unmatched output to be used
+#' to replace the SSMs from the merge for samples with known contamination
+#' in the normal.
+#' This will also be useful to apply a blacklist to individual MAFs when coupled
+#' with [GAMBLR.results::annotate_ssm_blacklist].
+#' Is this function not what you are looking for? Try one of the related
+#' functions:
+#' [GAMBLR.results::get_coding_ssm], [GAMBLR.results::get_coding_ssm_status],
+#' [GAMBLR.results::get_ssm_by_samples],
+#' [GAMBLR.results::get_ssm_by_region], [GAMBLR.results::get_ssm_by_regions]
 #'
-#' @param these_samples_metadata Required if not specifying both this_sample_id and this_seq_type a single row or entire metadata table containing your sample_id.
-#' @param tool_name The name of the variant calling pipeline (currently only slms-3 is supported).
-#' @param projection The projection genome build. Supports hg38 and grch37.
-#' @param augmented default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF.
-#' @param flavour Currently this function only supports one flavour option but this feature is meant for eventual compatibility with additional variant calling parameters/versions.
-#' @param min_read_support Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).
-#' @param basic_columns Return first 43 columns of MAF rather than full details. Default is TRUE.
-#' @param maf_cols if basic_columns is set to FALSE, the user can specify what columns to be returned within the MAF. This parameter can either be a vector of indexes (integer) or a vector of characters.
+#' @param these_samples_metadata Required. A single row of metadata specifying
+#' which sample_id and seq_type you desire the mutations from
+#' @param tool_name The name of the variant calling pipeline (currently
+#' only slms-3 is supported).
+#' @param projection The projection genome build. Supports hg38 and grch37
+#' @param augmented default: TRUE. Set to FALSE if you instead want the original
+#' MAF from each sample for multi-sample patients instead of the augmented MAF.
+#' @param flavour Currently this function only supports one flavour option but
+#' this feature is meant for eventual compatibility with additional variant
+#' calling parameters/versions.
+#' @param min_read_support Only returns variants with at least this many
+#' reads in t_alt_count (for cleaning up augmented MAFs).
+#' @param basic_columns Return first 43 columns of MAF rather than full
+#' details. Default is TRUE.
+#' @param maf_cols if basic_columns is set to FALSE, the user can specify
+#' which columns to be returned within the MAF. This parameter can either
+#' be a vector of indexes (integer) or a vector of characters.
 #' @param verbose Enable for debugging/noisier output.
 #' @param this_sample_id Deprecated. Inferred from these_samples_metadata
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
