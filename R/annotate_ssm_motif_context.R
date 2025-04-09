@@ -17,7 +17,7 @@
 #'
 #' @rawNamespace import(IRanges, except = c("start", "end", "merge", "shift", "collapse", "union", "slice", "intersect", "setdiff", "desc", "reduce", "trim"))
 #' @rawNamespace import(GenomicRanges, except = c("start", "end", "merge", "shift", "union", "intersect", "setdiff", "reduce", "trim"))
-#' @import Rsamtools readr dplyr BSgenome
+#' @import Rsamtools readr dplyr BSgenome BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg38
 #' @export
 #'
 #' @examples
@@ -97,20 +97,18 @@ annotate_ssm_motif_context <- function(maf,
       }
       sequences <- maf %>%
         dplyr::mutate(
-          seq = ifelse(
-            (nchar(maf$Reference_Allele) == 1 &
-               nchar(maf$Tumor_Seq_Allele2) == 1
-            ),
-            as.character(
+          seq = as.character(
                 Rsamtools::getSeq(
                     genome,
-                    maf$Chromosome,
-                    start = maf$Start_Position - (splitWordLen - 1),
-                    end = maf$Start_Position + (splitWordLen - 1)
+                    GenomicRanges::GRanges(
+                      maf$Chromosome,
+                      IRanges(
+                        start = maf$Start_Position - (splitWordLen - 1),
+                        end = maf$End_Position + (splitWordLen - 1)
+                      )
+                    )
                 )
-            ),
-            "NA"
-          )
+            )
         )
     } else{
       # This section provides the sequence
