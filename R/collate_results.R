@@ -12,7 +12,7 @@
 #' Lastly, `seq_type_filter` lets the user control what seq type results will be returned for. Default is "genome". For more information on how to get the most out of this function,
 #' refer to function examples, vignettes and parameter descriptions.
 #'
-#' @param sample_table A data frame with sample_id as the first column.
+#' @param sample_table A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).
 #' @param write_to_file Boolean statement that outputs tsv file (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv) if TRUE, default is FALSE.
 #' @param join_with_full_metadata Join with all columns of metadata, default is FALSE.
 #' @param these_samples_metadata Optional argument to use a user specified metadata df, overwrites get_gambl_metadata in join_with_full_metadata.
@@ -42,19 +42,16 @@
 #'                               join_with_full_metadata = TRUE,
 #'                               write_to_file = FALSE,
 #'                               from_cache = TRUE)
-#'
-#' #get collated results for all genome samples and join with full metadata
-#' genome_samples = dplyr::filter(my_metadata, seq_type=="genome") %>% dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
-#' everything_collated = collate_results(sample_table = genome_samples,
-#'                                       from_cache = TRUE,
-#'                                       join_with_full_metadata = TRUE)
-#'
-#' #another example demonstrating correct usage of the sample_table parameter.
-#' fl_samples = dplyr::select(fl_metadata, sample_id, patient_id, biopsy_id, seq_type)
-#'
-#' fl_collated = collate_results(sample_table = fl_samples,
-#'                               from_cache = TRUE)
 #' }
+#' #use an already subset metadata table for getting collated results (without using cached results)
+#' my_metadata = get_gambl_metadata()
+#' fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
+#'
+#' fl_collated = collate_results(these_samples_metadata = fl_metadata,
+#'                               join_with_full_metadata = TRUE,
+#'                               write_to_file = FALSE,
+#'                               from_cache = FALSE)
+#' head(fl_collated)
 collate_results = function(sample_table,
                            write_to_file = FALSE,
                            join_with_full_metadata = FALSE,
@@ -67,23 +64,24 @@ collate_results = function(sample_table,
   # important: if you are collating results from anything but WGS (e.g RNA-seq libraries) be sure to use biopsy ID as the key in your join
   # the sample_id should probably not even be in this file if we want this to be biopsy-centric
   
+  if (!missing(sample_table)){
+    stop("Argument sample_table is deprecated. Use these_samples_metadata instead")
+  }
+  if(!missing(seq_type_filter)){
+    stop("Argument seq_type_filter is deprecated. ")
+  }
+
   if(!missing(these_samples_metadata)){
-    if(!missing(sample_table)){
-      print("Prioritizing these_samples_metadata as sample input")
-    }
     sample_table = these_samples_metadata
-  } else if (missing(sample_table)){
+  } else {
     print("No sample table or metadata dataframe provided, defaulting to genome samples. Provide a dataframe that includes seq_type column to either the sample_table or these_samples_metadata argument to specify desired samples and seq type(s).")
     sample_table = get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome")) %>% 
       dplyr::select(sample_id, patient_id, biopsy_id, seq_type)
   }
 
-  if(!missing(seq_type_filter)){
-    print("Argument seq_type_filter is deprecated. ")
-  }
   if(!any(grepl("seq_type", names(sample_table)))){
-    stop(paste0("Please provide a dataframe that includes seq_type column in either the sample_table or these_samples_metadata argument to specify desired seq type"))
+    stop(paste0("Please specify desired seq type by including a seq_type column in these_samples_metadata dataframe"))
   }
   if(write_to_file){
     from_cache = FALSE #override default automatically for nonsense combination of options
