@@ -39,7 +39,6 @@
 #' fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 #'
 #' fl_collated = collate_results(these_samples_metadata = fl_metadata,
-#'                               join_with_full_metadata = TRUE,
 #'                               write_to_file = FALSE,
 #'                               from_cache = TRUE)
 #' }
@@ -48,7 +47,6 @@
 #' fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 #'
 #' fl_collated = collate_results(these_samples_metadata = fl_metadata,
-#'                               join_with_full_metadata = TRUE,
 #'                               write_to_file = FALSE,
 #'                               from_cache = FALSE)
 #' head(fl_collated)
