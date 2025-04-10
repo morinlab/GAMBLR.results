@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-04-10 11:06:11.968532 ==="
-── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-04-10 15:00:16 ==="
+── Running 71 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -782,17 +782,18 @@ Showing first 10 rows:
 
 > genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37, 
 +     these_samples_metadata = get_gambl_metadata(), this_seq_type = "genome", 
-+     streamlined = FALSE)
++     streamlined = FALSE, basic_columns = TRUE)
 
 > maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 
 > my_region = "8:128747680-128753674"
 
 > capture_maf <- get_ssm_by_regions(regions_list = my_region, 
-+     these_samples_metadata = get_gambl_metadata(), this_seq_type = "genome", 
-+     projection = "grch37", streamlined = FALSE)
++     these_samples_metadata = get_gambl_metadata(), this_seq_type = "capture", 
++     projection = "grch37", streamlined = FALSE, basic_columns = TRUE)
 
-> maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
+> maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
++     output_file = "myc_capture_hg19.bed")
 
 > meta_df = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type %in% c("genome", "capture")) %>% dplyr::filter(pathology == 
@@ -802,4 +803,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-04-10 11:24:16.429903 ==="
+[1] "=== COMPLETED AT 2025-04-10 15:20:00 ==="
