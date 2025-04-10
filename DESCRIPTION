@@ -26,6 +26,8 @@ Depends:
     R (>= 4.1)
 Imports:
     BSgenome,
+    BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Hsapiens.UCSC.hg38,
     circlize,
     ComplexHeatmap,
     config,

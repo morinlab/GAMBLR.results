@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-04-06 07:35:15.967857 ==="
-── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-04-10 11:06:11.968532 ==="
+── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -78,13 +78,13 @@ Showing first 10 rows:
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode     seq  WRCY
-1        BCL2         18       60795859                C                 T      CAR_126_PreCART CTTCACT FALSE
-2        BCL2         18       60795894                A                 T            08-13706T GCAAGCT MOTIF
-3        BCL2         18       60795911                A                 G    00-15336_CLC01491 CCAAACT MOTIF
-4        BCL2         18       60795911                A                 G    00-15336_CLC02290 CCAAACT MOTIF
-5        BCL2         18       60795947                C                 G             FL1010T2 AATCAAA FALSE
-6        BCL2         18       60985305              GTG               AAT             SP192988      NA FALSE
+  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode       seq  WRCY
+1        BCL2         18       60795859                C                 T      CAR_126_PreCART   CTTCACT FALSE
+2        BCL2         18       60795894                A                 T            08-13706T   GCAAGCT MOTIF
+3        BCL2         18       60795911                A                 G    00-15336_CLC01491   CCAAACT MOTIF
+4        BCL2         18       60795911                A                 G    00-15336_CLC02290   CCAAACT MOTIF
+5        BCL2         18       60795947                C                 G             FL1010T2   AATCAAA FALSE
+6        BCL2         18       60985305              GTG               AAT             SP192988 CAAGTGCAC FALSE
 
 > some_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(cohort == "DLBCL_ICGC") %>% head(3)
@@ -802,4 +802,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-04-06 07:41:57.715306 ==="
+[1] "=== COMPLETED AT 2025-04-10 11:24:16.429903 ==="
