@@ -211,7 +211,6 @@ collate_results = function(sample_table,
     } else {
       meta_data <- if(length(seq_types[!seq_types=="mrna"])==0){get_gambl_metadata()}else{get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"])}
     }
-  }
 
     full_table = left_join(meta_data, sample_table)
 
