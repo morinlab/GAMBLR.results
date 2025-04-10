@@ -108,7 +108,6 @@
 #' )
 #' }
 #'
-#' @keywords internal
 build_browser_hub = function(regions_bed,
                              these_samples_metadata = NULL,
                              these_seq_types = c("genome", "capture"),
