@@ -197,24 +197,21 @@ collate_results = function(sample_table,
   }
   #convenience columns bringing together related information
   if(join_with_full_metadata){
-    if(!missing(these_samples_metadata)){
-      meta_data = these_samples_metadata
-    }else{
-      if (all(c("capture","genome") %in% seq_types)) {
-        meta_data_genome = get_gambl_metadata(dna_seq_type_priority="genome")
-        meta_data_capture = get_gambl_metadata(dna_seq_type_priority="capture")
-        meta_data_capture = right_join(
-          meta_data_capture, 
-          anti_join(
-            dplyr::select(meta_data_capture, sample_id, patient_id, biopsy_id, seq_type),
-            dplyr::select(meta_data_genome, sample_id, patient_id, biopsy_id, seq_type)
-            )
+    if (all(c("capture","genome") %in% seq_types)) {
+      meta_data_genome = get_gambl_metadata(dna_seq_type_priority="genome")
+      meta_data_capture = get_gambl_metadata(dna_seq_type_priority="capture")
+      meta_data_capture = right_join(
+        meta_data_capture, 
+        anti_join(
+          dplyr::select(meta_data_capture, sample_id, patient_id, biopsy_id, seq_type),
+          dplyr::select(meta_data_genome, sample_id, patient_id, biopsy_id, seq_type)
           )
-        meta_data = bind_rows(meta_data_genome, meta_data_capture)
-      } else {
-        meta_data <- if(length(seq_types[!seq_types=="mrna"])==0){get_gambl_metadata()}else{get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"])}
-      }
+        )
+      meta_data = bind_rows(meta_data_genome, meta_data_capture)
+    } else {
+      meta_data <- if(length(seq_types[!seq_types=="mrna"])==0){get_gambl_metadata()}else{get_gambl_metadata(dna_seq_type_priority=seq_types[!seq_types=="mrna"])}
     }
+  }
 
     full_table = left_join(meta_data, sample_table)
 
