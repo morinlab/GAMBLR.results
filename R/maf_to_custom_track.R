@@ -22,7 +22,7 @@
 #' @param as_biglolly Boolean parameter controlling the format of the created track file.
 #'   Default is FALSE (i.e a BED file will be returned).
 #' @param colour_column Set the colouring the SSMs in the track. Possible options are lymphgen
-#'   (default), cohort, pathology, genome_build (as in `these_samples_metadata`), and mutation
+#'   (default), pathology, genome_build (as in `these_samples_metadata`), and mutation
 #'   (corresponds to MAF Variant_Classification).
 #' @param track_name Track name to use in the header if output is not bigBed or bigLolly. 
 #'    Default is "GAMBL mutations"
@@ -135,29 +135,10 @@ maf_to_custom_track <- function(maf_data,
     }))
   }
 
-  stopifnot("`colour_column` must be one of \"lymphgen\", \"cohort\", \"pathology\", \"genome_build\", or \"mutation\"" =
-    colour_column %in% c("lymphgen", "cohort", "pathology", "genome_build", "mutation"))
+  stopifnot("`colour_column` must be one of \"lymphgen\", \"pathology\", \"genome_build\", or \"mutation\"" =
+    colour_column %in% c("lymphgen", "pathology", "genome_build", "mutation"))
 
-  if(colour_column %in% "genome_build"){
-    colour_cols <- c(
-      "grch37" = "#008000", # green
-      "grch37-noalt" = "#023020", # dark green
-      "hg19-clc" = "#7f00ff", # violet
-      "hg19-reddy" = "#7cfc00", # lime green
-      "hs37d5" = "#0096ff", # light blue
-      "hg38" = "#ff0000", # red
-      "hg38-nci" = "#913831", #brown-red
-      "hg38-panea" = "#ff00ff" # fuscia
-    )
-  }else {
-    colour_cols <- GAMBLR.helpers::get_gambl_colours(colour_column, verbose = verbose)
-    if(colour_column %in% "mutation"){
-      colour_cols <- c(colour_cols,
-                        "3'Flank" = "#f9bd1f",
-                        "5'Flank" = "#a4bb87",
-                        "IGR" = "#36454f")
-    }
-  }
+  colour_cols <- GAMBLR.helpers::get_gambl_colours(colour_column, verbose = verbose)
 
   colour_df <- data.frame(group = names(colour_cols), colour = colour_cols)
   rgb_df <- data.frame(t(col2rgb(colour_cols))) %>%
