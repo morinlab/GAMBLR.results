@@ -39,7 +39,7 @@ Default is FALSE.}
 Default is FALSE (i.e a BED file will be returned).}
 
 \item{colour_column}{Set the colouring the SSMs in the track. Possible options are lymphgen
-(default), cohort, pathology, genome_build (as in \code{these_samples_metadata}), and mutation
+(default), pathology, genome_build (as in \code{these_samples_metadata}), and mutation
 (corresponds to MAF Variant_Classification).}
 
 \item{track_name}{Track name to use in the header if output is not bigBed or bigLolly.

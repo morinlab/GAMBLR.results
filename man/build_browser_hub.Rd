@@ -64,7 +64,7 @@ to split the MAF data into custom track files. Default is "pathology".}
 
 \item{colour_column}{A single string to use to colour the SSMs in the track, ideally not
 the same as \code{splitColumnName}. Possible options are lymphgen (default),
-cohort, pathology, genome_build (as in \code{these_samples_metadata},
+pathology, genome_build (as in \code{these_samples_metadata},
 can be different from projection), and mutation (corresponds to MAF Variant_Classification).}
 
 \item{hub_name}{A string with the hub name (without spaces) to fill in the \code{hub}
