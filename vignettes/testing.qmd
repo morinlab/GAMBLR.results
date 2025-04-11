@@ -38,17 +38,13 @@ Assuming the installation of R on your path has all the dependencies installed, 
 Rscript tools/logExampleOutputs.R
 ```
 
-If you used `renv` to install the dependencies, you will need to add these lines to the top of `tools/logExampleOutputs.R`.
+If you used `renv` to install the dependencies, you will need to add these parameters to your command
 
-```r
-Sys.setenv(RENV_PROJECT = "/path/to/dir/with/your/renv")
-setwd("/path/to/dir/with/your/renv")
-renv::load()
-
-setwd("~/git/GAMBLR.results/")
+```bash
+Rscript tools/logExampleOutputs.R --renv TRUE --path /full/path/to/renv
 ```
 
-E.g. if your lockfile is at `/projects/scratch/username/GAMBLR-dev/renv.lock` the path in the code above would be `/projects/scratch/username/GAMBLR-dev`. The bash commands remain the same as above.
+E.g. if your lockfile is at `/projects/scratch/username/GAMBLR-dev/renv.lock` the `--path` argument would be `/projects/scratch/username/GAMBLR-dev`.
 
 ## Check outputs
 
