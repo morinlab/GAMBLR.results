@@ -11,11 +11,18 @@ execute:
 ---
 
 
-Most GAMBLR repositories contain a `logExampleOutputs.R` script that you will find in your clone under the tools directory. If you are submitting a pull request, you are expected to have run this script and ensured that it completes. This guide explains how to do this. 
+Most GAMBLR repositories contain a `logExampleOutputs.R` script that you will find in your clone under the tools directory. If you are submitting a pull request, you are expected to have run this script and ensured that it completes. This guide explains how to do this.
 
 ::: {.callout-important}
-If you modified/added code in GAMBLR.results, this must be on a computer that has direct access to all the relevant GAMBL output files. In other words, this would be run on a ssh session on one of the gphosts. Theoretically, you can test all the other packages on any computer with GAMBLR and its dependencies installed. In practice, you will probably always be running these commands within the GSC network. 
+If you modified/added code in GAMBLR.results, this must be on a computer that has direct access to all the relevant GAMBL output files. In other words, this would be run on a ssh session on one of the gphosts. Theoretically, you can test all the other packages on any computer with GAMBLR and its dependencies installed. In practice, you will probably always be running these commands within the GSC network.
 :::
+
+After making your changes, you have to update the documentation before an example will be runnable:
+
+```r
+setwd("~/git/GAMBLR.results/")
+devtools::document()
+```
 
 ## Run the test script
 
@@ -25,11 +32,23 @@ First, you need to be in the top level directory of the repository:
 cd ~/git/GAMBLR.results/
 ```
 
-Assuming the installation of R on your path has all the dependencies installed, you can then simply run this command and wait for it to complete. The time this takes can vary a lot. Testing GAMBLR.results might take more than 30 minutes. 
+Assuming the installation of R on your path has all the dependencies installed, you can then simply run this command and wait for it to complete. The time this takes can vary a lot. Testing GAMBLR.results might take more than 30 minutes.
 
 ```bash
 Rscript tools/logExampleOutputs.R
 ```
+
+If you used `renv` to install the dependencies, you will need to add these lines to the top of `tools/logExampleOutputs.R`.
+
+```r
+Sys.setenv(RENV_PROJECT = "/path/to/dir/with/your/renv")
+setwd("/path/to/dir/with/your/renv")
+renv::load()
+
+setwd("~/git/GAMBLR.results/")
+```
+
+E.g. if your lockfile is at `/projects/scratch/username/GAMBLR-dev/renv.lock` the path in the code above would be `/projects/scratch/username/GAMBLR-dev`. The bash commands remain the same as above.
 
 ## Check outputs
 
@@ -56,24 +75,29 @@ Depending on what you've done to the existing code, you may find that the log fi
 
 ### Truncated file?
 
-A truncated log file indicates that one of the existing examples failed to run. To debug this, you'll need to determine which function is failing. You can usually determine the last function that ran successfully by looking at where the log was truncated. You should typically not have to change existing examples to fix these issues. Instead, you'll need to determine what change in your pull request caused the example to break and address that code. 
+A truncated log file indicates that one of the existing examples failed to run. To debug this, you'll need to determine which function is failing. You can usually determine the last function that ran successfully by looking at where the log was truncated. You should typically not have to change existing examples to fix these issues. Instead, you'll need to determine what change in your pull request caused the example to break and address that code.
 
 ### Different output
 
-You should identify the cause of these changes and, if necessary, fix any bugs that have caused them. 
+You should identify the cause of these changes and, if necessary, fix any bugs that have caused them.
 
 ## Add examples, test again
 
-If you have created new functionality in the GAMBLR package, it's your responsibility to ensure the documentation for the affected function(s) is complete and up-to-date. This means that there should be an example in the documentation that demonstrates how the new functionality works. It's probably easier to add the new example after you've ensured the current tests are completing successfully. 
+If you have created new functionality in the GAMBLR package, it's your responsibility to ensure the documentation for the affected function(s) is complete and up-to-date. This means that there should be an example in the documentation that demonstrates how the new functionality works. It's probably easier to add the new example after you've ensured the current tests are completing successfully.
 
 ::: {.callout-important}
-Don't forget that you have to update the documentation before an example will be runnable:
+Don't forget that you have to update the documentation after making changes:
 :::
 
 ```r
 devtools::document()
 ```
-Before you submit a pull request, be sure you've added the relevant example(s) and have re-run the tests. The log file with its entire output should be committed and included as part of your pull request. 
+
+Before you submit a pull request, be sure you've added the relevant example(s) and have re-run the tests. The log file with its entire output should be committed and included as part of your pull request.
+
+::: {.callout-important}
+Don't forget to remove the `renv` related lines added to `tools/logExampleOutputs.R`, if applicable. That Rscript should be exactly the same as the main branch, so you should have nothing to commit for that file.
+:::
 
 
 ```bash
@@ -81,7 +105,7 @@ git add GAMBLR_examples_output.log
 git commit -m "testing completed"
 ```
 
-Once you've completed this, you should be ready to submit a pull request. 
+Once you've completed this, you should be ready to submit a pull request.
 
 ## Checklist before requesting a review
 - [ ] I tested the new function/functionality in a fresh workspace
