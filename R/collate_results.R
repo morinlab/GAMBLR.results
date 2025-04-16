@@ -2,24 +2,22 @@
 #'
 #' @description Bring together all derived sample-level results from many GAMBL pipelines.
 #'
-#' @details This function takes a data frame with sample IDs (in the first column) with the `sample_table` parameter and adds sample-level results from many of the available GAMBL pipelines.
-#' Optional parameters are `these_samples_metadata` and `join_with_full_metadata`. If `join_with_full_metadata` is set to TRUE, the function can either work with an already subset metadata
-#' table (`these_samples_metadata`), or, if not provided, the function will default to all metadata returned with `get_gambl_metadata`, allowing the user to extend the available information in a metadata table. 
-#' If both `sample_table` and `these_samples_metadata` are set, the function will prioritize and exclusively use the samples in `these_samples_metadata`.
+#' @details This function takes a data frame with sample IDs and seq types (in sample_id and seq_type columns) with the `these_samples_metadata` parameter and adds sample-level results from many of the available GAMBL pipelines.
+#' Optional parameters are `join_with_full_metadata`. If `join_with_full_metadata` is set to TRUE, the function will return all metadata with `get_gambl_metadata`, allowing the user to extend the available information in a metadata table.
 #' This function has also been designed so that it can get cached results, meaning that not all individual collate helper functions would have to be run to get results back.
 #' To do so, run this function with `from_cache = TRUE` (default). In addition, it's also possible to regenerate the cached results, this is done by setting `write_to_file = TRUE`,
 #' This operation auto defaults `from_cache = FALSE`. `case_set` is an optional parameter available for subsetting the return to an already defined set of cases.
-#' Lastly, `seq_type_filter` lets the user control what seq type results will be returned for. Default is "genome". For more information on how to get the most out of this function,
+#' If a dataframe is not provided, the function will default to all genome metadata returned with `get_gambl_metadata`. For more information on how to get the most out of this function,
 #' refer to function examples, vignettes and parameter descriptions.
 #'
 #' @param sample_table A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).
 #' @param write_to_file Boolean statement that outputs tsv file (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv) if TRUE, default is FALSE.
 #' @param join_with_full_metadata Join with all columns of metadata, default is FALSE.
-#' @param these_samples_metadata Optional argument to use a user specified metadata df, overwrites get_gambl_metadata in join_with_full_metadata.
+#' @param these_samples_metadata Optional argument to use a user specified metadata df, must include seq_type column to specify desired seq types. If not provided, defaults to all genome samples with `get_gambl_metadata`. 
 #' @param case_set Optional short name for a pre-defined set of cases.
 #' @param sbs_manipulation Optional variable for transforming sbs values (e.g log, scale).
-#' @param seq_type_filter Filtering criteria, default is genomes (deprecated. Include a column seq_type in sample_table or these_samples_metadata to specify seq_type).
-#' @param from_cache Boolean variable for using cached results (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv), default is TRUE. If write_to_file is TRUE, this parameter auto-defaults to FALSE.
+#' @param seq_type_filter Filtering criteria, default is genomes (deprecated. Include a `seq_type` column in these_samples_metadata to specify seq type).
+#' @param from_cache Boolean variable for using cached results (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type}_results.tsv), default is TRUE. If write_to_file is TRUE, this parameter auto-defaults to FALSE.
 #'
 #' @return A table keyed on biopsy_id that contains a bunch of per-sample results from GAMBL
 #'
@@ -49,7 +47,7 @@
 #' fl_collated = collate_results(these_samples_metadata = fl_metadata,
 #'                               write_to_file = FALSE,
 #'                               from_cache = FALSE)
-#' head(fl_collated)
+#' dplyr::select(fl_collated, 1:14) %>% head()
 collate_results = function(sample_table,
                            write_to_file = FALSE,
                            join_with_full_metadata = FALSE,
