@@ -11,20 +11,28 @@
 #' For more information, refer to the parameter descriptions
 #' and function examples.
 #'
-#' @param maf_data maf_data obtained from of the `get_ssm` family of functions.
-#' @param these_samples_metadata A metadata table to subset the samples of interest from the input `maf_data`. If NULL (the default), all samples in `maf_data` are kept.
-#' @param this_seq_type The seq type you want back, default is "genome".
+#' @param maf_data MAF data obtained from of the `get_ssm` family of functions.
+#' @param these_samples_metadata A metadata table to subset the samples of interest from
+#'   the input `maf_data`. If NULL (the default), all samples in `maf_data` are kept.
+#' @param this_seq_type The seq type used to filter the samples if `these_samples_metadata` 
+#'   is not provided. Should match what was used to get `maf_data`. Default is "genome".
 #' @param output_file Name for your new bed file that can be uploaded as a custom track to UCSC.
-#' @param as_bigbed Boolean parameter controlling the format of the returned file. Default is FALSE.
-#' @param colour_column Set the colouring properties of the returned bed file. Per default, this function will assign colour based on "lymphgen".
-#' @param as_biglolly Boolean parameter controlling the format of the returned file. Default is FALSE (i.e a BED file will be returned).
-#' @param track_name Track name. Default is "GAMBL mutations"
-#' @param track_description Track description. Default is "mutations from GAMBL"
+#' @param as_bigbed Boolean parameter controlling the format of the created track file.
+#'   Default is FALSE.
+#' @param as_biglolly Boolean parameter controlling the format of the created track file.
+#'   Default is FALSE (i.e a BED file will be returned).
+#' @param colour_column Set the colouring the SSMs in the track. Possible options are lymphgen
+#'   (default), pathology, genome_build (as in `these_samples_metadata`), and mutation
+#'   (corresponds to MAF Variant_Classification).
+#' @param track_name Track name to use in the header if output is not bigBed or bigLolly. 
+#'    Default is "GAMBL mutations"
+#' @param track_description Track description to use in the header if output is not 
+#'    bigBed or bigLolly. Default is "GAMBL mutations"
 #' @param verbose Default is FALSE.
 #' @param padding_size Optional parameter specifying the padding size in the
-#' returned file, default is 0.
-#' @param projection Specify which genome build to use. Possible values are "grch37" (default) or "hg38". This parameter has
-#'   effect only when `as_bigbed` or `as_biglolly` is TRUE.
+#'   returned file, default is 0.
+#' @param projection Specify which genome build to use. Possible values are "grch37" (default)
+#'    or "hg38". This parameter has an effect only when `as_bigbed` or `as_biglolly` is TRUE.
 #' @param bedToBigBed_path Path to your local `bedToBigBed` UCSC tool or the string
 #'   `"config"` (default). If set to `"config"`, `GAMBLR.helpers::check_config_value`
 #'   is called internally and the `bedToBigBed` path is obtained from the `config.yml`
@@ -37,7 +45,6 @@
 #' @export
 #'
 #' @examples
-
 #' # using grch37 coordinates
 #' myc_grch37 <- GAMBLR.utils::create_bed_data(
 #'                 GAMBLR.data::grch37_lymphoma_genes_bed
@@ -50,10 +57,10 @@
 #' genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
 #'                              these_samples_metadata = get_gambl_metadata(),
 #'                              this_seq_type = "genome",
-#'                              streamlined = FALSE)
+#'                              streamlined = FALSE,
+#'                              basic_columns = TRUE)
 #'
 #' # myc_hg19.bed will be created in your working directory
-#'
 #' maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 #'
 #' #lazy/concise way:
@@ -61,20 +68,21 @@
 #'
 #' capture_maf <- get_ssm_by_regions(regions_list = my_region,
 #'                              these_samples_metadata = get_gambl_metadata(),
-#'                              this_seq_type = "genome",
+#'                              this_seq_type = "capture",
 #'                              projection = "grch37",
-#'                              streamlined = FALSE)
-#' maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
+#'                              streamlined = FALSE,
+#'                              basic_columns = TRUE)
+#' maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", output_file = "myc_capture_hg19.bed")
 #'
 maf_to_custom_track <- function(maf_data,
                                 these_samples_metadata = NULL,
                                 this_seq_type = "genome",
                                 output_file,
                                 as_bigbed = FALSE,
-                                colour_column = "lymphgen",
                                 as_biglolly = FALSE,
+                                colour_column = "lymphgen",
                                 track_name = "GAMBL mutations",
-                                track_description = "mutations from GAMBL",
+                                track_description = "GAMBL mutations",
                                 verbose = FALSE,
                                 padding_size = 0,
                                 projection = "grch37",
@@ -107,54 +115,71 @@ maf_to_custom_track <- function(maf_data,
     }
   }
 
-
-
   # subset input maf according to metadata samples
-  maf_data <- filter(maf_data, Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
+  maf_data <- dplyr::filter(maf_data, Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
 
   # reduce to a bed-like format
-  maf_data <- dplyr::select(maf_data, Chromosome, Start_Position, End_Position, Tumor_Sample_Barcode)
-  colnames(maf_data) <- c("chrom", "start", "end", "sample_id")
-  maf_data <- mutate(maf_data, end = end + padding_size)
+  if(colour_column %in% "mutation"){
+    maf_data <- dplyr::select(maf_data, Chromosome, Start_Position, End_Position, Variant_Classification)
+    colnames(maf_data) <- c("chrom", "start", "end", "group")
+  }else{
+    maf_data <- dplyr::select(maf_data, Chromosome, Start_Position, End_Position, Tumor_Sample_Barcode)
+    colnames(maf_data) <- c("chrom", "start", "end", "sample_id")
+  }
+
+  maf_data <- dplyr::mutate(maf_data, end = end + padding_size)
   if (!any(grepl("chr", maf_data[, 1]))) {
-    # add chr
+    # add chr prefix
     maf_data[, 1] <- unlist(lapply(maf_data[, 1], function(x) {
       paste0("chr", x)
     }))
   }
-  lymphgen_cols <- GAMBLR.helpers::get_gambl_colours(colour_column, verbose = verbose)
 
-  colour_df <- data.frame(group = names(lymphgen_cols), colour = lymphgen_cols)
+  stopifnot("`colour_column` must be one of \"lymphgen\", \"pathology\", \"genome_build\", or \"mutation\"" =
+    colour_column %in% c("lymphgen", "pathology", "genome_build", "mutation"))
 
-  rgb_df <- data.frame(t(col2rgb(lymphgen_cols))) %>%
-    mutate(group = names(lymphgen_cols), hex = unname(lymphgen_cols)) %>%
-    unite(col = "rgb", red, green, blue, sep = ",")
+  colour_cols <- GAMBLR.helpers::get_gambl_colours(colour_column, verbose = verbose)
+
+  colour_df <- data.frame(group = names(colour_cols), colour = colour_cols)
+  rgb_df <- data.frame(t(col2rgb(colour_cols))) %>%
+    dplyr::mutate(group = names(colour_cols), hex = unname(colour_cols)) %>%
+    tidyr::unite(col = "rgb", red, green, blue, sep = ",")
   if (verbose) {
     print(rgb_df)
   }
-  meta <- dplyr::select(these_samples_metadata, sample_id, all_of(colour_column))
-  colnames(meta)[2] <- "group"
 
-
-  samples_coloured <- left_join(meta, rgb_df)
-  if (verbose) {
-    print(samples_coloured)
+  # colours associated with samples if colour_column is not mutation
+  # otherwise they are associated with the variants
+  if(!colour_column %in% "mutation"){
+    meta <- dplyr::select(these_samples_metadata, sample_id, all_of(colour_column))
+    colnames(meta)[2] <- "group"
+    samples_coloured <- left_join(meta, rgb_df) %>%
+      dplyr::mutate(group = ifelse(is.na(group), "NotAvailable", group),
+            rgb = ifelse(is.na(rgb), "0,0,0", rgb))
+    if (verbose) {
+      print(samples_coloured)
+    }
+    maf_bed <- maf_data %>%
+      dplyr::mutate(score = 0, strand = ".", thickStart = start - 1, start = thickStart, thickEnd = end)
+    if (verbose) {
+      print(head(maf_bed))
+    }
+    maf_coloured <- left_join(maf_bed, samples_coloured, by = "sample_id") %>%
+      dplyr::select(chrom, start, end, group, score, strand, thickStart, thickEnd, rgb)
+  }else{
+    maf_coloured <- left_join(maf_data, rgb_df) %>%
+      dplyr::mutate(group = ifelse(is.na(group), "Unknown", group),
+            rgb = ifelse(is.na(rgb), "0,0,0", rgb)) %>%
+      dplyr::mutate(score = 0, strand = ".", thickStart = start - 1, start = thickStart, thickEnd = end) %>%
+      dplyr::select(chrom, start, end, group, score, strand, thickStart, thickEnd, rgb)
   }
 
-  maf_bed <- maf_data %>%
-    mutate(score = 0, strand = "+", start1 = start - 1, start = start1, end1 = end)
-  if (verbose) {
-    print(head(maf_bed))
-  }
-  maf_coloured <- left_join(maf_bed, samples_coloured, by = "sample_id") %>%
-    dplyr::select(-group) %>%
-    mutate(rgb = ifelse(is.na(rgb), "0,0,0", rgb))
-  maf_summary <- group_by(maf_coloured, hex) %>% tally()
+  maf_summary <- group_by(maf_coloured, rgb) %>% tally()
   if (verbose) {
     print(maf_summary)
     print(head(maf_coloured))
   }
-  maf_coloured <- dplyr::select(maf_coloured, -hex)
+
   if (as_bigbed | as_biglolly) {
     if (grepl(pattern = ".bb$", x = output_file)) {
       # temp file will be .bed
@@ -164,13 +189,13 @@ maf_to_custom_track <- function(maf_data,
       to create a bigBed file")
     }
 
-    maf_coloured <- mutate(maf_coloured, sample_id = "redacted") %>%
+    maf_coloured <- maf_coloured %>%
       arrange(chrom, start)
 
     # create temp file chrom.sizes
     if (projection == "grch37") {
       chr_arms <- GAMBLR.data::chromosome_arms_grch37 %>%
-        mutate(chromosome = paste0("chr", chromosome))
+        dplyr::mutate(chromosome = paste0("chr", chromosome))
     } else if (projection == "hg38") {
       chr_arms <- GAMBLR.data::chromosome_arms_hg38
     } else {
@@ -179,12 +204,11 @@ maf_to_custom_track <- function(maf_data,
     chr_sizes <- chr_arms %>%
       dplyr::filter(arm == "q") %>%
       dplyr::select(chromosome, end) %>%
-      rename(size = "end")
+      dplyr::rename(size = end)
     temp_chr_sizes <- tempfile(pattern = "chrom.sizes_")
     write.table(chr_sizes,
       file = temp_chr_sizes, quote = FALSE, row.names = FALSE,
-      col.names = FALSE, sep = "\t"
-    )
+      col.names = FALSE, sep = "\t")
 
     if (as_biglolly) {
       # currently the same code is run either way but this may change so I've separated this until we settle on format
@@ -195,8 +219,6 @@ maf_to_custom_track <- function(maf_data,
 
       # determine frequency of each event per group to assign the size
       maf_coloured <- group_by(maf_coloured, start, rgb) %>% mutate(size = n())
-
-      # maf_coloured = mutate(maf_coloured,size=10)
 
       write.table(maf_coloured, file = temp_bed, quote = F, sep = "\t", row.names = F, col.names = F)
       # conversion:

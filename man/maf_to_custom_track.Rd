@@ -10,10 +10,10 @@ maf_to_custom_track(
   this_seq_type = "genome",
   output_file,
   as_bigbed = FALSE,
-  colour_column = "lymphgen",
   as_biglolly = FALSE,
+  colour_column = "lymphgen",
   track_name = "GAMBL mutations",
-  track_description = "mutations from GAMBL",
+  track_description = "GAMBL mutations",
   verbose = FALSE,
   padding_size = 0,
   projection = "grch37",
@@ -22,31 +22,39 @@ maf_to_custom_track(
 )
 }
 \arguments{
-\item{maf_data}{maf_data obtained from of the \code{get_ssm} family of functions.}
+\item{maf_data}{MAF data obtained from of the \code{get_ssm} family of functions.}
 
-\item{these_samples_metadata}{A metadata table to subset the samples of interest from the input \code{maf_data}. If NULL (the default), all samples in \code{maf_data} are kept.}
+\item{these_samples_metadata}{A metadata table to subset the samples of interest from
+the input \code{maf_data}. If NULL (the default), all samples in \code{maf_data} are kept.}
 
-\item{this_seq_type}{The seq type you want back, default is "genome".}
+\item{this_seq_type}{The seq type used to filter the samples if \code{these_samples_metadata}
+is not provided. Should match what was used to get \code{maf_data}. Default is "genome".}
 
 \item{output_file}{Name for your new bed file that can be uploaded as a custom track to UCSC.}
 
-\item{as_bigbed}{Boolean parameter controlling the format of the returned file. Default is FALSE.}
+\item{as_bigbed}{Boolean parameter controlling the format of the created track file.
+Default is FALSE.}
 
-\item{colour_column}{Set the colouring properties of the returned bed file. Per default, this function will assign colour based on "lymphgen".}
+\item{as_biglolly}{Boolean parameter controlling the format of the created track file.
+Default is FALSE (i.e a BED file will be returned).}
 
-\item{as_biglolly}{Boolean parameter controlling the format of the returned file. Default is FALSE (i.e a BED file will be returned).}
+\item{colour_column}{Set the colouring the SSMs in the track. Possible options are lymphgen
+(default), pathology, genome_build (as in \code{these_samples_metadata}), and mutation
+(corresponds to MAF Variant_Classification).}
 
-\item{track_name}{Track name. Default is "GAMBL mutations"}
+\item{track_name}{Track name to use in the header if output is not bigBed or bigLolly.
+Default is "GAMBL mutations"}
 
-\item{track_description}{Track description. Default is "mutations from GAMBL"}
+\item{track_description}{Track description to use in the header if output is not
+bigBed or bigLolly. Default is "GAMBL mutations"}
 
 \item{verbose}{Default is FALSE.}
 
 \item{padding_size}{Optional parameter specifying the padding size in the
 returned file, default is 0.}
 
-\item{projection}{Specify which genome build to use. Possible values are "grch37" (default) or "hg38". This parameter has
-effect only when \code{as_bigbed} or \code{as_biglolly} is TRUE.}
+\item{projection}{Specify which genome build to use. Possible values are "grch37" (default)
+or "hg38". This parameter has an effect only when \code{as_bigbed} or \code{as_biglolly} is TRUE.}
 
 \item{bedToBigBed_path}{Path to your local \code{bedToBigBed} UCSC tool or the string
 \code{"config"} (default). If set to \code{"config"}, \code{GAMBLR.helpers::check_config_value}
@@ -85,10 +93,10 @@ print(myc_grch37)
 genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
                              these_samples_metadata = get_gambl_metadata(),
                              this_seq_type = "genome",
-                             streamlined = FALSE)
+                             streamlined = FALSE,
+                             basic_columns = TRUE)
 
 # myc_hg19.bed will be created in your working directory
-
 maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 
 #lazy/concise way:
@@ -96,9 +104,10 @@ my_region = "8:128747680-128753674"
 
 capture_maf <- get_ssm_by_regions(regions_list = my_region,
                              these_samples_metadata = get_gambl_metadata(),
-                             this_seq_type = "genome",
+                             this_seq_type = "capture",
                              projection = "grch37",
-                             streamlined = FALSE)
-maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
+                             streamlined = FALSE,
+                             basic_columns = TRUE)
+maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", output_file = "myc_capture_hg19.bed")
 
 }
