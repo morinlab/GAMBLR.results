@@ -5,10 +5,10 @@
 \title{Collate Results}
 \usage{
 collate_results(
-  sample_table,
+  these_samples_metadata,
   write_to_file = FALSE,
   join_with_full_metadata = FALSE,
-  these_samples_metadata,
+  sample_table,
   case_set,
   sbs_manipulation = "",
   seq_type_filter = "genome",
@@ -16,13 +16,13 @@ collate_results(
 )
 }
 \arguments{
-\item{sample_table}{A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).}
+\item{these_samples_metadata}{Optional argument to use a user specified metadata df, must include seq_type column to specify desired seq types. If not provided, defaults to all genome samples with \code{get_gambl_metadata}.}
 
 \item{write_to_file}{Boolean statement that outputs tsv file (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv) if TRUE, default is FALSE.}
 
 \item{join_with_full_metadata}{Join with all columns of metadata, default is FALSE.}
 
-\item{these_samples_metadata}{Optional argument to use a user specified metadata df, must include seq_type column to specify desired seq types. If not provided, defaults to all genome samples with \code{get_gambl_metadata}.}
+\item{sample_table}{A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).}
 
 \item{case_set}{Optional short name for a pre-defined set of cases.}
 

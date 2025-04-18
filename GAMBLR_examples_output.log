@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-04-16 12:43:03 ==="
-── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-04-17 16:57:48 ==="
+── Running 71 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -833,4 +833,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-04-16 13:12:46 ==="
+[1] "=== COMPLETED AT 2025-04-17 17:46:38 ==="

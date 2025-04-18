@@ -10,10 +10,10 @@
 #' If a dataframe is not provided, the function will default to all genome metadata returned with `get_gambl_metadata`. For more information on how to get the most out of this function,
 #' refer to function examples, vignettes and parameter descriptions.
 #'
-#' @param sample_table A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).
+#' @param these_samples_metadata Optional argument to use a user specified metadata df, must include seq_type column to specify desired seq types. If not provided, defaults to all genome samples with `get_gambl_metadata`. 
 #' @param write_to_file Boolean statement that outputs tsv file (/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_{seq_type_filter}_results.tsv) if TRUE, default is FALSE.
 #' @param join_with_full_metadata Join with all columns of metadata, default is FALSE.
-#' @param these_samples_metadata Optional argument to use a user specified metadata df, must include seq_type column to specify desired seq types. If not provided, defaults to all genome samples with `get_gambl_metadata`. 
+#' @param sample_table A data frame with sample_id as the first column (deprecated, use these_samples_metadata instead).
 #' @param case_set Optional short name for a pre-defined set of cases.
 #' @param sbs_manipulation Optional variable for transforming sbs values (e.g log, scale).
 #' @param seq_type_filter Filtering criteria, default is genomes (deprecated. Include a `seq_type` column in these_samples_metadata to specify seq type).
@@ -48,10 +48,10 @@
 #'                               write_to_file = FALSE,
 #'                               from_cache = FALSE)
 #' dplyr::select(fl_collated, 1:14) %>% head()
-collate_results = function(sample_table,
+collate_results = function(these_samples_metadata,
                            write_to_file = FALSE,
                            join_with_full_metadata = FALSE,
-                           these_samples_metadata,
+                           sample_table,
                            case_set,
                            sbs_manipulation = "",
                            seq_type_filter = "genome",
