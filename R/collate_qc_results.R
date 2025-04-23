@@ -48,13 +48,6 @@ collate_qc_results = function(sample_table,
     dplyr::rename(sample_id = UID) %>%
     dplyr::select(-SeqType)
 
-  if (seq_type_filter == "capture") {
-    # temporary: remove rows with incorrect column values from icgc capture data and fill missing rows with NA
-    icgc_qc = filter(icgc_qc, !grepl("agilent", MeanCorrectedCoverage)) %>% filter(!MeanCorrectedCoverage=="_default")
-    missing = setdiff(names(gambl_qc), names(icgc_qc))
-    icgc_qc[missing] = NA
-  }
-
   #join gambl and icgc QC data
   full_qc = rbind(gambl_qc, icgc_qc)
   sample_table = left_join(sample_table, full_qc)
