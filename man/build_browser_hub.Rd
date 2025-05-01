@@ -5,39 +5,37 @@
 \title{Build UCSC browser track hub}
 \usage{
 build_browser_hub(
-  maf_data,
   regions_bed,
-  these_sample_ids = NULL,
   these_samples_metadata = NULL,
   these_seq_types = c("genome", "capture"),
   projection = "grch37",
+  maf_data = NULL,
   local_web_host_dir = NULL,
   hub_dir = "my_hub",
   splitColumnName = "pathology",
+  colour_column = "lymphgen",
   hub_name = basename(hub_dir),
   shortLabel = basename(hub_dir),
   longLabel = basename(hub_dir),
   contact_email,
   visibility = "squish",
   bigDataUrl_base = "https://github.com/morinlab/LLMPP/blob/main",
-  bedToBigBed_path
+  bedToBigBed_path,
+  these_sample_ids = NULL
 )
 }
 \arguments{
-\item{maf_data}{A MAF-format data frame with the SSMs to be visualized in the
-UCSC browser. It can be filtered by regions and samples provided by parameters
-\code{regions_bed} and \code{these_sample_ids}/\code{these_samples_metadata}, respectively.}
-
 \item{regions_bed}{A BED-format table with the regions you want to retrieve SSMs
 from. The columns 1, 2 and 3 must be chromosome names, start positions and
 end positions, respectively. If not provided, the function defaults to aSHM
 regions, \emph{i.e.} one of \code{GAMBLR.data::grch37_ashm_regions} or \code{GAMBLR.data::hg38_ashm_regions},
 which is chosen automatically depending on the provided \code{projection}.}
 
-\item{these_sample_ids}{A vector of sample IDs that you want results for.}
-
-\item{these_samples_metadata}{A metadata table (with sample IDs in a column) to
-subset the samples of interest.}
+\item{these_samples_metadata}{Optional (but highly recommended) metadata
+table to tell the function how to subset the data. Only sample_id in
+this table with the matching seq_type will be in the output. Not all
+samples may be in the output, though, if they are missing SSM results
+or had no mutations detected.}
 
 \item{these_seq_types}{A vector of one or more seq types you want results for.
 Possible values are "genome" or "capture". If more than
@@ -47,16 +45,27 @@ creates a separate track for each provided seq type. The default is
 
 \item{projection}{The projection genome build. One of "grch37" (default) or "hg38".}
 
-\item{local_web_host_dir}{Path to the directory where is your local copy of the
+\item{maf_data}{Optional. A data frame of mutations in MAF format or maf_data object
+(e.g. from \code{get_coding_ssm} or \code{get_ssm_by_sample}). It can be filtered by
+regions and samples provided by parameters \code{regions_bed} and
+\code{these_samples_metadata}, respectively.}
+
+\item{local_web_host_dir}{Path to the directory that is a local copy of the
 web host to be used. For example, if the hub should be hosted on GitHub,
 \code{local_web_host_dir} should be the path to your local copy of the repository
 directory. Default is NULL.}
 
-\item{hub_dir}{Path to the directory (inside a web host) where you want to build
-your track hub. If this directory does not exist, it will be created.}
+\item{hub_dir}{Path to the directory (inside the web host directory) where you want
+to store the files for your track hub. If this directory does not exist, it will be
+created. Default is "my_hub".}
 
-\item{splitColumnName}{An single string to indicate which metadata column is used
+\item{splitColumnName}{A single string to indicate which metadata column is used
 to split the MAF data into custom track files. Default is "pathology".}
+
+\item{colour_column}{A single string to use to colour the SSMs in the track, ideally not
+the same as \code{splitColumnName}. Possible options are lymphgen (default),
+pathology, genome_build (as in \code{these_samples_metadata},
+can be different from projection), and mutation (corresponds to MAF Variant_Classification).}
 
 \item{hub_name}{A string with the hub name (without spaces) to fill in the \code{hub}
 field of the hub.txt file. Default is \code{basename(hub_dir)}.}
@@ -75,16 +84,19 @@ in the \code{email} field of the hub.txt file.}
 \item{visibility}{A string that controls the track visibility mode. Possible
 values are "pack", "dense", "full", or "squish" (default).}
 
-\item{bigDataUrl_base}{A string with the base path of the web location of the
-tracks' data files (\code{bigDataUrl} fields from the hub.txt file). For example,
-if the hub should be hosted on GitHub, \code{bigDataUrl_base} should be something
-like "https://github.com/morinlab/LLMPP/blob/main" (the default). See how the
-track's paths from the bigDataUrl fields are set in the \strong{Details} section.}
+\item{bigDataUrl_base}{A string with the base path of the public web location of the
+tracks' data files, to fill in the \code{bigDataUrl} fields from the hub.txt file.
+For example, if the hub is hosted on GitHub, \code{bigDataUrl_base} should be
+something like "https://github.com/morinlab/LLMPP/blob/main" (the default).
+See how the track's paths from the bigDataUrl fields are set in the \strong{Details}
+section.}
 
 \item{bedToBigBed_path}{Path to your local \code{bedToBigBed} UCSC tool. If missing,
 \code{GAMBLR.helpers::check_config_value} is called internally and the \code{bedToBigBed}
 path is obtained from the \code{config.yml} file saved in the current working
 directory.}
+
+\item{these_sample_ids}{DEPRECATED}
 }
 \value{
 Nothing.
@@ -101,16 +113,16 @@ to the value in \code{splitColumnName} that it refers to.
 \details{
 \code{build_browser_hub} will create a custom track file for each combination of
 \code{these_seq_types} and \code{splitColumnName} (if mutations can be found). Custom
-track files are named as \verb{<a_seq_type_value>_<a_splitColumnName_value>.bb}.
+track files are named as \verb{<seq_type_value>_<splitColumnName_value>.bb}.
 
 The \code{bigDataUrl} field of a track in the hub.txt file is defined in
 the following way:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{file.path(bigDataUrl_base, hub_dir, projection, 
+\if{html}{\out{<div class="sourceCode">}}\preformatted{file.path(bigDataUrl_base, hub_dir, projection,
           paste0(track_file_names[i], "?raw=true\\n"))
 }\if{html}{\out{</div>}}
 
-where \code{track_file_names[i]} is the custom track file name.
+where \code{track_file_names[i]} is the custom track file name as shown above.
 }
 \examples{
 \dontrun{
@@ -121,7 +133,7 @@ library(GAMBLR.data)
 local_web_host_dir = "~/repos/LLMPP"
 hub_dir = "hubs/ashm_test"
 
-my_meta = get_gambl_metadata() \%>\% 
+my_meta = get_gambl_metadata() \%>\%
   filter(pathology \%in\% c("BL", "DLBCL", "FL"))
 
 build_browser_hub(
@@ -137,4 +149,3 @@ build_browser_hub(
 }
 
 }
-\keyword{internal}

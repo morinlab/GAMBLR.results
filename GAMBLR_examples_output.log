@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-04-06 07:35:15.967857 ==="
-── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-04-17 16:57:48 ==="
+── Running 71 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -78,13 +78,13 @@ Showing first 10 rows:
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode     seq  WRCY
-1        BCL2         18       60795859                C                 T      CAR_126_PreCART CTTCACT FALSE
-2        BCL2         18       60795894                A                 T            08-13706T GCAAGCT MOTIF
-3        BCL2         18       60795911                A                 G    00-15336_CLC01491 CCAAACT MOTIF
-4        BCL2         18       60795911                A                 G    00-15336_CLC02290 CCAAACT MOTIF
-5        BCL2         18       60795947                C                 G             FL1010T2 AATCAAA FALSE
-6        BCL2         18       60985305              GTG               AAT             SP192988      NA FALSE
+  Hugo_Symbol Chromosome Start_Position Reference_Allele Tumor_Seq_Allele2 Tumor_Sample_Barcode       seq  WRCY
+1        BCL2         18       60795859                C                 T      CAR_126_PreCART   CTTCACT FALSE
+2        BCL2         18       60795894                A                 T            08-13706T   GCAAGCT MOTIF
+3        BCL2         18       60795911                A                 G    00-15336_CLC01491   CCAAACT MOTIF
+4        BCL2         18       60795911                A                 G    00-15336_CLC02290   CCAAACT MOTIF
+5        BCL2         18       60795947                C                 G             FL1010T2   AATCAAA FALSE
+6        BCL2         18       60985305              GTG               AAT             SP192988 CAAGTGCAC FALSE
 
 > some_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(cohort == "DLBCL_ICGC") %>% head(3)
@@ -125,6 +125,36 @@ Showing first 10 rows:
 4 01-11817T 11_69455030              5
 5 01-11817T 11_69455040              5
 6 01-11817T 11_69455050              5
+
+> my_metadata = get_gambl_metadata()
+
+> fl_metadata = dplyr::filter(my_metadata, pathology == 
++     "FL")
+
+> fl_collated = collate_results(these_samples_metadata = fl_metadata, 
++     write_to_file = FALSE, from_cache = FALSE)
+[[1]]
+/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_genome_results.tsv
+
+[[2]]
+/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_capture_results.tsv
+
+[[3]]
+/projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_mrna_results.tsv
+
+[1] "loading /projects/nhl_meta_analysis_scratch/gambl/results_local/all_the_things/slms_3-1.0_vcf2maf-1.3/genome--projection/deblacklisted/maf/all_slms-3--grch37.maf"
+[1] "loading /projects/nhl_meta_analysis_scratch/gambl/results_local/all_the_things/slms_3-1.0_vcf2maf-1.3/capture--projection/deblacklisted/maf/all_slms-3--grch37.maf"
+
+> dplyr::select(fl_collated, 1:14) %>% head()
+# A tibble: 6 × 14
+  compression bam_available patient_id sample_id         seq_type capture_space genome_build tissue_status cohort            library_id pathology time_point protocol ffpe_or_frozen
+  <chr>       <lgl>         <chr>      <chr>             <chr>    <chr>         <chr>        <chr>         <chr>             <chr>      <chr>     <chr>      <chr>    <chr>         
+1 cram        TRUE          00-12637   FL1011T1          genome   none          grch37       tumour        FL_Kridel         A32589     FL        A          Genome   frozen        
+2 cram        TRUE          00-14595   00-14595_tumorD   genome   none          grch37       tumour        DLBCL_LSARP_Trios F110916    FL        D          Genome   FFPE          
+3 cram        TRUE          00-16220   FL3001T1          genome   none          grch37       tumour        FL_Kridel         A42964     FL        A          Genome   frozen        
+4 cram        TRUE          00-16220   00-16220_tumorB   genome   none          grch37       tumour        DLBCL_LSARP_Trios F112211    FL        B          Genome   FFPE          
+5 cram        TRUE          00-17960   00-17960_CLC01831 genome   none          grch37       tumour        tFL_LSARP_Trios   F132089    FL        <NA>       Genome   FFPE          
+6 cram        TRUE          00-17988   FL1015T1          genome   none          grch37       tumour        FL_Kridel         A32587     FL        A          Genome   frozen        
 
 > my_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D", seq_type == 
@@ -782,17 +812,18 @@ Showing first 10 rows:
 
 > genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37, 
 +     these_samples_metadata = get_gambl_metadata(), this_seq_type = "genome", 
-+     streamlined = FALSE)
++     streamlined = FALSE, basic_columns = TRUE)
 
 > maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 
 > my_region = "8:128747680-128753674"
 
 > capture_maf <- get_ssm_by_regions(regions_list = my_region, 
-+     these_samples_metadata = get_gambl_metadata(), this_seq_type = "genome", 
-+     projection = "grch37", streamlined = FALSE)
++     these_samples_metadata = get_gambl_metadata(), this_seq_type = "capture", 
++     projection = "grch37", streamlined = FALSE, basic_columns = TRUE)
 
-> maf_to_custom_track(maf_data = capture_maf, output_file = "myc_capture_hg19.bed")
+> maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
++     output_file = "myc_capture_hg19.bed")
 
 > meta_df = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type %in% c("genome", "capture")) %>% dplyr::filter(pathology == 
@@ -802,4 +833,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-04-06 07:41:57.715306 ==="
+[1] "=== COMPLETED AT 2025-04-17 17:46:38 ==="
