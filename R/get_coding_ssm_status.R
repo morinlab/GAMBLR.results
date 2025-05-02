@@ -45,6 +45,8 @@
 #' @param recurrence_min Integer value indicating minimal recurrence level.
 #' @param projection Specify projection (grch37 or hg38) of mutations. Default
 #'      is grch37.
+#' @param custom_coordinates Optional set of coordinates specifying regions
+#'      containing hot spots that will be used instead of the results from annotate_hotspots
 #' @param review_hotspots Logical parameter indicating whether hotspots object
 #'      should be reviewed to include functionally relevant mutations or rare
 #'      lymphoma-related genes. Default is TRUE.
@@ -114,6 +116,7 @@ get_coding_ssm_status = function(
     keep_multihit_hotspot = FALSE,
     recurrence_min = 5,
     review_hotspots = TRUE,
+    custom_coordinates,
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
     genome_build,
     include_silent = FALSE,
@@ -223,11 +226,24 @@ get_coding_ssm_status = function(
   # include hotspots if user chooses to do so
   if(include_hotspots){
     # first annotate
-    annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
+    
     # review for the supported genes
-    if(review_hotspots){
-      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+    
+    if(!missing(custom_coordinates)){
+
+        annotated = review_hotspots(coding_ssm,
+                                    custom_coordinates = custom_coordinates,
+                                    genes_of_interest = genes_of_interest, 
+                                    genome_build = genome_build)
+
+    }else{
+        annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
+        
+        if(review_hotspots){
+          annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+        }
     }
+      
     message("annotating hotspots")
     hotspots = annotated %>%
       dplyr::filter(Hugo_Symbol %in% genes_of_interest) %>%

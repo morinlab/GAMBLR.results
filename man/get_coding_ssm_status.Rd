@@ -15,6 +15,7 @@ get_coding_ssm_status(
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
   review_hotspots = TRUE,
+  custom_coordinates,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
   genome_build,
   include_silent = FALSE,
@@ -61,6 +62,9 @@ presence.}
 \item{review_hotspots}{Logical parameter indicating whether hotspots object
 should be reviewed to include functionally relevant mutations or rare
 lymphoma-related genes. Default is TRUE.}
+
+\item{custom_coordinates}{Optional set of coordinates specifying regions
+containing hot spots that will be used instead of the results from annotate_hotspots}
 
 \item{genes_of_interest}{A vector of genes for hotspot review. Currently only
 FOXO1, MYD88, and CREBBP are supported.}
