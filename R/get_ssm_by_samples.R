@@ -122,6 +122,7 @@ get_ssm_by_samples = function(these_samples_metadata,
     }
   }
   #ensure we only have sample_id that are in the remaining metadata (no excluded/unavailable samples)
+  these_sample_ids <- these_samples_metadata$sample_id
   
   maf_column_types = "ccccciiccccccccccccccccccccccnccccccccciiiiii" #for the first 45 standard columns
   if(flavour=="legacy"){
