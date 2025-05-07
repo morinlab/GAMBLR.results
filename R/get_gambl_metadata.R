@@ -242,8 +242,9 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
   all_meta = unique(all_meta) #something in the ICGC code is causing this. Need to figure out what #should this be posted as an issue on Github?
   if(!missing(case_set)){
     # This functionality is meant to eventually replace the hard-coded case sets
+    repo_base <- check_config_and_value("repo_base")
     case_set_path = check_config_and_value("sample_sets$default")
-    full_case_set_path =  paste0("repo_base","/",case_set_path)
+    full_case_set_path =  paste0(repo_base, case_set_path)
     if (file.exists(full_case_set_path)) {
       full_case_set = suppressMessages(read_tsv(full_case_set_path))
     } else {
