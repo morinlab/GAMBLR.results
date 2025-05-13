@@ -5,7 +5,7 @@
 #' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table df with sample ids in the first column.
-#' @param seq_type_filter default is genome, capture is also available for unix_group icgc_dart.
+#' @param seq_type_filter default is genome, capture is also available.
 #'
 #' @return The sample table with additional columns.
 #'
@@ -43,28 +43,18 @@ collate_qc_results = function(sample_table,
       dplyr::rename(sample_id = UID) %>%
       dplyr::select(-SeqType)
 
-  #read in gambl qc data (if seq_type_filter set to "genome"), rename sample id column and filter on samples in sample id in sample_table
-  if(seq_type_filter == "genome"){
-    gambl_qc = suppressMessages(read_tsv(gambl_qc_path_full)) %>%
-      dplyr::rename(sample_id = UID) %>%
-      dplyr::select(-SeqType)
+  #read in gambl qc data, rename sample id column and filter on samples in sample id in sample_table
+  gambl_qc = suppressMessages(read_tsv(gambl_qc_path_full)) %>%
+    dplyr::rename(sample_id = UID) %>%
+    dplyr::select(-SeqType)
 
-    #join gambl and icgc QC data
-    full_qc = rbind(gambl_qc, icgc_qc)
-    sample_table = left_join(sample_table, full_qc)
+  #join gambl and icgc QC data
+  full_qc = rbind(gambl_qc, icgc_qc)
+  sample_table = left_join(sample_table, full_qc)
 
-    #print n samples with QC metrics
-    qc_samples = length(unique(full_qc$sample_id))
-    message(paste("QC metrics for", qc_samples, "samples retrieved."))
+  #print n samples with QC metrics
+  qc_samples = length(unique(full_qc$sample_id))
+  message(paste("QC metrics for", qc_samples, "samples retrieved."))
 
-  }else{
-    message("Currently, seq_type_filter = \"capture\" is only available for unix_group \"icgc_dart\". Only QC metrics for icgc_dart will be returned.")
-    #TO DO: Remove this once capture metrics have been generated for gambl samples.
-    sample_table = left_join(sample_table, icgc_qc)
-
-    #print n samples with QC metrics
-    qc_samples = length(unique(icgc_qc$sample_id))
-    message(paste("QC metrics for", qc_samples, "samples retrieved."))
-  }
   return(sample_table)
 }
