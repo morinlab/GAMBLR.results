@@ -18,6 +18,8 @@
 #'
 #' @param these_samples_metadata Required. A single row of metadata specifying
 #' which sample_id and seq_type you desire the mutations from
+#' @param this_sample_id Optional. Can be used to subset a multi-row these_samples_metadata 
+#' table to a single row. 
 #' @param tool_name The name of the variant calling pipeline (currently
 #' only slms-3 is supported).
 #' @param projection The projection genome build. Supports hg38 and grch37
@@ -76,26 +78,31 @@ get_ssm_by_sample = function(these_samples_metadata,
                              this_seq_type
                              ){
   remote_session = check_host() #determine if GAMBLR is running remotely
-  #remote_session = check_remote_configuration(auto_connect = TRUE)
+
   if(missing(this_sample_id) & missing(these_samples_metadata)){
-    stop("Must provide a sample_id or a single row of metadata")
+    stop("Must provide a single row of metadata or multi-row metadata together with a single sample_id.")
   }else if(missing(these_samples_metadata)){
-    these_samples_metadata = get_gambl_metadata() %>%
-      dplyr::filter(sample_id == this_sample_id) %>% 
-      dplyr::filter(seq_type != "mrna") 
+    these_samples_metadata = get_gambl_metadata() 
+  }
+  
+  if(nrow(these_samples_metadata) > 1){ 
+    #if more than one row was provided, filter to the one we want 
+    #just in case more than one row was provided
+    if(missing(this_sample_id)){
+      stop("Please provide a single sample_id to subset these_samples_metadata to a single row.")
   }else{
-    #just in case more than our row was provided
-    if(nrow(these_samples_metadata)>1){
       these_samples_metadata = these_samples_metadata %>%
         dplyr::filter(seq_type != "mrna") %>%
         dplyr::filter(sample_id == this_sample_id)
-    }
+      # If the length is still >1, then >1 seq_type is present for this sample
+      if(nrow(these_samples_metadata) > 1){
+        stop(glue::glue("There is >1 seq_type for {this_sample_id} in the metadata.
+                        Please subset these_samples_metadata to a single seq_type/sample_id combination."))
+      }
+      if(nrow(these_samples_metadata) == 0){
+        stop(glue::glue("No sample with id {this_sample_id} found in the metadata."))
   }
-  if(nrow(these_samples_metadata) > 1 | nrow(these_samples_metadata)==0){
-    print(nrow(these_samples_metadata))
-    print(these_samples_metadata)
-    stop("problem!")
-  }
+  }}
   
   seq_type = pull(these_samples_metadata,seq_type)
 
