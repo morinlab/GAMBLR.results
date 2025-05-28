@@ -226,7 +226,6 @@ get_ssm_by_sample = function(these_samples_metadata,
   }
   # Check if maf exists; if not, return empty data frame
   if(!file.exists(full_maf_path)){
-    print(paste("missing: ", full_maf_path))
     message(paste("warning: file does not exist, skipping it.", full_maf_path))
     return()
   }
