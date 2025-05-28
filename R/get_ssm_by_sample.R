@@ -36,7 +36,6 @@
 #' which columns to be returned within the MAF. This parameter can either
 #' be a vector of indexes (integer) or a vector of characters.
 #' @param verbose Enable for debugging/noisier output.
-#' @param this_sample_id Deprecated. Inferred from these_samples_metadata
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #'
 #' @return data frame in MAF format.
@@ -90,7 +89,7 @@ get_ssm_by_sample = function(these_samples_metadata,
     #just in case more than one row was provided
     if(missing(this_sample_id)){
       stop("Please provide a single sample_id to subset these_samples_metadata to a single row.")
-  }else{
+    }else{
       these_samples_metadata = these_samples_metadata %>%
         dplyr::filter(seq_type != "mrna") %>%
         dplyr::filter(sample_id == this_sample_id)
@@ -101,7 +100,7 @@ get_ssm_by_sample = function(these_samples_metadata,
       }
       if(nrow(these_samples_metadata) == 0){
         stop(glue::glue("No sample with id {this_sample_id} found in the metadata."))
-  }
+      }
   }}
   
   seq_type = pull(these_samples_metadata,seq_type)
@@ -225,12 +224,18 @@ get_ssm_by_sample = function(these_samples_metadata,
       full_maf_path = aug_maf_path
     }
   }
+  # Check if maf exists; if not, return empty data frame
+  if(!file.exists(full_maf_path)){
+    print(paste("missing: ", full_maf_path))
+    message(paste("warning: file does not exist, skipping it.", full_maf_path))
+    return()
+  }
   sample_ssm = fread_maf(full_maf_path)
   if(min_read_support){
     # drop poorly supported reads but only from augmented MAF
       sample_ssm = dplyr::filter(sample_ssm, t_alt_count >= min_read_support)
   }
-  
+
 
   #subset maf to only include first 43 columns (default)
   if(basic_columns){
