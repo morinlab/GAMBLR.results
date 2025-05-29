@@ -46,8 +46,7 @@ be a vector of indexes (integer) or a vector of characters.}
 
 \item{verbose}{Enable for debugging/noisier output.}
 
-\item{this_sample_id}{Optional. Can be used to subset a multi-row these_samples_metadata
-table to a single row.}
+\item{this_sample_id}{Deprecated. Inferred from these_samples_metadata}
 
 \item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
 }

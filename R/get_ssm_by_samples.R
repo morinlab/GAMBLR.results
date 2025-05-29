@@ -2,7 +2,7 @@
 #'
 #' @description Get the genome-wide set of mutations for one or more sample including coding and non-coding mutations.
 #'
-#' @details
+#' @details 
 #' The user can specify a metadata table (`these_samples_metadata`), subset to the sample IDs of interest.
 #' In most situations, this should never need to be run with subset_from_merge = TRUE, which is very inefficient.
 #' This function does not scale well to many samples. In most cases, users will actually need either [GAMBLR.results::get_coding_ssm] or [GAMBLR.results::get_ssm_by_region].
@@ -68,7 +68,7 @@
 get_ssm_by_samples = function(these_samples_metadata,
                               tool_name = "slms-3",
                               projection = "grch37",
-                                                            flavour = "clustered",
+                              flavour = "clustered",
                               these_genes,
                               min_read_support = 3,
                               basic_columns = TRUE,
@@ -78,7 +78,7 @@ get_ssm_by_samples = function(these_samples_metadata,
                               engine = 'fread_maf',
                               these_sample_ids,
                               this_seq_type){
-
+  
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
@@ -95,35 +95,35 @@ get_ssm_by_samples = function(these_samples_metadata,
     these_samples_metadata = get_gambl_metadata() %>%
       dplyr::filter(sample_id %in% these_sample_ids,seq_type!="mrna") %>%
       dplyr::filter(!sample_id %in% to_exclude)
-n_samp = nrow(these_samples_metadata)
+      n_samp = nrow(these_samples_metadata)
       n_orig = length(these_sample_ids)
       if(n_orig > n_samp){
         lost = n_orig - n_samp
         print(paste(lost,"of",n_orig,"samples have been dropped!"))
       }
   }else{
-#drop unsupported seq_type
+   #drop unsupported seq_type
     these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type!="mrna")
     if(missing(these_sample_ids)){
       #assume the user just wants the data for all the sample ids in this data frame
       seq_type_sample_ids = list()
       for(a_seq_type in unique(these_samples_metadata$seq_type)){
         seq_type_sample_ids[[a_seq_type]]=dplyr::filter(these_samples_metadata,seq_type==a_seq_type) %>% pull(sample_id)
-} 
+      } 
     }
     else{
       these_samples_metadata = these_samples_metadata %>%
         dplyr::filter(sample_id %in% these_sample_ids) %>%
         dplyr::filter(!sample_id %in% to_exclude)
     }
-if(length(unique(these_samples_metadata$seq_type))>1){
+    if(length(unique(these_samples_metadata$seq_type))>1){
       message("metadata provided contained more than one seq_type.")
       print("The value of this_seq_type was ignored and all samples in these_samples_metadata and these_sample_ids (if provided) were included")
     }
   }
   #ensure we only have sample_id that are in the remaining metadata (no excluded/unavailable samples)
   these_sample_ids <- these_samples_metadata$sample_id
-
+  
   maf_column_types = "ccccciiccccccccccccccccccccccnccccccccciiiiii" #for the first 45 standard columns
   if(flavour=="legacy"){
     warning("I lied. Access to the old variant calls is not currently supported in this function")
@@ -138,12 +138,12 @@ if(length(unique(these_samples_metadata$seq_type))>1){
         print("For a workaround, you can run individually for each desired seq_type")
         stop()
       }
-seq_type = these_samples_metadata$seq_type[1] #needed for glue
+      seq_type = these_samples_metadata$seq_type[1] #needed for glue
       maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$deblacklisted")
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
       message(paste("using existing merge:", full_maf_path))
-#if(!file.exists(full_maf_path)){
+      #if(!file.exists(full_maf_path)){
       #  full_maf_path = paste0(full_maf_path,".bgz")  
       #}
       #check for missingness
@@ -151,9 +151,9 @@ seq_type = these_samples_metadata$seq_type[1] #needed for glue
         print(paste("missing: ", full_maf_path))
         message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
         message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-        }
+      }
 
-
+      
       if(engine=="fread_maf"){
         if(basic_columns){
           maf_df_merge = suppressMessages(fread_maf(full_maf_path,select_cols = c(1:45))) %>%
@@ -167,9 +167,9 @@ seq_type = these_samples_metadata$seq_type[1] #needed for glue
       }else if(engine=="readr"){
         if(basic_columns){
           maf_df_merge = suppressMessages(
-read_tsv(full_maf_path,
-col_select = c(1:45),
-num_threads=12,col_types = maf_column_types,lazy = TRUE)) %>%
+            read_tsv(full_maf_path,
+            col_select = c(1:45),
+            num_threads=12,col_types = maf_column_types,lazy = TRUE)) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
             dplyr::filter(t_alt_count >= min_read_support)
         }else{
@@ -194,7 +194,7 @@ num_threads=12,col_types = maf_column_types,lazy = TRUE)) %>%
         stop()
       }
       
-seq_type = these_samples_metadata$seq_type[1] #needed for glue
+      seq_type = these_samples_metadata$seq_type[1] #needed for glue
       maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
@@ -226,33 +226,28 @@ seq_type = these_samples_metadata$seq_type[1] #needed for glue
     }
 
     if(!subset_from_merge){
-        maf_df_list = list()
-        for(a_seq_type in names(seq_type_sample_ids)){
-                maf_df_list[[a_seq_type]] <- parallel::mclapply(seq_type_sample_ids[[a_seq_type]],function(this_sample){
-                  get_ssm_by_sample(
-                    these_samples_metadata = dplyr::filter(these_samples_metadata,
-                                                            sample_id==this_sample,
-                                                            seq_type==a_seq_type),
-                    tool_name = tool_name,
-                    projection = projection,
-                    augmented = augmented,
-                    flavour = flavour,
-                    min_read_support = min_read_support,
-                    basic_columns = basic_columns,
-                    maf_cols = maf_cols,
-                    verbose = FALSE
-                  )},
-                  mc.cores = 12)
-                  # Drop items that are not dataframes from the list
-                  maf_df_list[[a_seq_type]] <- maf_df_list[[a_seq_type]][sapply(maf_df_list[[a_seq_type]], is.data.frame)]
-                  # Create a merge of the current a_seq_type maf
-                  maf_df_list[[a_seq_type]] <- do.call(bind_genomic_data, maf_df_list[[a_seq_type]])
-                  message(glue::glue("Merged {length(unique(maf_df_list[[a_seq_type]]$Tumor_Sample_Barcode))} samples for seq_type {a_seq_type}"))
-                }
-        # Merge all the maf data frames from different seq_types
-        maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
+      maf_df_list = list()
+      for(a_seq_type in names(seq_type_sample_ids)){
+          for(this_sample in seq_type_sample_ids[[a_seq_type]]){
+            maf_df = get_ssm_by_sample(
+              these_samples_metadata = dplyr::filter(these_samples_metadata,
+                                                     sample_id==this_sample,
+                                                     seq_type==a_seq_type),
+              tool_name = tool_name,
+              projection = projection,
+              augmented = augmented,
+              flavour = flavour,
+              min_read_support = min_read_support,
+              basic_columns = basic_columns,
+              maf_cols = maf_cols,
+              verbose = FALSE)
+            maf_df_list[[this_sample]]=maf_df
+          }
+        }
+      
+      maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
     }
   }
 
-    return(maf_df_merge)
+  return(maf_df_merge)
 }
