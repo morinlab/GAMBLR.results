@@ -12,6 +12,7 @@
 #' @param exome_capture_space_priority A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available
 #' @param dna_preservation_priority Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.
+#' @param collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows (except bam_available == FALSE) for all seq_types including those that would otherwise be collapsed. 
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
 #' @param include_unavailable Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
@@ -105,6 +106,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                                                 "exome-utr-grch38",
                                                                 "none"),
                                mrna_collapse_redundancy=TRUE,
+                               collapse_redundancy = TRUE,
                                also_normals = FALSE,
                                include_unavailable=FALSE,
                                verbose=FALSE,
@@ -203,6 +205,10 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   check_biopsy_metadata(sample_meta_tumour)
 
   sample_meta_rna = filter(sample_meta,seq_type == "mrna") #includes some normals
+  if(!collapse_redundancy) {
+    mrna_collapse_redundancy = FALSE
+    warning("collapse_redundancy is set to FALSE. Will not collpase any rows of metadata for DNA or RNA seq_types.")
+  }
   if(mrna_collapse_redundancy){
     sample_subset_rna = check_gene_expression(verbose=verbose) %>% select(-protocol,-cohort,-ffpe_or_frozen)
     sample_meta_rna_dropped = suppressMessages(anti_join(sample_meta_rna,sample_subset_rna))
@@ -342,6 +348,24 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       Tumor_Sample_Barcode = sample_id
       )
 
+  if(!collapse_redundancy){
+    all_meta_kept <- bind_rows(
+      sample_meta_tumour %>%
+        dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+        dplyr::filter(!seq_type %in% exclude),
+      sample_meta_rna_kept
+      ) %>% 
+      left_join(biopsy_meta, by = c("patient_id", "biopsy_id"))
+    if(also_normals){
+      all_meta_kept <- bind_rows(
+        all_meta_kept, 
+        sample_meta_normal %>%
+          dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
+          dplyr::filter(!seq_type %in% exclude)
+        )
+    }
+    all_meta_kept <- all_meta_kept 
+  }
 
   all_meta_kept <- all_meta_kept %>%
     dplyr::mutate(
@@ -357,8 +381,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
             DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
             TRUE ~ NA)
     )
-  if(also_normals){
-    #add missing normals to the data frame by calling the function again
+  if(also_normals & collapse_redundancy){
+    # If collapse_redundancy is FALSE, then the normals were already added at line 353
+    # add normals to the data frame
     all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-priority)
     return(all_meta_kept)
   }else{
