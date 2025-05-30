@@ -14,7 +14,7 @@
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
-#' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
+#' @param include_unavailable Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
 #' @param exclude Specify one or more seq_type to drop from the output. 
 #' This prevents metadata from containing anythong other than the three standard
@@ -106,7 +106,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                                                 "none"),
                                mrna_collapse_redundancy=TRUE,
                                also_normals = FALSE,
-                               everything=FALSE,
+                               include_unavailable=FALSE,
                                verbose=FALSE,
                                invert=FALSE,
                                exclude = "promethION",
@@ -140,9 +140,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
 
   # We virtually always want to remove samples without bam_available == TRUE
-  if(everything){
-    mrna_collapse_redundancy = FALSE
-  }else{
+  # Only keep these if the user specifies to include them
+  if(!include_unavailable){
     sample_meta = dplyr::filter(sample_meta, bam_available %in% c(1, "TRUE"))
   }
 
