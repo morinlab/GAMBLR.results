@@ -15,7 +15,7 @@
 #'
 #' @return A data frame containing the Manta outputs from all sample_id in these_samples_metadata in a bedpe-like format with additional columns extracted from the VCF column.
 #'
-#' @import dplyr stringr
+#' @import dplyr stringr parallel
 #' @export
 #'
 #' @examples
@@ -46,7 +46,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
   all_bedpe = list()
 
   #wrap get_manta_sv_by_sample.
-  all_bedpe = lapply(samples, function(x){get_manta_sv_by_sample(this_sample_id = x,
+  all_bedpe = parallel::mclapply(samples, function(x){get_manta_sv_by_sample(this_sample_id = x,
                                                                  these_samples_metadata = these_samples_metadata,
                                                                  force_lift = FALSE, #the wrapper function performs liftover on all samples that need it.
                                                                  return_anyway = TRUE, #make sure unlifted calls, with the extra column (need_lift) are returned.
@@ -54,7 +54,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
                                                                  min_score = min_score,
                                                                  pass_filters = pass_filters,
                                                                  projection = projection,
-                                                                 verbose = verbose)})
+                                                                 verbose = verbose)}, mc.cores = 12)
 
   #un-nest list into long format.
   merged_bedpe = bind_rows(all_bedpe)
