@@ -37,7 +37,7 @@
 #'
 #' @return A data frame in MAF format.
 #'
-#' @import dplyr readr tidyr glue GAMBLR.helpers
+#' @import dplyr readr tidyr glue parallel GAMBLR.helpers
 #' @export
 #'
 #' @examples
