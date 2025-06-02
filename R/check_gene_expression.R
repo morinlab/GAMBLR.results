@@ -29,6 +29,25 @@ check_gene_expression = function(verbose=F, show_linkages=F, ...){
   # We start with the minimal metadata that corresponds to the tidy expression file (sample_metadata.tsv)
   metadata_file = check_config_and_value("results_merged$tidy_expression_metadata")
   metadata_file = paste0(check_config_and_value("project_base"),metadata_file)
+  if(!file.exists(metadata_file)){
+    message("No tidy expression metadata file found at ", metadata_file, 
+            ". Do you have icgc_dart permissions? Attempting to find an equivalent GAMBL metadata file.")
+    # metadata file might be nonexistent for users who don't have icgc_dart permissions
+    # Try to find an equivalent gambl metadata file
+    gambl_metadata_file = str_replace(
+      check_config_and_value("results_merged$tidy_expression_path_gambl"), 
+      "vst-matrix-Hugo_Symbol_tidy.tsv", 
+      "sample_metadata.tsv"
+      )
+    gambl_metadata_file = paste0(check_config_and_value("project_base"),gambl_metadata_file)
+    message(paste0("Using GAMBL metadata file at ", gambl_metadata_file, " instead of icgc_dart equivalent.\n",
+                   "The output will not include mrna data for any icgc_dart samples. "))
+    if(!file.exists(gambl_metadata_file)){
+      stop(paste("No tidy expression metadata file found at", metadata_file, "or", gambl_metadata_file))
+    } else {
+      metadata_file = gambl_metadata_file
+    }
+  }
   expression_data_rows = suppressMessages(read_tsv(metadata_file,progress = FALSE)) %>% 
                                             dplyr::select(sample_id,
                                                          tissue_status,
