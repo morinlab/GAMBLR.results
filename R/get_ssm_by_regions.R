@@ -30,7 +30,7 @@
 #'
 #' @return Returns a data frame of variants in MAF-like format.
 #'
-#' @import tibble dplyr tidyr GAMBLR.utils
+#' @import tibble dplyr tidyr GAMBLR.utils parallel
 #' @export
 #'
 #' @examples
@@ -77,7 +77,7 @@ get_ssm_by_regions = function(regions_list,
     seq_type == this_seq_type)
   if(streamlined){
     message("Streamlined is set to TRUE, this function will disregard anything specified with basic_columns")
-    message("To return a MAF with standard 45 columns, set streamlioned = FALSE and basic_columns = TRUE")
+    message("To return a MAF with standard 45 columns, set streamlined = FALSE and basic_columns = TRUE")
     message("To return a maf with all (116) columns, set streamlined = FALSE and basic_columns = FALSE")
   }
   bed2region = function(x){
@@ -109,26 +109,30 @@ get_ssm_by_regions = function(regions_list,
         genome_build = projection
       }
     }
-    region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
-          
-                                                                these_samples_metadata = these_samples_metadata,
-                                                                streamlined = streamlined,
-                                                                from_indexed_flatfile = from_indexed_flatfile,
-                                                                mode = mode,
-                                                                augmented = augmented,
-                                                                this_seq_type = this_seq_type,
-                                                                projection = genome_build,
-                                                                basic_columns = basic_columns)})
+    region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
+      region = x,          
+      these_samples_metadata = these_samples_metadata,
+      streamlined = streamlined,
+      from_indexed_flatfile = from_indexed_flatfile,
+      mode = mode,
+      augmented = augmented,
+      this_seq_type = this_seq_type,
+      projection = genome_build,
+      basic_columns = basic_columns
+      )},
+      mc.cores = 12)
   }else{
-    region_mafs = lapply(regions, function(x){get_ssm_by_region(region = x,
-                    
-                                                                these_samples_metadata = these_samples_metadata,
-                                                                this_seq_type = this_seq_type,
-                                                                streamlined = streamlined,
-                                                                maf_data = maf_data,
-                                                                from_indexed_flatfile = from_indexed_flatfile,
-                                                                mode = mode,
-                                                                basic_columns = basic_columns)})
+    region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
+      region = x,
+      these_samples_metadata = these_samples_metadata,
+      this_seq_type = this_seq_type,
+      streamlined = streamlined,
+      maf_data = maf_data,
+      from_indexed_flatfile = from_indexed_flatfile,
+      mode = mode,
+      basic_columns = basic_columns
+      )},
+      mc.cores = 12)
   }
   if(!use_name_column){
     rn = regions
