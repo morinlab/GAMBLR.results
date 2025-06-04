@@ -12,8 +12,9 @@ get_gambl_metadata(
     "agilent-sureselect-V5-plus-utr", "idt-xgen-v2-grch37", "exome-utr-grch37",
     "exome-utr-grch38", "none"),
   mrna_collapse_redundancy = TRUE,
+  collapse_redundancy = TRUE,
   also_normals = FALSE,
-  everything = FALSE,
+  include_unavailable = FALSE,
   verbose = FALSE,
   invert = FALSE,
   exclude = "promethION",
@@ -31,9 +32,11 @@ get_gambl_metadata(
 
 \item{mrna_collapse_redundancy}{Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.}
 
+\item{collapse_redundancy}{Default: TRUE. Set to FALSE to obtain all rows (except bam_available == FALSE) for all seq_types including those that would otherwise be collapsed.}
+
 \item{also_normals}{Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)}
 
-\item{everything}{Set to TRUE to include samples with \code{bam_available == FALSE}. Default: FALSE - only samples with \code{bam_available = TRUE} are retained.}
+\item{include_unavailable}{Set to TRUE to include samples with \code{bam_available == FALSE}. Default: FALSE - only samples with \code{bam_available = TRUE} are retained.}
 
 \item{verbose}{Set to TRUE for a chatty output (mostly for debugging)}
 
