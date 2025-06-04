@@ -204,8 +204,8 @@ build_browser_hub = function(regions_bed,
   regions_bed = dplyr::select(regions_bed, 1,2,3) %>%
     arrange( .[[1]], .[[2]] )
   temp_bed = tempfile(pattern = "regionsBed_", fileext = ".bed")
-  write.table(regions_bed, temp_bed, quote = FALSE, sep = "\t", row.names = FALSE,
-              col.names = FALSE)
+  write_tsv(regions_bed, file = temp_bed, col_names = FALSE)
+
   if(projection == "grch37"){
     chr_arms = GAMBLR.data::chromosome_arms_grch37 %>%
       mutate(chromosome = paste0("chr", chromosome))
@@ -217,8 +217,7 @@ build_browser_hub = function(regions_bed,
     dplyr::select(chromosome, end) %>%
     rename(size = "end")
   temp_chr_sizes = tempfile(pattern = "chrom.sizes_")
-  write.table(chr_sizes, temp_chr_sizes, quote = FALSE, sep = "\t", row.names = FALSE,
-              col.names = FALSE)
+  write_tsv(chr_sizes, file = temp_chr_sizes, col_names = FALSE)
   regions_bb_file = file.path(track_dir, "regions.bb")
   bigbed_conversion = gettextf("%s %s %s %s", bedToBigBed_path, temp_bed, temp_chr_sizes,
                                regions_bb_file)

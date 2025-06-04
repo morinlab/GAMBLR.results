@@ -206,9 +206,7 @@ maf_to_custom_track <- function(maf_data,
       dplyr::select(chromosome, end) %>%
       dplyr::rename(size = end)
     temp_chr_sizes <- tempfile(pattern = "chrom.sizes_")
-    write.table(chr_sizes,
-      file = temp_chr_sizes, quote = FALSE, row.names = FALSE,
-      col.names = FALSE, sep = "\t")
+    write_tsv(chr_sizes, file = temp_chr_sizes, col_names = FALSE)
 
     if (as_biglolly) {
       # currently the same code is run either way but this may change so I've separated this until we settle on format
@@ -220,7 +218,7 @@ maf_to_custom_track <- function(maf_data,
       # determine frequency of each event per group to assign the size
       maf_coloured <- group_by(maf_coloured, start, rgb) %>% mutate(size = n())
 
-      write.table(maf_coloured, file = temp_bed, quote = F, sep = "\t", row.names = F, col.names = F)
+      write_tsv(maf_coloured, file = temp_bed, col_names = FALSE)
       # conversion:
       autosql_file <- "/Users/rmorin/git/LLMPP/resources/reference/ucsc/bigLollyExample3.as"
 
@@ -231,7 +229,7 @@ maf_to_custom_track <- function(maf_data,
       print(bigbed_conversion)
       system(bigbed_conversion)
     } else {
-      write.table(maf_coloured, file = temp_bed, quote = F, sep = "\t", row.names = F, col.names = F)
+      write_tsv(maf_coloured, file = temp_bed, col_names = F)
       # conversion:
       bigbed_conversion <- paste(bedToBigBed_path, "-tab -type=bed9", temp_bed, temp_chr_sizes, output_file)
 
@@ -241,6 +239,6 @@ maf_to_custom_track <- function(maf_data,
   } else {
     header_ucsc <- paste0('track name="', track_name, '" description="', track_description, '" visibility=2 itemRgb="On"\n')
     cat(header_ucsc, file = output_file)
-    write.table(maf_coloured, file = output_file, quote = F, sep = "\t", row.names = F, col.names = F, append = TRUE)
+    write_tsv(maf_coloured, file = output_file, col_names = F, append = TRUE)
   }
 }
