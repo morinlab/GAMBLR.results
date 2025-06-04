@@ -381,7 +381,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
             TRUE ~ NA)
     )
   if(also_normals & collapse_redundancy){
-    # If collapse_redundancy is FALSE, then the normals were already added at line 353
+    # If collapse_redundancy is FALSE, then the normals were already added at line 358
     # add normals to the data frame
     all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-priority, -mrna_sample_id)
     return(all_meta_kept)
