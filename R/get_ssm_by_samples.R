@@ -37,7 +37,7 @@
 #'
 #' @return A data frame in MAF format.
 #'
-#' @import dplyr readr tidyr glue parallel GAMBLR.helpers
+#' @import dplyr readr tidyr glue GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -243,13 +243,7 @@ seq_type = these_samples_metadata$seq_type[1] #needed for glue
                     verbose = FALSE
                   )},
                   mc.cores = 12)
-                  broken_mafs <- maf_df_list[[a_seq_type]][sapply(maf_df_list[[a_seq_type]], Negate(is.data.frame))]
-                  if(length(broken_mafs) > 0){
-                    broken_mafs <- broken_mafs[sapply(broken_mafs, Negate(is.null))]
-                    if(length(broken_mafs > 0)){
-                      message(glue::glue("There were errors reading in {length(broken_mafs)} MAFs for seq_type {a_seq_type}.\nThe error recorded for the first maf is: "))
-                      print(broken_mafs[[1]])
-                    }}
+                  # Drop items that are not dataframes from the list
                   maf_df_list[[a_seq_type]] <- maf_df_list[[a_seq_type]][sapply(maf_df_list[[a_seq_type]], is.data.frame)]
                   # Create a merge of the current a_seq_type maf
                   maf_df_list[[a_seq_type]] <- do.call(bind_genomic_data, maf_df_list[[a_seq_type]])

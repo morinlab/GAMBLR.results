@@ -12,10 +12,9 @@
 #' @param exome_capture_space_priority A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available
 #' @param dna_preservation_priority Which to prioritize between FFPE and frozen samples from the same biopsy (default: "frozen")
 #' @param mrna_collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows for the mrna seq_type including those that would otherwise be collapsed.
-#' @param collapse_redundancy Default: TRUE. Set to FALSE to obtain all rows (except bam_available == FALSE) for all seq_types including those that would otherwise be collapsed. 
 #' @param also_normals Set to TRUE to force the return of rows where tissue_status is normal (default is to restrict to tumour)
 #' @param invert Set to TRUE to force the function to return only the rows that are lost in all the prioritization steps (mostly for debugging)
-#' @param include_unavailable Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
+#' @param everything Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
 #' @param exclude Specify one or more seq_type to drop from the output. 
 #' This prevents metadata from containing anythong other than the three standard
@@ -106,9 +105,8 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                                                 "exome-utr-grch38",
                                                                 "none"),
                                mrna_collapse_redundancy=TRUE,
-                               collapse_redundancy = TRUE,
                                also_normals = FALSE,
-                               include_unavailable=FALSE,
+                               everything=FALSE,
                                verbose=FALSE,
                                invert=FALSE,
                                exclude = "promethION",
@@ -142,8 +140,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
 
 
   # We virtually always want to remove samples without bam_available == TRUE
-  # Only keep these if the user specifies to include them
-  if(!include_unavailable){
+  if(everything){
+    mrna_collapse_redundancy = FALSE
+  }else{
     sample_meta = dplyr::filter(sample_meta, bam_available %in% c(1, "TRUE"))
   }
 
@@ -205,10 +204,6 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   check_biopsy_metadata(sample_meta_tumour)
 
   sample_meta_rna = filter(sample_meta,seq_type == "mrna") #includes some normals
-  if(!collapse_redundancy) {
-    mrna_collapse_redundancy = FALSE
-    warning("collapse_redundancy is set to FALSE. Will not collapse any rows of metadata for DNA or RNA seq_types.")
-  }
   if(mrna_collapse_redundancy){
     sample_subset_rna = check_gene_expression(verbose=verbose) %>% select(-protocol,-cohort,-ffpe_or_frozen)
     sample_meta_rna_dropped = suppressMessages(anti_join(sample_meta_rna,sample_subset_rna))
@@ -321,39 +316,22 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   #remove redundant columns before joining, preferring the values in gambl_samples_available
   biopsy_meta = select(biopsy_meta,-time_point,-pathology,-EBV_status_inf)
 
-  if(!collapse_redundancy){
-    all_meta_kept <- bind_rows(
-      sample_meta_tumour %>%
-        dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
-        dplyr::filter(!seq_type %in% exclude),
-      sample_meta_rna_kept
-      ) %>% 
-      left_join(biopsy_meta, by = c("patient_id", "biopsy_id"))
-      sample_meta_normal_dna_kept <- sample_meta_normal %>%
-          dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
-          dplyr::filter(!seq_type %in% exclude)  
-      col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_kept %>%
-        dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
-        dplyr::rename("normal_sample_id" = "sample_id")
-  } else{
-    all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>%
-      ungroup() %>% select(-priority, -mrna_sample_id)
-    all_meta_kept = bind_rows(all_meta_kept, sample_meta_tumour_dna_promethion)
-    all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id"))
-    sample_meta_normal_dna_rna_kept = bind_rows(sample_meta_normal_dna_kept,
-                                              filter(sample_meta_rna_kept,tissue_status=="normal"))
-    col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_rna_kept %>%
-      dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
-      dplyr::rename("normal_sample_id" = "sample_id")
-  }
 
-  
+
+  all_meta_kept = bind_rows(sample_meta_tumour_dna_kept, filter(sample_meta_rna_kept,tissue_status=="tumour")) %>%
+    ungroup() %>% select(-priority)
+  all_meta_kept = bind_rows(all_meta_kept, sample_meta_tumour_dna_promethion)
+  all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id"))
   all_meta_kept = GAMBLR.utils::tidy_lymphgen(all_meta_kept,
                                          lymphgen_column_in = "lymphgen_cnv_noA53",
                                          lymphgen_column_out = "lymphgen",
                                          relevel=TRUE)
 
-  
+  sample_meta_normal_dna_rna_kept = bind_rows(sample_meta_normal_dna_kept,
+                                              filter(sample_meta_rna_kept,tissue_status=="normal"))
+  col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_rna_kept %>%
+    dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
+    dplyr::rename("normal_sample_id" = "sample_id")
   all_meta_kept = left_join(all_meta_kept,
                             col_sample_meta_normal_dna_rna_kept,
                             by=c("patient_id", "seq_type","genome_build")) %>%
@@ -365,7 +343,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       Tumor_Sample_Barcode = sample_id
       )
 
-  
+
   all_meta_kept <- all_meta_kept %>%
     dplyr::mutate(
         consensus_coo_dhitsig = case_when(
@@ -380,10 +358,9 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
             DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
             TRUE ~ NA)
     )
-  if(also_normals & collapse_redundancy){
-    # If collapse_redundancy is FALSE, then the normals were already added at line 358
-    # add normals to the data frame
-    all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-priority, -mrna_sample_id)
+  if(also_normals){
+    #add missing normals to the data frame by calling the function again
+    all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-priority)
     return(all_meta_kept)
   }else{
     return(all_meta_kept)
