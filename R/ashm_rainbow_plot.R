@@ -53,10 +53,16 @@ ashm_rainbow_plot = function(mutations_maf,
     qstart = as.numeric(startend[1])
     qend = as.numeric(startend[2])
     if(missing(mutations_maf)){
-      mutations_maf = get_ssm_by_region(region = region, streamlined = TRUE)
+      # at the time this function was written, this call to get_ssm_by_region would subset to genomes only by default
+      # so filtering metadata first now
+      these_samples_metadata = dplyr::filter(metadata, seq_type %in% "genome")
+      mutations_maf = get_ssm_by_region(region = region, streamlined = TRUE, these_samples_metadata = these_samples_metadata)
     }else{
+      # at the time this function was written, this call to get_ssm_by_region would subset to genomes only by default
+      # so filtering metadata first now
+      these_samples_metadata = dplyr::filter(metadata, seq_type %in% "genome")
       #ensure it only contains mutations in the region specified
-      mutations_maf = get_ssm_by_region(region = region, streamlined = TRUE, maf_data = mutations_maf)
+      mutations_maf = get_ssm_by_region(region = region, streamlined = TRUE, maf_data = mutations_maf, these_samples_metadata = these_samples_metadata)
     }
   }
   if(!missing(classification_column)){
