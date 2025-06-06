@@ -22,16 +22,17 @@ collate_hnrnph1_mutations = function(sample_table,
   
   #TO DO: Update to work with hg38 projection
   if(missing(sample_table)){
-    sample_table = get_gambl_metadata(seq_type_filter=seq_type_filter) %>%
+    sample_table = get_gambl_metadata() %>%
+      dplyr::filter(seq_type == seq_type_filter)
       dplyr::select(sample_id, patient_id, biopsy_id)
+  }else{
+    sample_table = dplyr::filter(sample_table, seq_type == seq_type_filter)
   }
   this_region = "chr5:179,046,194-179,046,508"
-  hnrnph1 = get_ssm_by_region(region = this_region,this_seq_type = seq_type_filter) %>%
+  hnrnph1 = get_ssm_by_region(region = this_region, these_samples_metadata = sample_table) %>%
     pull(Tumor_Sample_Barcode) %>%
     unique
-  
-  
-  
+
   sample_table$HNRNPH1_splice = "NEG"
   sample_table[sample_table$sample_id %in% hnrnph1, "HNRNPH1_splice"] = "POS"
   return(sample_table)
