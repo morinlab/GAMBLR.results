@@ -52,7 +52,7 @@
 #'
 #' @examples
 #' #basic usage
-#' genomes = get_gambl_metadata() %>% 
+#' genomes = get_gambl_metadata() %>%
 #'              dplyr::filter(seq_type %in% "genome")
 #' my_mutations = GAMBLR.results:::get_ssm_by_region(
 #'             region = "chr8:128723128-128774067",
@@ -62,7 +62,7 @@
 #' #keep all 116 columns in the read MAF
 #' bcl2_all_details = GAMBLR.results:::get_ssm_by_region(
 #'             region = "chr18:60796500-60988073",
-#'             these_samples_metadata = genomes 
+#'             these_samples_metadata = genomes,
 #'             basic_columns = FALSE)
 #' @keywords internal
 get_ssm_by_region = function(chromosome,
@@ -103,7 +103,7 @@ get_ssm_by_region = function(chromosome,
     these_samples_metadata = get_gambl_metadata() %>%
       dplyr::filter(seq_type!="mrna") %>%
       dplyr::filter(!sample_id %in% to_exclude)
-      
+
   }else{
     #drop unsupported seq_type and samples to exclude
     these_samples_metadata = dplyr::filter(these_samples_metadata,seq_type!="mrna") %>%
@@ -261,7 +261,7 @@ get_ssm_by_region = function(chromosome,
     # set up lists
     seq_type_sample_ids = list() # items are vectors of sample_ids
     for(a_seq_type in unique(these_samples_metadata$seq_type)){
-        seq_type_sample_ids[[a_seq_type]]=dplyr::filter(these_samples_metadata,seq_type==a_seq_type) %>% 
+        seq_type_sample_ids[[a_seq_type]]=dplyr::filter(these_samples_metadata,seq_type==a_seq_type) %>%
         pull(sample_id)
     }
     seq_type_muts = list() # items are dataframes of mutations
@@ -325,7 +325,7 @@ get_ssm_by_region = function(chromosome,
                                      col_names = maf_columns,
                                      delim = "\t"))
       }
-      
+
       if(verbose){
         print('SUCCESS')
       }
