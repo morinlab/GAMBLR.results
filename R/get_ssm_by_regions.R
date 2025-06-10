@@ -56,7 +56,7 @@
 #' ) %>% head(20)
 #' 
 #' DLBCL_meta = suppressMessages(get_gambl_metadata()) %>% 
-#'                 dplyr::filter(pathology=="DLBCL")
+#'                 dplyr::filter(pathology=="DLBCL", seq_type == "genome")
 #' ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
 #'                              these_samples_metadata = DLBCL_meta,
 #'                              streamlined=FALSE)
