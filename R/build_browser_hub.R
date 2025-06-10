@@ -24,25 +24,18 @@
 #'
 #'
 #' @param regions_bed A BED-format table with the regions you want to retrieve SSMs
-#'   from. The columns 1, 2 and 3 must be chromosome names, start positions and
-#'   end positions, respectively. If not provided, the function defaults to aSHM
-#'   regions, *i.e.* one of `GAMBLR.data::grch37_ashm_regions` or `GAMBLR.data::hg38_ashm_regions`,
-#'   which is chosen automatically depending on the provided `projection`.
+#'   from. If not provided, the function defaults to aSHM regions,
+#'   either `GAMBLR.data::grch37_ashm_regions` or `GAMBLR.
+#'   data::hg38_ashm_regions`, depending on the provided projection.
 #' @param these_samples_metadata Optional (but highly recommended) metadata
-#' table to tell the function how to subset the data. Only sample_id in
-#' this table with the matching seq_type will be in the output. Not all
-#' samples may be in the output, though, if they are missing SSM results
-#' or had no mutations detected.
-#' @param these_seq_types A vector of one or more seq types you want results for.
-#'   Possible values are "genome" or "capture". If more than
-#'   one seq type is provided, for each value in `splitColumnName`, the function
-#'   creates a separate track for each provided seq type. The default is
-#'   `c("genome", "capture")`. See the **Details** section for more information.
+#'   table. Only samples with seq_type "genome" or "capture" will be used. 
+#'   Otherwise it will use all genome and capture samples from `get_gambl_metadata()`.
 #' @param maf_data Optional. A data frame of mutations in MAF format or maf_data object
 #'   (e.g. from `get_coding_ssm` or `get_ssm_by_sample`). It can be filtered by
 #'   regions and samples provided by parameters `regions_bed` and
 #'   `these_samples_metadata`, respectively.
-#' @param projection The projection genome build. One of "grch37" (default) or "hg38".
+#' @param projection Obtain variants projected to this reference, 
+#'   one of grch37 (default) or hg38.
 #' @param local_web_host_dir Path to the directory that is a local copy of the
 #'   web host to be used. For example, if the hub should be hosted on GitHub,
 #'   `local_web_host_dir` should be the path to your local copy of the repository
@@ -50,8 +43,8 @@
 #' @param hub_dir Path to the directory (inside the web host directory) where you want
 #'   to store the files for your track hub. If this directory does not exist, it will be
 #'   created. Default is "my_hub".
-#' @param splitColumnName A single string to indicate which metadata column is used
-#'   to split the MAF data into custom track files. Default is "pathology".
+#' @param splitColumnName A single string to indicate which column of these_samples_metadata 
+#' to use to split the MAF data into separate tracks. Default is "pathology".
 #' @param colour_column A single string to use to colour the SSMs in the track, ideally not
 #'   the same as `splitColumnName`. Possible options are lymphgen (default),
 #'   pathology, genome_build (as in `these_samples_metadata`,
@@ -78,7 +71,8 @@
 #'   `GAMBLR.helpers::check_config_value` is called internally and the `bedToBigBed`
 #'   path is obtained from the `config.yml` file saved in the current working
 #'   directory.
-#' @param these_sample_ids DEPRECATED
+#' @param these_sample_ids Deprecated. Inferred from these_samples_metadata.
+#' @param these_seq_types Deprecated. Inferred from these_samples_metadata.
 #' @return Nothing.
 #'
 #' @import dplyr GAMBLR.helpers GAMBLR.utils
@@ -94,11 +88,11 @@
 #' hub_dir = "hubs/ashm_test"
 #'
 #' my_meta = get_gambl_metadata() %>%
-#'   filter(pathology %in% c("BL", "DLBCL", "FL"))
+#'   filter(pathology %in% c("BL", "DLBCL", "FL")) %>%
+#'   filter(seq_type %in% c("genome", "capture"))
 #'
 #' build_browser_hub(
 #'   these_samples_metadata = my_meta,
-#'   these_seq_types = c("genome", "capture"),
 #'   projection = "grch37",
 #'   local_web_host_dir = local_web_host_dir,
 #'   hub_dir = hub_dir,
@@ -109,8 +103,7 @@
 #' }
 #'
 build_browser_hub = function(regions_bed,
-                             these_samples_metadata = NULL,
-                             these_seq_types = c("genome", "capture"),
+                             these_samples_metadata,
                              projection = "grch37",
                              maf_data = NULL,
                              local_web_host_dir = NULL,
@@ -124,6 +117,7 @@ build_browser_hub = function(regions_bed,
                              visibility = "squish",
                              bigDataUrl_base = "https://github.com/morinlab/LLMPP/blob/main",
                              bedToBigBed_path,
+                             these_seq_types = NULL,
                              these_sample_ids = NULL){
 
   # Handle deprecated parameters
@@ -131,9 +125,9 @@ build_browser_hub = function(regions_bed,
     stop("Parameter `these_sample_ids` is deprecated and will be ignored.
     Please use `these_samples_metadata` instead.")
   }
-  # check some provided parameter
-  stopifnot("`these_seq_types` must be one or more of \"genome\" or \"capture\"." =
-              all(these_seq_types %in% c("genome", "capture")))
+  if(!missing(these_seq_types)){
+    stop("these_seq_types is now deprecated. Use these_samples_metadata instead.")
+  }
   stopifnot("`projection` must be one of \"grch37\" or \"hg38\"." =
               projection %in% c("grch37", "hg38"))
   stopifnot("`visibility` must be one of \"pack\", \"dense\", \"full\", or \"squish\"." =
@@ -155,13 +149,17 @@ build_browser_hub = function(regions_bed,
   }
 
   # Get metadata if not provided, else subset GAMBL metadata to samples provided
-  if(is.null(these_samples_metadata)){
+  if(missing(these_samples_metadata)){
+    # kept for legacy, assumes user provided these_sample_ids
+    message("CAUTION! these_samples_metadata was not provided. Using all of get_gambl_metadata() captures and genomes.")
     metadata = get_gambl_metadata() %>%
-      dplyr::filter(seq_type %in% these_seq_types)
-  }else {
-    metadata = get_gambl_metadata() %>%
-      dplyr::filter(sample_id %in% these_samples_metadata$sample_id) %>%
-      dplyr::filter(seq_type %in% these_seq_types)
+      dplyr::filter(seq_type %in% c("capture", "genome"))
+    these_seq_types = unique(metadata$seq_type)
+  }else{
+    #drop unsupported seq_type and samples to exclude
+    metadata = these_samples_metadata %>%
+      dplyr::filter(seq_type %in% c("capture", "genome"))
+    these_seq_types = unique(metadata$seq_type)
   }
 
   # check provided splitColumnName parameter
@@ -225,8 +223,7 @@ build_browser_hub = function(regions_bed,
   unlink(temp_bed)
   unlink(temp_chr_sizes)
 
-  # get maf data from the specified regions and metadata/samples (for each seq type)
-  # requires that metadata and these_seq_types are lists or named vectors
+  # get maf data for each seq type separately
   these_seq_types = setNames(these_seq_types, these_seq_types)
   metadata_list = split(metadata, metadata$seq_type)
   metadata_list = metadata_list[order(names(these_seq_types))] # make sure they have the same order
@@ -237,7 +234,6 @@ build_browser_hub = function(regions_bed,
   if(missing(maf_data)){
     maf_data = mapply(function(these_seq_types_i, these_samples_metadata_i){
       get_ssm_by_regions(regions_bed = regions_bed,
-                         this_seq_type = these_seq_types_i,
                          these_samples_metadata = these_samples_metadata_i,
                          projection = projection,
                          streamlined = FALSE,
@@ -248,7 +244,6 @@ build_browser_hub = function(regions_bed,
     maf_data = mapply(function(these_seq_types_i, these_samples_metadata_i){
       get_ssm_by_regions(maf_data = maf_data,
                          regions_bed = regions_bed,
-                         this_seq_type = these_seq_types_i,
                          these_samples_metadata = these_samples_metadata_i,
                          projection = projection,
                          streamlined = FALSE,
