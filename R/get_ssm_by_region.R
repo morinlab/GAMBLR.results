@@ -48,7 +48,7 @@
 #' @return A data frame of variants in 3 column format or in MAF-like format (one row per mutation).
 #'
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
-#' @import dplyr RMariaDB DBI stringr glue GAMBLR.helpers
+#' @import dplyr stringr glue GAMBLR.helpers
 #'
 #' @examples
 #' #basic usage
@@ -340,5 +340,10 @@ get_ssm_by_region = function(chromosome,
     # combine list into one
     muts_region = do.call("rbind", seq_type_muts_region)
   }
+  if(streamlined){
+    muts_region = muts_region %>%
+      dplyr::select(Start_Position, Tumor_Sample_Barcode)
+  }
+
   return(muts_region)
 }
