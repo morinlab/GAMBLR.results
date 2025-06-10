@@ -23,11 +23,11 @@
 #'  If you would like all columns of this input maf returned,
 #'  set `streamlined = FALSE` and `basic_columns = FALSE`.
 #'  Otherwise the first 45 columns will be returned.
-#' @param streamlined If TRUE (default), only 3 columns will be returned:
-#'  start, sample_id, and region in the format "chr:start-end".
+#' @param streamlined If TRUE, only 3 columns will be returned:
+#'  start, sample_id, and region in the format "chr:start-end". Default is FALSE.
 #'  Note: if this parameter is TRUE, the function will disregard anything specified with `basic_columns`.
 #' @param basic_columns Parameter to be used when streamlined is FALSE.
-#'  Set this parameter to TRUE to return a MAF with the standard 45 columns.
+#'  Set this parameter to TRUE (default) to return a MAF with the standard 45 columns.
 #'  Set to FALSE to return a MAF with all columns (116).
 #'  If you provided `maf_data` with more than 45 columns, set to FALSE to return all columns of
 #'  `maf_data`, otherwise it will return the first 45.
