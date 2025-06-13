@@ -69,7 +69,10 @@ calc_mutation_frequency_bin_region <- function(region,
   if(missing(these_samples_metadata)){
     stop("metadata must be provided via the these_samples_metadata argument")
   }
-  these_samples_metadata = dplyr::filter(these_samples_metadata, !seq_type == "mrna")
+  these_samples_metadata = dplyr::filter(these_samples_metadata, seq_type %in% c("genome", "capture"))
+  if(dim(these_samples_metadata)[1] == 0){
+    stop("these_samples_metadata must have samples with seq_type genome or capture")
+  }
   # Create objects to describe region both as string and individual objects
   try(if (missing(region) & missing(chromosome)) {
     stop("No region information provided. Please provide a region as a string in the chrom:start-end format, or as individual arguments. ")
@@ -95,7 +98,7 @@ calc_mutation_frequency_bin_region <- function(region,
   if(!missing(these_sample_ids)){
     stop("deprecated agrument these_sample_ids was provided. Please use these_samples_metadata instead")
   }
-  these_sample_ids <- pull(metadata,sample_id) %>% unique
+  # these_sample_ids <- pull(metadata,sample_id) %>% unique
 
 
   if (
@@ -145,13 +148,17 @@ calc_mutation_frequency_bin_region <- function(region,
       }
     )
     message("Using GAMBLR.results::get_ssm_by_region...")
-    region_ssm <- list()
-    for (st in unique(metadata$seq_type)) {
-      this_seq_type <- GAMBLR.results:::get_ssm_by_region(
+    seq_type_sample_ids = list() # items are dataframes
+    for(a_seq_type in unique(these_samples_metadata$seq_type)){
+        seq_type_sample_ids[[a_seq_type]]=dplyr::filter(these_samples_metadata,seq_type==a_seq_type)
+    }
+    seq_type_region_ssm <- list()
+    for (a_seq_type in names(seq_type_sample_ids)) {
+      seq_type_region_ssm[[a_seq_type]] <- GAMBLR.results:::get_ssm_by_region(
         region = region,
         projection = projection,
         streamlined = FALSE,
-        this_seq_type = st
+        these_samples_metadata = seq_type_sample_ids[[a_seq_type]]
       ) %>%
         dplyr::mutate(end = Start_Position + 1) %>%
         dplyr::select(
@@ -159,18 +166,10 @@ calc_mutation_frequency_bin_region <- function(region,
           start = Start_Position,
           end,
           sample_id = Tumor_Sample_Barcode
-        ) %>%
-        dplyr::mutate(mutated = 1, seq_type = st) %>%
-        dplyr::filter(sample_id %in% these_sample_ids)
-      region_ssm[[st]] <- data.frame(metadata) %>%
-        dplyr::select(sample_id, seq_type) %>%
-        dplyr::filter(seq_type == st) %>%
-        dplyr::left_join(this_seq_type, by = c("sample_id", "seq_type")) %>%
-        dplyr::filter(!is.na(mutated)) %>%
-        dplyr::select(-seq_type)
+        )
     }
 
-    region_ssm <- dplyr::bind_rows(region_ssm)
+    region_ssm <-  do.call("rbind", seq_type_region_ssm)
 
   } else {
     #  Subset provided maf to specified region

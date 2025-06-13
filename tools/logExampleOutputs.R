@@ -1,3 +1,9 @@
+Sys.setenv(RENV_PROJECT = "/projects/rmorin_scratch/sgillis_temp/GAMBLR-dev")
+setwd("/projects/rmorin_scratch/sgillis_temp/GAMBLR-dev")
+renv::load()
+
+setwd("/projects/rmorin_scratch/sgillis_temp/GAMBLR-dev/GAMBLR.results")
+
 library(optparse)
 
 option_list = list(

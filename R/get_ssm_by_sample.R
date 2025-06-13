@@ -21,7 +21,7 @@
 #' @param this_sample_id Optional. Can be used to subset a multi-row these_samples_metadata 
 #' table to a single row. 
 #' @param tool_name The name of the variant calling pipeline (currently
-#' only slms-3 is supported).
+#' only slms_3 is supported).
 #' @param projection The projection genome build. Supports hg38 and grch37
 #' @param augmented default: TRUE. Set to FALSE if you instead want the original
 #' MAF from each sample for multi-sample patients instead of the augmented MAF.
@@ -65,7 +65,7 @@
 #'  
 #'
 get_ssm_by_sample = function(these_samples_metadata,
-                             tool_name = "slms-3",
+                             tool_name = "slms_3",
                              projection = "grch37",
                              augmented = TRUE,
                              flavour = "clustered",

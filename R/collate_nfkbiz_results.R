@@ -22,11 +22,14 @@ collate_nfkbiz_results = function(sample_table,
 
   #TO DO: Update to work with hg38 projection
   if(missing(sample_table)){
-    sample_table = get_gambl_metadata(seq_type_filter=seq_type_filter) %>%
+    sample_table = get_gambl_metadata() %>%
+      dplyr::filter(seq_type == seq_type_filter)
       dplyr::select(sample_id, patient_id, biopsy_id)
+  }else{
+    sample_table = dplyr::filter(sample_table, seq_type == seq_type_filter)
   }
   this_region = "chr3:101578214-101578365"
-  nfkbiz_ssm = get_ssm_by_region(region = this_region,this_seq_type = seq_type_filter) %>%
+  nfkbiz_ssm = get_ssm_by_region(region = this_region, these_samples_metadata = sample_table) %>%
     pull(Tumor_Sample_Barcode) %>%
     unique
   if(seq_type_filter=="genome"){
