@@ -13,7 +13,7 @@
 #'
 #' @param these_samples_metadata Optional metadata table.
 #' If provided, it will return SSM calls for the samples in the metadata table.
-#' @param tool_name Only supports slms-3 currently.
+#' @param tool_name Only supports slms_3 currently.
 #' @param augmented default: TRUE. Set to FALSE if you instead want
 #' the original MAF from each sample for multi-sample patients instead.
 #' @param projection Obtain variants projected to this reference
@@ -66,7 +66,7 @@
 #' sample_ssms = get_ssm_by_samples(these_samples_metadata = my_metadata)
 #' }
 get_ssm_by_samples = function(these_samples_metadata,
-                              tool_name = "slms-3",
+                              tool_name = "slms_3",
                               projection = "grch37",
                               flavour = "clustered",
                               these_genes,

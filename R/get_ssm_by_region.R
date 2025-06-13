@@ -31,7 +31,7 @@
 #'  Set to FALSE to return a MAF with all columns (116).
 #'  If you provided `maf_data` with more than 45 columns, set to FALSE to return all columns of
 #'  `maf_data`, otherwise it will return the first 45.
-#' @param tool_name Accepts either "slms-3" (default) or "strelka2"
+#' @param tool_name Accepts either "slms_3" (default) or "strelka2"
 #'  (forces `streamlined=TRUE`) to indicate which variant caller to use. Note: strelka2 will force
 #'  `augmented=FALSE` as data is not available in that case. Formerly called "mode".
 #' @param augmented Default: TRUE. Setting to FALSE will subset from a pre-merged MAF.
@@ -73,7 +73,7 @@ get_ssm_by_region = function(chromosome,
                              maf_data,
                              streamlined = FALSE,
                              basic_columns = TRUE,
-                             tool_name = "slms-3",
+                             tool_name = "slms_3",
                              augmented = TRUE,
                              projection = "grch37",
                              min_read_support = 3,
@@ -90,9 +90,9 @@ get_ssm_by_region = function(chromosome,
   }
 
   if(length(tool_name) != 1){
-    stop("tool_name can only be a single value, either slms-3 or strelka2")
-  }else if(!tool_name %in% c("slms-3", "strelka2")){
-    stop("tool_name must be either slms-3 or strelka2")
+    stop("tool_name can only be a single value, either slms_3 or strelka2")
+  }else if(!tool_name %in% c("slms_3", "strelka2")){
+    stop("tool_name must be either slms_3 or strelka2")
   }
 
   to_exclude = get_excluded_samples(tool_name)
@@ -126,7 +126,7 @@ get_ssm_by_region = function(chromosome,
     }else if(unique(these_samples_metadata$seq_type) != "genome"){
       stop("Genome is currently the only available seq_type for strelka2 outputs...")
     }
-  }else if(tool_name == "slms-3"){
+  }else if(tool_name == "slms_3"){
     if(streamlined){
       maf_columns = names(maf_header)[c(6, 16, 42)]
       maf_column_types = "ici"
@@ -194,7 +194,7 @@ get_ssm_by_region = function(chromosome,
       # but if it's truly maf data, it should
       muts_region = muts_region %>% dplyr::select(names(maf_header)[c(1:45)])
     }
-  }else if(tool_name == "strelka2"){ # separated out bc only one seq_type, slms-3 case below loops over seq_type
+  }else if(tool_name == "strelka2"){ # separated out bc only one seq_type, slms_3 case below loops over seq_type
     maf_partial_path = check_config_and_value("results_flatfiles$ssm$all$strelka2")
     #use glue to get the absolute path
     maf_path = glue::glue(maf_partial_path)
@@ -252,7 +252,7 @@ get_ssm_by_region = function(chromosome,
     if(verbose){
       print('SUCCESS')
     }
-  }else if(tool_name == "slms-3"){ # loop over seq_type and unlist at the end
+  }else if(tool_name == "slms_3"){ # loop over seq_type and unlist at the end
     if(!all(unique(these_samples_metadata$seq_type) %in% c("genome", "capture"))){
       warning("CAUTION! More seq_types than genome and capture found in these_samples_metadata.
        Only genome and capture will be used to get variants.")

@@ -27,7 +27,7 @@
 #'  Set to FALSE to return a MAF with all columns (116).
 #'  If you provided `maf_data` with more than 45 columns, set to FALSE to return all columns of
 #'  `maf_data`, otherwise it will return the first 45.
-#' @param tool_name Accepts either "slms-3" (default) or "strelka2"
+#' @param tool_name Accepts either "slms_3" (default) or "strelka2"
 #'  (forces `streamlined=TRUE`) to indicate which variant caller to use. Note: strelka2 will force
 #'  `augmented=FALSE` as data is not available in that case. Formerly called "mode".
 #' @param augmented Default: TRUE. Setting to FALSE will subset from a pre-merged MAF.
@@ -74,7 +74,7 @@ get_ssm_by_regions = function(regions_list,
                               use_name_column = FALSE,
                               streamlined = FALSE,
                               basic_columns = TRUE,
-                              tool_name = "slms-3",
+                              tool_name = "slms_3",
                               augmented = TRUE,
                               projection = "grch37",
                               min_read_support = 3,
@@ -89,9 +89,9 @@ get_ssm_by_regions = function(regions_list,
     stop("projection must be either grch37 or hg38")
   }
   if(length(tool_name) != 1){
-    stop("tool_name can only be a single value, either slms-3 or strelka2")
-  }else if(!tool_name %in% c("slms-3", "strelka2")){
-    stop("tool_name must be either slms-3 or strelka2")
+    stop("tool_name can only be a single value, either slms_3 or strelka2")
+  }else if(!tool_name %in% c("slms_3", "strelka2")){
+    stop("tool_name must be either slms_3 or strelka2")
   }  
 
   # Also done in get_ssm_by_region, but this allows passing a df 
