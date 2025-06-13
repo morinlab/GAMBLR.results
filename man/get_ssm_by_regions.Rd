@@ -12,7 +12,7 @@ get_ssm_by_regions(
   use_name_column = FALSE,
   streamlined = FALSE,
   basic_columns = TRUE,
-  tool_name = "slms-3",
+  tool_name = "slms_3",
   augmented = TRUE,
   projection = "grch37",
   min_read_support = 3,
@@ -48,7 +48,7 @@ Set to FALSE to return a MAF with all columns (116).
 If you provided \code{maf_data} with more than 45 columns, set to FALSE to return all columns of
 \code{maf_data}, otherwise it will return the first 45.}
 
-\item{tool_name}{Accepts either "slms-3" (default) or "strelka2"
+\item{tool_name}{Accepts either "slms_3" (default) or "strelka2"
 (forces \code{streamlined=TRUE}) to indicate which variant caller to use. Note: strelka2 will force
 \code{augmented=FALSE} as data is not available in that case. Formerly called "mode".}
 
