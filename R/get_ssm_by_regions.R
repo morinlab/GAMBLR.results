@@ -174,22 +174,21 @@ get_ssm_by_regions = function(regions_list,
   }
 
   if(!use_name_column){
-    rn = regions
+    names(region_mafs) <- regions
   }else{
-    rn = regions_bed[["name"]]
+    names(region_mafs) <- regions_bed[["name"]]
   }
 
-  tibbled_data = tibble(region_mafs, region_name = rn)
-  unnested_df = tibbled_data %>%
-    unnest_longer(region_mafs)
+  region_mafs <- list_rbind(region_mafs, names_to = "region_name")
   
   if(streamlined){
-    unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
+    region_mafs = mutate(region_mafs, start = Start_Position, sample_id =Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
-      return(unlisted_df)
   }else{
-    region_mafs = do.call(bind_rows, region_mafs)
-    region_mafs = GAMBLR.utils::create_maf_data(region_mafs, genome_build=genome_build)
+    region_mafs = region_mafs %>%
+      select(-region_name) %>%
+      unique() %>%
+      GAMBLR.utils::create_maf_data(., genome_build=genome_build)
     return(region_mafs)
   }
 
