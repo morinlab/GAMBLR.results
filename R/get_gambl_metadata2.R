@@ -298,15 +298,6 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   sample_meta_tumour_dna_dropped = suppressMessages(anti_join(sample_meta_tumour_dna,sample_meta_tumour_dna_kept))
   dropped_rows[["tumour_dna"]] = sample_meta_tumour_dna_dropped
 
-  if(verbose){
-    message(paste("prioritizing",dna_seq_type_priority, "for normals"))
-  }
-  sample_meta_normal_dna_kept = prioritize_metadata_column(sample_meta_normal_dna,
-                                                           priority_column_name=seq_type,
-                                                           priority_value=dna_seq_type_priority)
-
-  sample_meta_normal_dna_dropped = suppressMessages(anti_join(sample_meta_normal_dna,sample_meta_normal_dna_kept))
-  dropped_rows[["normal_dna"]] = sample_meta_normal_dna_dropped
 
 
   if(invert){
@@ -329,10 +320,10 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       sample_meta_rna_kept
       ) %>% 
       left_join(biopsy_meta, by = c("patient_id", "biopsy_id"))
-      sample_meta_normal_dna_kept <- sample_meta_normal %>%
+      sample_meta_normal_dna <- sample_meta_normal %>%
           dplyr::filter(seq_type %in% c("genome","capture", "promethION")) %>%
           dplyr::filter(!seq_type %in% exclude)  
-      col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_kept %>%
+      col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna %>%
         dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
         dplyr::rename("normal_sample_id" = "sample_id")
   } else{
@@ -340,7 +331,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       ungroup() %>% select(-priority, -mrna_sample_id)
     all_meta_kept = bind_rows(all_meta_kept, sample_meta_tumour_dna_promethion)
     all_meta_kept = left_join(all_meta_kept,biopsy_meta,by=c("patient_id","biopsy_id"))
-    sample_meta_normal_dna_rna_kept = bind_rows(sample_meta_normal_dna_kept,
+    sample_meta_normal_dna_rna_kept = bind_rows(sample_meta_normal,
                                               filter(sample_meta_rna_kept,tissue_status=="normal"))
     col_sample_meta_normal_dna_rna_kept = sample_meta_normal_dna_rna_kept %>%
       dplyr::select(patient_id, sample_id, seq_type, genome_build) %>% as.data.frame() %>%
@@ -380,10 +371,11 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
             DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
             TRUE ~ NA)
     )
-  if(also_normals & collapse_redundancy){
-    # If collapse_redundancy is FALSE, then the normals were already added at line 358
+  
+  
+    if(also_normals){
     # add normals to the data frame
-    all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna_kept,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-priority, -mrna_sample_id)
+    all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-any_of(c("priority", "mrna_sample_id")))
     return(all_meta_kept)
   }else{
     return(all_meta_kept)
