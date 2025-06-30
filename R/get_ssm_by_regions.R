@@ -20,7 +20,7 @@
 #' @param streamlined If TRUE, only 3 columns will be returned:
 #'  start, sample_id, and region in the format "chr:start-end". Default is FALSE.
 #'  Note: if this parameter is TRUE, the function will disregard anything specified with `basic_columns`.
-#' @param use_name_column If TRUE and your bed-format data frame has a name column 
+#' @param use_name_column If TRUE and your bed-format data frame has a name column
 #'  (must be named "name") these can be used to name your regions. To be used with streamlined = TRUE. Default: FALSE.
 #' @param basic_columns Parameter to be used when streamlined is FALSE.
 #'  Set this parameter to TRUE (default) to return a MAF with the standard 45 columns.
@@ -46,7 +46,7 @@
 #' @export
 #'
 #' @examples
-#' 
+#'
 #' # Adds column `name` to the bed-format dataframe
 #' # by combining "gene" and "region" values sep by "-"
 #' regions_bed = GAMBLR.utils::create_bed_data(
@@ -54,8 +54,8 @@
 #'    fix_names = "concat",
 #'    concat_cols = c("gene","region"),sep="-"
 #' ) %>% head(20)
-#' 
-#' DLBCL_meta = suppressMessages(get_gambl_metadata()) %>% 
+#'
+#' DLBCL_meta = suppressMessages(get_gambl_metadata()) %>%
 #'                 dplyr::filter(pathology=="DLBCL", seq_type == "genome")
 #' ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
 #'                              these_samples_metadata = DLBCL_meta,
@@ -92,9 +92,9 @@ get_ssm_by_regions = function(regions_list,
     stop("tool_name can only be a single value, either slms_3 or strelka2")
   }else if(!tool_name %in% c("slms_3", "strelka2")){
     stop("tool_name must be either slms_3 or strelka2")
-  }  
+  }
 
-  # Also done in get_ssm_by_region, but this allows passing a df 
+  # Also done in get_ssm_by_region, but this allows passing a df
   # for these_sample_metadata and avoidng a bunch of output messages
   to_exclude = get_excluded_samples(tool_name)
   if(missing(these_samples_metadata)){
@@ -118,13 +118,12 @@ get_ssm_by_regions = function(regions_list,
     paste0(x[1], ":", as.numeric(x[2]), "-", as.numeric(x[3]))
   }
 
-  genome_build = NULL
   if(missing(regions_list)){
     if(!missing(regions_bed)){
       genome_build = check_get_projection(list(this_bed=regions_bed),
                                           projection,
                                           custom_error = "Please specify a projection that matches the genome build of regions_bed")
-      
+
       regions = apply(regions_bed, 1, bed2region)
     }else{
       warning("You must supply either regions_list or regions_bed")
@@ -136,17 +135,10 @@ get_ssm_by_regions = function(regions_list,
     print(regions)
   }
 
+  genome_build = projection
   if(missing(maf_data)){
-    #projection is required if the MAF was not provided
-    if(is.null(genome_build)){
-      if(missing(projection)){
-        stop("projection is required when maf_data is not provided.")
-      }else{
-        genome_build = projection
-      }
-    }
-    region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
-      region = x,          
+      region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
+      region = x,
       these_samples_metadata = these_samples_metadata,
       streamlined = streamlined,
       basic_columns = basic_columns,
@@ -180,7 +172,7 @@ get_ssm_by_regions = function(regions_list,
   }
 
   region_mafs <- list_rbind(region_mafs, names_to = "region_name")
-  
+
   if(streamlined){
     region_mafs = mutate(region_mafs, start = Start_Position, sample_id =Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
