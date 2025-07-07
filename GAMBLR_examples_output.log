@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-06-10 14:21:10 ==="
-── Running 71 example files ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-07-07 10:03:27 ==="
+── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -173,7 +173,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 875209  187836 
+1040461  187836 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -181,16 +181,16 @@ genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1      IGLV3-1      Missense_Mutation 2952
-2     IGHV2-70      Missense_Mutation 2787
-3          TTN      Missense_Mutation 2476
-4         BCL2      Missense_Mutation 2120
-5        IGLL5      Missense_Mutation 1889
-6     IGHV1-69      Missense_Mutation 1570
-7         PIM1      Missense_Mutation 1180
-8        MUC16      Missense_Mutation 1179
-9          MYC      Missense_Mutation 1049
-10      CREBBP      Missense_Mutation 1004
+1      IGLV3-1      Missense_Mutation 3218
+2     IGHV2-70      Missense_Mutation 3184
+3          TTN      Missense_Mutation 2815
+4         BCL2      Missense_Mutation 2643
+5        IGLL5      Missense_Mutation 2496
+6     IGHV1-69      Missense_Mutation 1814
+7         PIM1      Missense_Mutation 1712
+8          MYC      Missense_Mutation 1420
+9        MUC16      Missense_Mutation 1378
+10      CREBBP      Missense_Mutation 1119
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -213,7 +213,7 @@ FL1015T2                   0                      1                      0      
 
 > colMeans(pax5_matrix)
             PAX5-TSS-1 PAX5-distal-enhancer-1 PAX5-distal-enhancer-3          PAX5-intron-1 PAX5-distal-enhancer-2 
-             0.4402619              0.5319149              1.2487725              1.9247136              0.6579378 
+             0.4390244              0.5284553              1.2455285              1.9121951              0.6536585 
 
 > capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "capture") %>% head()
@@ -225,17 +225,17 @@ FL1015T2                   0                      1                      0      
 SEG Data Object
 Genome Build: hg38 
 Showing first 10 rows:
-                ID chrom    start      end LOH_flag log.ratio seg_seq_type       CN
-1  00-22011_tumorB  chr1    10001    69372       NA    0.0000      capture  2.00000
-2  00-22011_tumorB  chr1    69373 10335564       NA    1.0000      capture  4.00000
-3  00-22011_tumorB  chr1 10335564 12723042       NA    0.0000      capture  2.00000
-4  00-22011_tumorB  chr1 12723043 13184564       NA    0.0000      capture  2.00000
-5  00-22011_tumorB  chr1 13184565 33302847       NA    0.0000      capture  2.00000
-6  00-22011_tumorB  chr1 33302847 33309697       NA    2.5453      capture 11.67459
-7  00-22011_tumorB  chr1 33309697 40850005       NA    0.0000      capture  2.00000
-8  00-22011_tumorB  chr1 40850005 40922631       NA    2.8912      capture 14.83775
-9  00-22011_tumorB  chr1 40922631 47396477       NA    0.0000      capture  2.00000
-10 00-22011_tumorB  chr1 47396477 47439416       NA    2.0000      capture  8.00000
+      ID chrom    start      end LOH_flag log.ratio seg_seq_type CN
+1  PA007  chr1    10001   786031       NA         0      capture  2
+2  PA007  chr1   786032 12821352       NA         0      capture  2
+3  PA007  chr1 12821353 16648415       NA         0      capture  2
+4  PA007  chr1 16648416 16762746       NA         0      capture  2
+5  PA007  chr1 16762747 16949903       NA         0      capture  2
+6  PA007  chr1 16949904 20959653       NA         0      capture  2
+7  PA007  chr1 20959653 20999053       NA         1      capture  4
+8  PA007  chr1 20999053 23873312       NA         0      capture  2
+9  PA007  chr1 23873312 23875014       NA         1      capture  4
+10 PA007  chr1 23875015 25259936       NA         0      capture  2
 
 > genome_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "genome") %>% head()
@@ -247,37 +247,33 @@ Showing first 10 rows:
 
 > dplyr::group_by(capture_segments_default, ID) %>% 
 +     dplyr::summarize(n = dplyr::n())
-# A tibble: 12 × 2
-   ID                    n
-   <chr>             <int>
- 1 00-12637_CLC02086   116
- 2 00-14595_tumorB     144
- 3 00-14595_tumorC     166
- 4 00-14595_tumorD     142
- 5 00-22011_tumorB     598
- 6 FL1011T1          22548
- 7 FL1011T2            134
- 8 PA003               225
- 9 PA007               297
-10 PA065              3903
-11 PA081               200
-12 PTCL002_tumour      195
+# A tibble: 8 × 2
+  ID                    n
+  <chr>             <int>
+1 00-12637_CLC02086   116
+2 00-14595_tumorB     144
+3 00-14595_tumorC     166
+4 00-14595_tumorD     142
+5 FL1011T1          22548
+6 FL1011T2            134
+7 PA003               225
+8 PA007               297
 
 > print(capture_segments_default)
 SEG Data Object
 Genome Build: grch37 
 Showing first 10 rows:
-                ID chrom    start      end LOH_flag log.ratio seg_seq_type       CN
-1  00-22011_tumorB     1    10001    69372       NA    0.0000      capture  2.00000
-2  00-22011_tumorB     1    69373 10395622       NA    1.0000      capture  4.00000
-3  00-22011_tumorB     1 10395622 12783034       NA    0.0000      capture  2.00000
-4  00-22011_tumorB     1 12783034 13292951       NA   -2.0000      capture  0.50000
-5  00-22011_tumorB     1 13292951 33768448       NA    0.0000      capture  2.00000
-6  00-22011_tumorB     1 33768448 33775298       NA    2.5453      capture 11.67459
-7  00-22011_tumorB     1 33775298 41315677       NA    0.0000      capture  2.00000
-8  00-22011_tumorB     1 41315677 41388303       NA    2.8912      capture 14.83775
-9  00-22011_tumorB     1 41388303 47862149       NA    0.0000      capture  2.00000
-10 00-22011_tumorB     1 47862149 47905088       NA    2.0000      capture  8.00000
+      ID chrom    start      end LOH_flag log.ratio seg_seq_type  CN
+1  PA007     1    10001   721411       NA         0      capture 2.0
+2  PA007     1   721412 12881214       NA         0      capture 2.0
+3  PA007     1 12881214 13051546       NA         0      capture 2.0
+4  PA007     1 13051546 16974910       NA         0      capture 2.0
+5  PA007     1 16974911 17089241       NA         0      capture 2.0
+6  PA007     1 17089241 17276399       NA        -2      capture 0.5
+7  PA007     1 17276399 21286146       NA         0      capture 2.0
+8  PA007     1 21286146 21325546       NA         1      capture 4.0
+9  PA007     1 21325546 24199802       NA         0      capture 2.0
+10 PA007     1 24199802 24201504       NA         1      capture 4.0
 
 > all_types_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(pathology == "BL")
@@ -286,7 +282,7 @@ Showing first 10 rows:
 # A tibble: 3 × 2
   seq_type     n
   <chr>    <int>
-1 capture    174
+1 capture    176
 2 genome     259
 3 mrna       279
 
@@ -317,7 +313,7 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 +     all_types_meta, only_cnv = "MIR17HG"))
 
 > print(dim(all_seq_type_status))
-[1] 433   6
+[1] 435   6
 
 > head(all_seq_type_status)
                           MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
@@ -330,7 +326,7 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > colSums(all_seq_type_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    288      68     120     197     192      26 
+    290      68     121     198     193      26 
 
 > maf_genome = get_coding_ssm()
 
@@ -361,16 +357,16 @@ genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
    Hugo_Symbol NCBI_Build Chromosome Start_Position Variant_Classification maf_seq_type
-1        OR4F5     GRCh38       chr1          69634      Missense_Mutation      capture
-2        OR4F5     GRCh38       chr1          69644      Missense_Mutation      capture
-3   FO538757.2     GRCh38       chr1         183189      Missense_Mutation      capture
-4   FO538757.2     GRCh38       chr1         183937      Missense_Mutation      capture
-5   FO538757.1     GRCh38       chr1         186356      Nonsense_Mutation      capture
-6   FO538757.1     GRCh38       chr1         186385      Missense_Mutation      capture
-7   FO538757.1     GRCh38       chr1         186404      Missense_Mutation      capture
-8   FO538757.1     GRCh38       chr1         186440      Missense_Mutation      capture
+1        OR4F5     GRCh38       chr1          69594                 Silent      capture
+2        OR4F5     GRCh38       chr1          69634      Missense_Mutation      capture
+3        OR4F5     GRCh38       chr1          69644      Missense_Mutation      capture
+4   FO538757.2     GRCh38       chr1         183189      Missense_Mutation      capture
+5   FO538757.2     GRCh38       chr1         183937      Missense_Mutation      capture
+6   FO538757.1     GRCh38       chr1         186356      Nonsense_Mutation      capture
+7   FO538757.1     GRCh38       chr1         186385      Missense_Mutation      capture
+8   FO538757.1     GRCh38       chr1         186404      Missense_Mutation      capture
 9   FO538757.1     GRCh38       chr1         186440      Missense_Mutation      capture
-10  FO538757.1     GRCh38       chr1         186475          Splice_Region      capture
+10  FO538757.1     GRCh38       chr1         186440      Missense_Mutation      capture
 
 > genes = dplyr::filter(GAMBLR.data::lymphoma_genes, 
 +     FL_Tier == 1) %>% dplyr::pull(Gene)
@@ -536,21 +532,21 @@ Showing first 10 rows:
 
 > dplyr::group_by(my_metadata, pathology, seq_type) %>% 
 +     dplyr::count()
-# A tibble: 63 × 3
-# Groups:   pathology, seq_type [63]
+# A tibble: 73 × 3
+# Groups:   pathology, seq_type [73]
    pathology seq_type     n
    <chr>     <chr>    <int>
  1 AITL      capture      2
  2 AITL      mrna        22
  3 ALCL      capture    102
  4 B-ALL     genome       1
- 5 BL        capture    174
+ 5 BL        capture    176
  6 BL        genome     259
  7 BL        mrna       279
  8 CLL       genome     213
  9 CLL       mrna       157
 10 COMFL     capture      1
-# ℹ 53 more rows
+# ℹ 63 more rows
 
 > all_fusions = get_gene_fusions()
 
@@ -575,30 +571,30 @@ Showing first 10 rows:
 
 > head(lymphgen_all$features[, c(1:14)])
 # A tibble: 6 × 14
-  sample_id        BCL2  EZH2 SOCS1 KMT2D EP300 CREBBP TNFRSF14 MEF2B  IRF8  PIM2  BTG2 TBL1XR1 KLHL14
-  <chr>           <dbl> <dbl> <dbl> <dbl> <dbl>  <dbl>    <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>  <dbl>
-1 00-14595_tumorA     1     1     1     0     0      0        0     0     0     1     1       0      0
-2 00-14595_tumorB     1     1     1     0     0      0        0     0     0     0     1       1      0
-3 00-14595_tumorC     1     1     1     0     0      0        0     0     0     0     1       1      0
-4 00-14595_tumorD     1     1     0     0     0      0        0     0     0     1     1       0      1
-5 00-15201_tumorA     0     0     0     1     0      0        0     0     0     0     1       0      0
-6 00-15201_tumorB     0     0     0     0     1      0        0     0     0     1     0       0      0
+  sample_id          BCL2  EZH2 TNFRSF14 CREBBP KMT2D SOCS1 EP300  IRF8 MEF2B  BTG2  PIM2 TBL1XR1 KLHL14
+  <chr>             <dbl> <dbl>    <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>  <dbl>
+1 00-12637_CLC02086     1     1        1      1     1     0     0     0     0     1     0       0      0
+2 00-14595_tumorA       1     1        0      1     0     1     0     0     0     1     1       0      0
+3 00-14595_tumorB       1     1        0      1     0     1     0     0     0     1     0       1      0
+4 00-14595_tumorC       1     1        0      1     0     1     0     0     0     1     0       1      0
+5 00-14595_tumorD       1     1        0      0     0     0     0     0     0     1     1       0      1
+6 00-15201_tumorA       0     0        0      0     1     0     0     0     0     1     0       0      0
 
 > head(lymphgen_all$lymphgen[, c(1:14)])
 # A tibble: 6 × 14
-  sample_id       Copy.Number   BCL2.Translocation BCL6.Translocation Model    Confidence.BN2 Confidence.EZB Confidence.MCD Confidence.N1 Confidence.ST2 BN2.Feature.Count EZB.Feature.Count MCD.Feature.Count N1.Feature.Count
-  <chr>           <chr>         <chr>              <chr>              <chr>             <dbl>          <dbl>          <dbl>         <dbl>          <dbl>             <dbl>             <dbl>             <dbl>            <dbl>
-1 00-14595_tumorA Not Available Not Available      Not Available      NoFusCGH           0.35           0.97           0             0.07           0.21                 2                 3                 2                0
-2 00-14595_tumorB Not Available Not Available      Not Available      NoFusCGH           0.35           0.97           0             0.07           0.21                 2                 3                 2                0
-3 00-14595_tumorC Not Available Not Available      Not Available      NoFusCGH           0.35           0.97           0             0.07           0.21                 2                 3                 2                0
-4 00-14595_tumorD Not Available Not Available      Not Available      NoFusCGH           0.35           0.94           0.01          0.07           0.02                 2                 2                 3                0
-5 00-15201_tumorA Not Available Not Available      Not Available      NoFusCGH           0.25           0.05           0.02          0.07           0.15                 2                 1                 3                0
-6 00-15201_tumorB Not Available Not Available      Not Available      NoFusCGH           0.36           0.12           0.01          0.99           0                    2                 1                 3                1
+  sample_id         Copy.Number   BCL2.Translocation BCL6.Translocation Model    Confidence.BN2 Confidence.EZB Confidence.MCD Confidence.N1 Confidence.ST2 BN2.Feature.Count EZB.Feature.Count MCD.Feature.Count N1.Feature.Count
+  <chr>             <chr>         <chr>              <chr>              <chr>             <dbl>          <dbl>          <dbl>         <dbl>          <dbl>             <dbl>             <dbl>             <dbl>            <dbl>
+1 00-12637_CLC02086 Not Available Not Available      Not Available      NoFusCGH           0.08           0.99           0             0.07           0                    1                 5                 1                0
+2 00-14595_tumorA   Not Available Not Available      Not Available      NoFusCGH           0.35           0.99           0             0.07           0.21                 2                 4                 2                0
+3 00-14595_tumorB   Not Available Not Available      Not Available      NoFusCGH           0.35           0.99           0             0.07           0.21                 2                 4                 2                0
+4 00-14595_tumorC   Not Available Not Available      Not Available      NoFusCGH           0.35           0.99           0             0.07           0.21                 2                 4                 2                0
+5 00-14595_tumorD   Not Available Not Available      Not Available      NoFusCGH           0.35           0.94           0.01          0.07           0.02                 2                 2                 3                0
+6 00-15201_tumorA   Not Available Not Available      Not Available      NoFusCGH           0.25           0.05           0.02          0.07           0.15                 2                 1                 3                0
 
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 327 samples and 13 cohorts"
+[1] "No Manta SVs found for 330 samples and 13 cohorts"
  [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
 
 > dplyr::select(all_sv, 1:14) %>% head()
@@ -846,4 +842,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-06-10 14:54:39 ==="
+[1] "=== COMPLETED AT 2025-07-07 10:48:52 ==="
