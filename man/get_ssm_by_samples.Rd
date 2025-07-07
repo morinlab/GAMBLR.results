@@ -6,7 +6,7 @@
 \usage{
 get_ssm_by_samples(
   these_samples_metadata,
-  tool_name = "slms-3",
+  tool_name = "slms_3",
   projection = "grch37",
   flavour = "clustered",
   these_genes,
@@ -24,7 +24,7 @@ get_ssm_by_samples(
 \item{these_samples_metadata}{Optional metadata table.
 If provided, it will return SSM calls for the samples in the metadata table.}
 
-\item{tool_name}{Only supports slms-3 currently.}
+\item{tool_name}{Only supports slms_3 currently.}
 
 \item{projection}{Obtain variants projected to this reference
 (one of grch37 or hg38).}

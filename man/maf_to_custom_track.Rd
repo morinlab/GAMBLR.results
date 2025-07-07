@@ -88,11 +88,9 @@ myc_grch37 <- GAMBLR.utils::create_bed_data(
               dplyr::filter(name == "MYC")
 
 print(myc_grch37)
-# desired projection will be automatically set to the
-# genome_build of your region object
+genomes <- get_gambl_metadata() \%>\% dplyr::filter(seq_type == "genome")
 genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
-                             these_samples_metadata = get_gambl_metadata(),
-                             this_seq_type = "genome",
+                             these_samples_metadata = genomes,
                              streamlined = FALSE,
                              basic_columns = TRUE)
 
@@ -102,9 +100,9 @@ maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 #lazy/concise way:
 my_region = "8:128747680-128753674"
 
+captures <- get_gambl_metadata() \%>\% dplyr::filter(seq_type == "capture")
 capture_maf <- get_ssm_by_regions(regions_list = my_region,
-                             these_samples_metadata = get_gambl_metadata(),
-                             this_seq_type = "capture",
+                             these_samples_metadata = captures,
                              projection = "grch37",
                              streamlined = FALSE,
                              basic_columns = TRUE)
