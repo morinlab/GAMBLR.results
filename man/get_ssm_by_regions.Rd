@@ -7,58 +7,68 @@
 get_ssm_by_regions(
   regions_list,
   regions_bed,
-  these_sample_ids = NULL,
-  these_samples_metadata = NULL,
-  streamlined = TRUE,
-  maf_data = maf_data,
+  these_samples_metadata,
+  maf_data,
   use_name_column = FALSE,
-  from_indexed_flatfile = TRUE,
-  mode = "slms-3",
+  streamlined = FALSE,
+  basic_columns = TRUE,
+  tool_name = "slms_3",
   augmented = TRUE,
-  this_seq_type = "genome",
   projection = "grch37",
-  min_read_support = 4,
-  basic_columns = FALSE,
-  verbose = FALSE
+  min_read_support = 3,
+  verbose = FALSE,
+  these_sample_ids,
+  this_seq_type
 )
 }
 \arguments{
-\item{regions_list}{Either provide a vector of regions in the chr:start-end format OR.}
+\item{regions_list}{Either provide a vector of regions in the chr:start-end format OR}
 
 \item{regions_bed}{Better yet, provide a bed file with the coordinates you want to retrieve.}
 
-\item{these_sample_ids}{Optional, a vector of multiple sample_id (or a single sample ID as a string) that you want results for.}
+\item{these_samples_metadata}{Optional metadata table.
+If provided, it will return SSM calls for the only the samples in the metadata table.
+Otherwise it will use all samples from \code{get_gambl_metadata()} of the appropriate seq_types.}
 
-\item{these_samples_metadata}{Optional, a metadata table (with sample IDs in a column) to subset the return to.}
+\item{maf_data}{Use an already loaded MAF data frame.
+If you would like all columns of this input maf returned,
+set \code{streamlined = FALSE} and \code{basic_columns = FALSE}.
+Otherwise the first 45 columns will be returned.}
 
-\item{streamlined}{If TRUE (default), only 3 columns will be kept in the maf (start, sample_id and region name).
-To return more columns, set this parameter to FALSE, see \code{basic_column} for more info.
-Note, if this parameter is TRUE, the function will disregard anything specified with \code{basic_columns}.}
+\item{use_name_column}{If TRUE and your bed-format data frame has a name column
+(must be named "name") these can be used to name your regions. To be used with streamlined = TRUE. Default: FALSE.}
 
-\item{maf_data}{Use an already loaded MAF data frame.}
-
-\item{use_name_column}{If your bed-format data frame has a name column (must be named "name") these can be used to name your regions.}
-
-\item{from_indexed_flatfile}{Set to TRUE to avoid using the database and instead rely on flatfiles (only works for streamlined data, not full MAF details).}
-
-\item{mode}{Only works with indexed flatfiles. Accepts 2 options of "slms-3" and "strelka2" to indicate which variant caller to use. Default is "slms-3".}
-
-\item{augmented}{default: TRUE. Set to FALSE if you instead want the original MAF from each sample for multi-sample patients instead of the augmented MAF}
-
-\item{this_seq_type}{The seq_type you want back, default is genome.}
-
-\item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
-
-\item{min_read_support}{Only returns variants with at least this many reads in t_alt_count (for cleaning up augmented MAFs).}
+\item{streamlined}{If TRUE, only 3 columns will be returned:
+start, sample_id, and region in the format "chr:start-end". Default is FALSE.
+Note: if this parameter is TRUE, the function will disregard anything specified with \code{basic_columns}.}
 
 \item{basic_columns}{Parameter to be used when streamlined is FALSE.
-Set this parameter to TRUE for returning a maf with standard 45 columns, set to FALSE to keep all 116 maf columns in the returned object.
-To return all 116 maf columns, set this parameter to FALSE.}
+Set this parameter to TRUE (default) to return a MAF with the standard 45 columns.
+Set to FALSE to return a MAF with all columns (116).
+If you provided \code{maf_data} with more than 45 columns, set to FALSE to return all columns of
+\code{maf_data}, otherwise it will return the first 45.}
+
+\item{tool_name}{Accepts either "slms_3" (default) or "strelka2"
+(forces \code{streamlined=TRUE}) to indicate which variant caller to use. Note: strelka2 will force
+\code{augmented=FALSE} as data is not available in that case. Formerly called "mode".}
+
+\item{augmented}{Default: TRUE. Setting to FALSE will subset from a pre-merged MAF.
+Obtaining variants from the original MAFs for each sample would not be computationally efficient here.
+Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are needed.}
+
+\item{projection}{Obtain variants projected to this reference, one of grch37 (default) or hg38.}
+
+\item{min_read_support}{Only returns variants with at least this many reads in t_alt_count
+(for cleaning up augmented MAFs). Default: 3.}
 
 \item{verbose}{Boolean parameter set to FALSE per default.}
+
+\item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata}
+
+\item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
 }
 \value{
-Returns a data frame of variants in MAF-like format.
+Returns a data frame of variants in 3 column format or in MAF-like format (one row per mutation).
 }
 \description{
 Efficiently retrieve all mutations across a range of genomic regions.
@@ -72,14 +82,16 @@ Is this function not what you are looking for? Try one of the following, similar
 }
 \examples{
 
+# Adds column `name` to the bed-format dataframe
+# by combining "gene" and "region" values sep by "-"
 regions_bed = GAMBLR.utils::create_bed_data(
    GAMBLR.data::grch37_ashm_regions,
    fix_names = "concat",
    concat_cols = c("gene","region"),sep="-"
 ) \%>\% head(20)
 
-DLBCL_meta = suppressMessages(get_gambl_metadata()) \%>\% 
-                dplyr::filter(pathology=="DLBCL")
+DLBCL_meta = suppressMessages(get_gambl_metadata()) \%>\%
+                dplyr::filter(pathology=="DLBCL", seq_type == "genome")
 ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
                              these_samples_metadata = DLBCL_meta,
                              streamlined=FALSE)

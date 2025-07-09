@@ -6,8 +6,7 @@
 \usage{
 build_browser_hub(
   regions_bed,
-  these_samples_metadata = NULL,
-  these_seq_types = c("genome", "capture"),
+  these_samples_metadata,
   projection = "grch37",
   maf_data = NULL,
   local_web_host_dir = NULL,
@@ -21,29 +20,21 @@ build_browser_hub(
   visibility = "squish",
   bigDataUrl_base = "https://github.com/morinlab/LLMPP/blob/main",
   bedToBigBed_path,
+  these_seq_types = NULL,
   these_sample_ids = NULL
 )
 }
 \arguments{
 \item{regions_bed}{A BED-format table with the regions you want to retrieve SSMs
-from. The columns 1, 2 and 3 must be chromosome names, start positions and
-end positions, respectively. If not provided, the function defaults to aSHM
-regions, \emph{i.e.} one of \code{GAMBLR.data::grch37_ashm_regions} or \code{GAMBLR.data::hg38_ashm_regions},
-which is chosen automatically depending on the provided \code{projection}.}
+from. If not provided, the function defaults to aSHM regions,
+either \code{GAMBLR.data::grch37_ashm_regions} or \verb{GAMBLR. data::hg38_ashm_regions}, depending on the provided projection.}
 
 \item{these_samples_metadata}{Optional (but highly recommended) metadata
-table to tell the function how to subset the data. Only sample_id in
-this table with the matching seq_type will be in the output. Not all
-samples may be in the output, though, if they are missing SSM results
-or had no mutations detected.}
+table. Only samples with seq_type "genome" or "capture" will be used.
+Otherwise it will use all genome and capture samples from \code{get_gambl_metadata()}.}
 
-\item{these_seq_types}{A vector of one or more seq types you want results for.
-Possible values are "genome" or "capture". If more than
-one seq type is provided, for each value in \code{splitColumnName}, the function
-creates a separate track for each provided seq type. The default is
-\code{c("genome", "capture")}. See the \strong{Details} section for more information.}
-
-\item{projection}{The projection genome build. One of "grch37" (default) or "hg38".}
+\item{projection}{Obtain variants projected to this reference,
+one of grch37 (default) or hg38.}
 
 \item{maf_data}{Optional. A data frame of mutations in MAF format or maf_data object
 (e.g. from \code{get_coding_ssm} or \code{get_ssm_by_sample}). It can be filtered by
@@ -59,8 +50,8 @@ directory. Default is NULL.}
 to store the files for your track hub. If this directory does not exist, it will be
 created. Default is "my_hub".}
 
-\item{splitColumnName}{A single string to indicate which metadata column is used
-to split the MAF data into custom track files. Default is "pathology".}
+\item{splitColumnName}{A single string to indicate which column of these_samples_metadata
+to use to split the MAF data into separate tracks. Default is "pathology".}
 
 \item{colour_column}{A single string to use to colour the SSMs in the track, ideally not
 the same as \code{splitColumnName}. Possible options are lymphgen (default),
@@ -96,7 +87,9 @@ section.}
 path is obtained from the \code{config.yml} file saved in the current working
 directory.}
 
-\item{these_sample_ids}{DEPRECATED}
+\item{these_seq_types}{Deprecated. Inferred from these_samples_metadata.}
+
+\item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata.}
 }
 \value{
 Nothing.
@@ -134,11 +127,11 @@ local_web_host_dir = "~/repos/LLMPP"
 hub_dir = "hubs/ashm_test"
 
 my_meta = get_gambl_metadata() \%>\%
-  filter(pathology \%in\% c("BL", "DLBCL", "FL"))
+  filter(pathology \%in\% c("BL", "DLBCL", "FL")) \%>\%
+  filter(seq_type \%in\% c("genome", "capture"))
 
 build_browser_hub(
   these_samples_metadata = my_meta,
-  these_seq_types = c("genome", "capture"),
   projection = "grch37",
   local_web_host_dir = local_web_host_dir,
   hub_dir = hub_dir,

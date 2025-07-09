@@ -6,7 +6,7 @@
 \usage{
 get_ssm_by_sample(
   these_samples_metadata,
-  tool_name = "slms-3",
+  tool_name = "slms_3",
   projection = "grch37",
   augmented = TRUE,
   flavour = "clustered",
@@ -23,7 +23,7 @@ get_ssm_by_sample(
 which sample_id and seq_type you desire the mutations from}
 
 \item{tool_name}{The name of the variant calling pipeline (currently
-only slms-3 is supported).}
+only slms_3 is supported).}
 
 \item{projection}{The projection genome build. Supports hg38 and grch37}
 
