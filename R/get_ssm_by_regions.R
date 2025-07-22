@@ -118,18 +118,24 @@ get_ssm_by_regions = function(regions_list,
     paste0(x[1], ":", as.numeric(x[2]), "-", as.numeric(x[3]))
   }
 
-  if(missing(regions_list)){
-    if(!missing(regions_bed)){
-      genome_build = check_get_projection(list(this_bed=regions_bed),
-                                          projection,
-                                          custom_error = "Please specify a projection that matches the genome build of regions_bed")
+  # When regions_bed or regions_list isn't specified, and only an object is give
+  # this makes sure it's handled appropriately based on it's object type
+  if(!missing(regions_bed)){
+    genome_build = check_get_projection(list(this_bed=regions_bed),
+                                        projection,
+                                        custom_error = "Please specify a projection that matches the genome build of regions_bed")
 
-      regions = apply(regions_bed, 1, bed2region)
-    }else{
-      warning("You must supply either regions_list or regions_bed")
-    }
-  }else{
+    regions = apply(regions_bed, 1, bed2region)
+  }else if(!missing(regions_list) & (sum((c("bed_data", "genomic_data", "data.frame") %in% class(ashm_bed))) >= 1)){
+    genome_build = check_get_projection(list(this_bed=regions_list),
+                                        projection,
+                                        custom_error = "Please specify a projection that matches the genome build of regions_bed")
+
+    regions = apply(regions_list, 1, bed2region)
+  }else if(!missing(regions_list) & class(regions_list) == "character"){
     regions = regions_list
+  }else{
+    stop("You must supply either a regions_list vector or regions_bed object")
   }
   if(verbose){
     print(regions)
