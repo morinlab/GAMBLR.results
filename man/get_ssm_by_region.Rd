@@ -29,14 +29,14 @@ get_ssm_by_region(
 
 \item{qend}{Query end coordinate of the region of interest.}
 
-\item{region}{Full region definition specified as a character vector e.g. "chrX:1234-5678"
-instead of specifying chromosome, start and end separately.}
+\item{region}{Full region definition specified as a character vector e.g.
+"chrX:1234-5678", instead of specifying chromosome, start and end separately.}
 
 \item{these_samples_metadata}{Optional metadata table.
-If provided, it will return SSM calls for the only the samples in the metadata table.
+If provided, it will return SSM calls for the only the samples in this metadata table.
 Otherwise it will use all samples from \code{get_gambl_metadata()} of the appropriate seq_types.}
 
-\item{maf_data}{Use an already loaded MAF data frame.
+\item{maf_data}{Optional data frame with mutations in MAF format.
 If you would like all columns of this input maf returned,
 set \code{streamlined = FALSE} and \code{basic_columns = FALSE}.
 Otherwise the first 45 columns will be returned.}
