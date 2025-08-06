@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-07-07 10:03:27 ==="
-── Running 71 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-08-05 13:51:47 ==="
+── Running 70 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -532,8 +532,8 @@ Showing first 10 rows:
 
 > dplyr::group_by(my_metadata, pathology, seq_type) %>% 
 +     dplyr::count()
-# A tibble: 73 × 3
-# Groups:   pathology, seq_type [73]
+# A tibble: 70 × 3
+# Groups:   pathology, seq_type [70]
    pathology seq_type     n
    <chr>     <chr>    <int>
  1 AITL      capture      2
@@ -546,7 +546,7 @@ Showing first 10 rows:
  8 CLL       genome     213
  9 CLL       mrna       157
 10 COMFL     capture      1
-# ℹ 63 more rows
+# ℹ 60 more rows
 
 > all_fusions = get_gene_fusions()
 
@@ -594,8 +594,8 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 330 samples and 13 cohorts"
- [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
+[1] "No Manta SVs found for 344 samples and 14 cohorts"
+ [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
 
 > dplyr::select(all_sv, 1:14) %>% head()
 genomic_data Object
@@ -839,7 +839,3 @@ Showing first 10 rows:
 +     "DLBCL")
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
-
-> pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
-+     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-07-07 10:48:52 ==="
