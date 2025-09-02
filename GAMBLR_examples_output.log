@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-08-05 13:51:47 ==="
-── Running 70 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-09-02 15:28:42 ==="
+── Running 70 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -97,17 +97,17 @@ Showing first 10 rows:
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
-   Tumor_Sample_Barcode       CN     n
-1              SP124957 1.893249    17
-2              SP124957 2.000000 10263
-3              SP124957 2.112682    96
-4              SP124957 2.126767    59
-5              SP124957 2.144877   479
-6              SP124957 2.156021   149
-7              SP124957 3.000000    52
-8              SP124957 3.521206   344
-9              SP124957 3.551033   712
-10             SP124957 3.563755   145
+   Tumor_Sample_Barcode       CN    n
+1              SP124957 1.893249   17
+2              SP124957 2.000000 9405
+3              SP124957 2.112682   96
+4              SP124957 2.126767   59
+5              SP124957 2.144877  479
+6              SP124957 2.156021  149
+7              SP124957 3.000000   52
+8              SP124957 3.521206  344
+9              SP124957 3.551033  712
+10             SP124957 3.563755  145
 
 > meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(pathology == "MCL")
@@ -173,7 +173,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
-1040461  187836 
+1055656  190653 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -181,16 +181,16 @@ genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1      IGLV3-1      Missense_Mutation 3218
-2     IGHV2-70      Missense_Mutation 3184
-3          TTN      Missense_Mutation 2815
-4         BCL2      Missense_Mutation 2643
-5        IGLL5      Missense_Mutation 2496
-6     IGHV1-69      Missense_Mutation 1814
-7         PIM1      Missense_Mutation 1712
-8          MYC      Missense_Mutation 1420
-9        MUC16      Missense_Mutation 1378
-10      CREBBP      Missense_Mutation 1119
+1      IGLV3-1      Missense_Mutation 3237
+2     IGHV2-70      Missense_Mutation 3186
+3          TTN      Missense_Mutation 2857
+4         BCL2      Missense_Mutation 2670
+5        IGLL5      Missense_Mutation 2566
+6     IGHV1-69      Missense_Mutation 1817
+7         PIM1      Missense_Mutation 1766
+8          MYC      Missense_Mutation 1423
+9        MUC16      Missense_Mutation 1396
+10      CREBBP      Missense_Mutation 1128
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -213,7 +213,7 @@ FL1015T2                   0                      1                      0      
 
 > colMeans(pax5_matrix)
             PAX5-TSS-1 PAX5-distal-enhancer-1 PAX5-distal-enhancer-3          PAX5-intron-1 PAX5-distal-enhancer-2 
-             0.4390244              0.5284553              1.2455285              1.9121951              0.6536585 
+             0.4390244              0.5317073              1.2487805              1.9138211              0.6536585 
 
 > capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "capture") %>% head()
@@ -247,33 +247,31 @@ Showing first 10 rows:
 
 > dplyr::group_by(capture_segments_default, ID) %>% 
 +     dplyr::summarize(n = dplyr::n())
-# A tibble: 8 × 2
+# A tibble: 6 × 2
   ID                    n
   <chr>             <int>
-1 00-12637_CLC02086   116
-2 00-14595_tumorB     144
-3 00-14595_tumorC     166
-4 00-14595_tumorD     142
-5 FL1011T1          22548
-6 FL1011T2            134
-7 PA003               225
-8 PA007               297
+1 00-12637_CLC02086    51
+2 00-14595_tumorB      64
+3 00-14595_tumorC      75
+4 00-14595_tumorD      65
+5 FL1011T1          11278
+6 FL1011T2             62
 
 > print(capture_segments_default)
 SEG Data Object
 Genome Build: grch37 
 Showing first 10 rows:
-      ID chrom    start      end LOH_flag log.ratio seg_seq_type  CN
-1  PA007     1    10001   721411       NA         0      capture 2.0
-2  PA007     1   721412 12881214       NA         0      capture 2.0
-3  PA007     1 12881214 13051546       NA         0      capture 2.0
-4  PA007     1 13051546 16974910       NA         0      capture 2.0
-5  PA007     1 16974911 17089241       NA         0      capture 2.0
-6  PA007     1 17089241 17276399       NA        -2      capture 0.5
-7  PA007     1 17276399 21286146       NA         0      capture 2.0
-8  PA007     1 21286146 21325546       NA         1      capture 4.0
-9  PA007     1 21325546 24199802       NA         0      capture 2.0
-10 PA007     1 24199802 24201504       NA         1      capture 4.0
+                  ID chrom     start       end LOH_flag  log.ratio seg_seq_type dummy_segment       CN
+1  00-12637_CLC02086     1    762601 121500000        0 -0.1677231       genome             0 1.780493
+2  00-12637_CLC02086     1 142600000 249202674        0 -0.1677231       genome             0 1.780493
+3  00-12637_CLC02086     2     11320  89159180        0  0.0000000       genome             0 2.000000
+4  00-12637_CLC02086     2  89162529  90500000        1 -0.5129297       genome             0 1.401596
+5  00-12637_CLC02086     2  96800000 242955889        0  0.0000000       genome             0 2.000000
+6  00-12637_CLC02086     3     60799  75567406        0  0.0000000       genome             0 2.000000
+7  00-12637_CLC02086     3  75707357  75792146        1 -0.8930203       genome             0 1.076971
+8  00-12637_CLC02086     3  75803223  87900000        0  0.0000000       genome             0 2.000000
+9  00-12637_CLC02086     3  98300000 197780227        0  0.0000000       genome             0 2.000000
+10 00-12637_CLC02086     4     69567  48200000        0  0.0000000       genome             0 2.000000
 
 > all_types_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(pathology == "BL")
@@ -307,7 +305,7 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > colSums(genome_cnv_ssm_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    187      47      76     120     122      14 
+    184      23      76     120     122      10 
 
 > all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     all_types_meta, only_cnv = "MIR17HG"))
@@ -326,12 +324,12 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > colSums(all_seq_type_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    290      68     121     198     193      26 
+    286      23     121     198     193      16 
 
 > maf_genome = get_coding_ssm()
 
 > nrow(maf_genome)
-[1] 248754
+[1] 252278
 
 > dplyr::select(maf_genome, 1, 4, 5, 6, 9, maf_seq_type)
 genomic_data Object
@@ -347,7 +345,7 @@ Showing first 10 rows:
 7         SAMD11     GRCh37          1         874416          Splice_Region       genome
 8         SAMD11     GRCh37          1         874467      Missense_Mutation       genome
 9         SAMD11     GRCh37          1         874648          Splice_Region       genome
-10        SAMD11     GRCh37          1         874763      Missense_Mutation       genome
+10        SAMD11     GRCh37          1         874739      Missense_Mutation       genome
 
 > maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture", 
 +     projection = "hg38")
@@ -839,3 +837,7 @@ Showing first 10 rows:
 +     "DLBCL")
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
+
+> pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
++     flavour = "with_cnvs.with_sv.no_A53")
+[1] "=== COMPLETED AT 2025-09-02 16:02:43 ==="
