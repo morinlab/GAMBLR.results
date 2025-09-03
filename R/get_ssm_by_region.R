@@ -14,12 +14,12 @@
 #' @param chromosome The chromosome you are restricting to (with or without a chr prefix).
 #' @param qstart Query start coordinate of the region of interest.
 #' @param qend Query end coordinate of the region of interest.
-#' @param region Full region definition specified as a character vector e.g. "chrX:1234-5678"
-#'  instead of specifying chromosome, start and end separately.
+#' @param region Full region definition specified as a character vector e.g.
+#'  "chrX:1234-5678", instead of specifying chromosome, start and end separately.
 #' @param these_samples_metadata Optional metadata table.
-#'  If provided, it will return SSM calls for the only the samples in the metadata table.
+#'  If provided, it will return SSM calls for the only the samples in this metadata table.
 #'  Otherwise it will use all samples from `get_gambl_metadata()` of the appropriate seq_types.
-#' @param maf_data Use an already loaded MAF data frame.
+#' @param maf_data Optional data frame with mutations in MAF format.
 #'  If you would like all columns of this input maf returned,
 #'  set `streamlined = FALSE` and `basic_columns = FALSE`.
 #'  Otherwise the first 45 columns will be returned.
