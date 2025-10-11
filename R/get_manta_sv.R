@@ -36,6 +36,8 @@
 #' @param these_samples_metadata A metadata data frame to limit the
 #' result to sample_ids within it
 #' @param projection The projection genome build. Default is grch37.
+#' #' @param this_seq_type The seq_type you want SV from. default is genome.
+#' Can be "genome", "capture" or c("genome", "capture")
 #' @param min_vaf The minimum tumour VAF for a SV to be returned.
 #' Default is 0.1.
 #' @param min_score The lowest Manta somatic score for a SV to be returned.
@@ -116,6 +118,7 @@
 #' 
 get_manta_sv <- function(these_samples_metadata = NULL,
                          projection = "grch37",
+                         this_seq_type = "genome",
                          region,
                          min_vaf = 0.1,
                          min_score = 40,
@@ -148,14 +151,13 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     qend <- startend[2]
   }
 
-  if ("capture" %in% these_samples_metadata$seq_type) {
+  if ("capture" %in% this_seq_type) {
     if(verbose){
-      print("dropping capture samples because manta results
-      are only available for genome seq_type")
+      print("Be aware that you're including 'capture' seq_type data!!!")
     }
     these_samples_metadata <- dplyr::filter(
       these_samples_metadata,
-      seq_type == "genome"
+      seq_type %in% this_seq_type
     )
   }
   this_meta = these_samples_metadata
@@ -228,10 +230,11 @@ get_manta_sv <- function(these_samples_metadata = NULL,
 
     manta_sv <- get_manta_sv_by_samples(
       these_samples_metadata = this_meta,
+      this_seq_type = this_seq_type,
       verbose = verbose,
-      min_vaf = 0,
-      pass_filters = FALSE,
-      min_score = 0,
+      min_vaf = min_vaf,
+      pass_filters = pass_filters,
+      min_score = min_score,
       projection = projection
     )
 
