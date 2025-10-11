@@ -55,26 +55,31 @@ get_manta_sv_by_sample = function(this_sample_id,
                                   projection = "grch37",
                                   verbose = TRUE){
 
+  # Filter these_samples_metadata to c("genome", "capture)
+  these_samples_metadata = these_samples_metadata %>% dplyr::filter(seq_type %in% c("genome", "capture"))
+  
   #safetynet for preventing users to mistakenly return un-lifted variant calls.
   if(!force_lift){ #i.e I will run liftover on my own, based on the information in the extra column (need_lift).
     if(!return_anyway){
       stop("If you know what you are doing and wish to liftover the returned sample yourself, set return_anyway to TRUE. If you want this function to handle the liftover for you, set force_lift = TRUE")
     }
   }
-
+  
   #check remote configuration
   remote_session = check_remote_configuration(auto_connect = TRUE)
-
+  
   if(missing(this_sample_id)){
     if(!nrow(these_samples_metadata) == 1){
-      stop("There is more than one sample in the supplied metadata table. Either subset metadata to only have one sample, provide the this_sample_id parameter OR consider running get_manta_sv_by_samples")
+      warning("There is more than one sample in the supplied metadata table. Either subset metadata to only have one sample, provide the this_sample_id parameter OR consider running get_manta_sv_by_samples")
+      return(dplyr::tibble())
     }
     this_sample_id = these_samples_metadata$sample_id
   }
-
+  
   these_samples_metadata = dplyr::filter(these_samples_metadata, sample_id == this_sample_id)
-  if(!nrow(these_samples_metadata==1)){
-    stop("metadata does not seem to contain your this_sample_id or you didn't provide one")
+  if(!nrow(these_samples_metadata) == 1){
+    warning("metadata does not seem to contain your this_sample_id or you didn't provide one: ", this_sample_id)
+    return(dplyr::tibble())
   }
 
   #get wildcards

@@ -7,6 +7,7 @@
 #' [GAMBLR.results::get_manta_sv], [GAMBLR.results::get_manta_sv_by_sample]
 #'
 #' @param these_samples_metadata The only required parameter is a metadata table (data frame) that must contain a row for each sample you want the data from. The additional columns the data frame needs to contain, besides sample_id, are: unix_group, genome_build, seq_type, pairing_status.
+#' @param this_seq_type The seq_type you want SV from. default is genome. Can be "genome", "capture" or c("genome", "capture")
 #' @param min_vaf The minimum tumour VAF for a SV to be returned. Default value is 0.1.
 #' @param min_score The lowest Manta somatic score for a SV to be returned. Default value is 40.
 #' @param pass_filters If set to TRUE, only return SVs that are annotated with PASS in the FILTER column. Set to FALSE to keep all variants, regardless if they PASS the filters. Default is TRUE.
@@ -30,14 +31,18 @@
 #' }
 #' @keywords internal
 get_manta_sv_by_samples = function(these_samples_metadata,
+                                   this_seq_type = "genome",
                                    min_vaf = 0.1,
                                    min_score = 40,
                                    pass_filters = TRUE,
                                    projection = "grch37",
                                    verbose = TRUE){
-
+  
   #check remote configuration
   remote_session = check_remote_configuration(auto_connect = TRUE)
+  
+  #Filter metadata based on this_seq_type
+  these_samples_metadata = these_samples_metadata %>% dplyr::filter(seq_type %in% this_seq_type)
 
   #get sample IDs from metadata.
   samples = pull(these_samples_metadata, sample_id)
