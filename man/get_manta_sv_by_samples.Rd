@@ -6,6 +6,7 @@
 \usage{
 get_manta_sv_by_samples(
   these_samples_metadata,
+  this_seq_type = "genome",
   min_vaf = 0.1,
   min_score = 40,
   pass_filters = TRUE,
@@ -15,6 +16,8 @@ get_manta_sv_by_samples(
 }
 \arguments{
 \item{these_samples_metadata}{The only required parameter is a metadata table (data frame) that must contain a row for each sample you want the data from. The additional columns the data frame needs to contain, besides sample_id, are: unix_group, genome_build, seq_type, pairing_status.}
+
+\item{this_seq_type}{The seq_type you want SV from. default is genome. Can be "genome", "capture" or c("genome", "capture")}
 
 \item{min_vaf}{The minimum tumour VAF for a SV to be returned. Default value is 0.1.}
 

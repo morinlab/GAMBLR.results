@@ -36,7 +36,7 @@
 #' @param these_samples_metadata A metadata data frame to limit the
 #' result to sample_ids within it
 #' @param projection The projection genome build. Default is grch37.
-#' #' @param this_seq_type The seq_type you want SV from. default is genome.
+#' @param this_seq_type The seq_type you want SV from. default is genome.
 #' Can be "genome", "capture" or c("genome", "capture")
 #' @param min_vaf The minimum tumour VAF for a SV to be returned.
 #' Default is 0.1.
