@@ -41,7 +41,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
   
   #check metadata seq_type
   if ("capture" %in% these_samples_metadata$seq_type){
-    warning("Be aware that you're including 'capture' seq_type data!!!")
+    warning("Be aware that you're including 'capture' seq_type data based on your these_samples_metadata!!!")
   }
 
   #get sample IDs from metadata.
