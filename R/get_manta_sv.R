@@ -151,9 +151,9 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     qend <- startend[2]
   }
 
-  if ("capture" %in% this_seq_type) {
+  if ("capture" %in% these_samples_metadata$seq_type) {
     if(verbose){
-      print("Be aware that you're including 'capture' seq_type data!!!")
+      print("Okay!!!")
     }
     these_samples_metadata <- dplyr::filter(
       these_samples_metadata,
@@ -232,9 +232,9 @@ get_manta_sv <- function(these_samples_metadata = NULL,
       these_samples_metadata = this_meta,
       this_seq_type = this_seq_type,
       verbose = verbose,
-      min_vaf = min_vaf,
-      pass_filters = pass_filters,
-      min_score = min_score,
+      min_vaf = 0,
+      pass_filters = FALSE,
+      min_score = 0,
       projection = projection
     )
 
