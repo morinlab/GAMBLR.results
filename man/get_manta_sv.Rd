@@ -7,7 +7,6 @@
 get_manta_sv(
   these_samples_metadata = NULL,
   projection = "grch37",
-  this_seq_type = "genome",
   region,
   min_vaf = 0.1,
   min_score = 40,
@@ -27,9 +26,6 @@ get_manta_sv(
 result to sample_ids within it}
 
 \item{projection}{The projection genome build. Default is grch37.}
-
-\item{this_seq_type}{The seq_type you want SV from. default is genome.
-Can be "genome", "capture" or c("genome", "capture")}
 
 \item{region}{Specify a single region to fetch SVs anchored within
 using the format "chrom:start-end"}
