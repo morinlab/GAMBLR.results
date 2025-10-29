@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2025-09-02 15:28:42 ==="
-── Running 70 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2025-10-14 14:17:42.761456 ==="
+── Running 70 example files ─────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -173,7 +173,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
-1055656  190653 
+1070828  190653 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -183,14 +183,14 @@ Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
 1      IGLV3-1      Missense_Mutation 3237
 2     IGHV2-70      Missense_Mutation 3186
-3          TTN      Missense_Mutation 2857
-4         BCL2      Missense_Mutation 2670
-5        IGLL5      Missense_Mutation 2566
+3          TTN      Missense_Mutation 2882
+4         BCL2      Missense_Mutation 2749
+5        IGLL5      Missense_Mutation 2644
 6     IGHV1-69      Missense_Mutation 1817
-7         PIM1      Missense_Mutation 1766
-8          MYC      Missense_Mutation 1423
-9        MUC16      Missense_Mutation 1396
-10      CREBBP      Missense_Mutation 1128
+7         PIM1      Missense_Mutation 1785
+8          MYC      Missense_Mutation 1427
+9        MUC16      Missense_Mutation 1413
+10      CREBBP      Missense_Mutation 1164
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -376,7 +376,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    333     463 
+    397     463 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -385,7 +385,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 796  55
+[1] 860  55
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -397,7 +397,7 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 796  55
+[1] 860  55
 
 > head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -496,14 +496,13 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2   name   score strand1 strand2          tumour_sample_id   gene partner    fusion
-   <char>     <num>     <num> <char>     <num>     <num> <char>   <num>  <char>  <char>                    <char> <char>  <char>    <char>
-1:     18  63123493  63123497      8 127728389 127728393      . 1742.35       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
-2:     18  63195263  63195266      8 127744561 127744564      .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
-3:      2  28983232  28983241      8 127711263 127711272      .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
-4:      3  70834666  70834671      8 127750318 127750323      .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
-5:      3 101756651 101756656      8 127724888 127724893      .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
-6:      3 187747200 187747205      8 127744763 127744768      .      NA       +       -           17-33848_tumorB   BCL6    <NA>   NA-BCL6
+  chrom1    start1      end1 chrom2    start2      end2 name   score strand1 strand2          tumour_sample_id   gene partner    fusion
+1     18  63123493  63123497      8 127728389 127728393    . 1742.35       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
+2     18  63195263  63195266      8 127744561 127744564    .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
+3      2  28983232  28983241      8 127711263 127711272    .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
+4      3  70834666  70834671      8 127750318 127750323    .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
+5      3 101756651 101756656      8 127724888 127724893    .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
+6      4   1746418   1746422      8 127723482 127723486    .      NA       -       -                 09-41114T  WHSC1    <NA>  NA-WHSC1
 
 > table(annotated_myc_hg38$partner)
 
@@ -514,14 +513,13 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner fusion
-   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char> <char>
-1:      8 127313080 127313571      8 128746007 128746587      .    NA       +       -         PD26401c    MYC    <NA> NA-MYC
-2:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -  04-14093_tumorA    MYC    <NA> NA-MYC
-3:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -  04-14093_tumorB    MYC    <NA> NA-MYC
-4:      8 128738979 128738981      8 128752583 128752585      .    NA       +       -        05-24065T    MYC    <NA> NA-MYC
-5:      8 128738979 128738981      8 128752583 128752585      .    NA       +       -        10-27119T    MYC    <NA> NA-MYC
-6:      8 128738979 128738981      8 128752583 128752585      .    NA       +       -         SU-DHL-6    MYC    <NA> NA-MYC
+  chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
+1      8 127313080 127313571      8 128746007 128746587    .    NA       +       -         PD26401c  MYC    <NA> NA-MYC
+2      8 128738977 128738983      8 128752583 128752589    .    NA       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
+3      8 128738977 128738983      8 128752583 128752589    .    NA       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
+4      8 128738979 128738981      8 128752583 128752585    .    NA       +       -        05-24065T  MYC    <NA> NA-MYC
+5      8 128738979 128738981      8 128752583 128752585    .    NA       +       -        10-27119T  MYC    <NA> NA-MYC
+6      8 128738979 128738981      8 128752583 128752585    .    NA       +       -         SU-DHL-6  MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -591,9 +589,8 @@ Showing first 10 rows:
 
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
-[1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 344 samples and 14 cohorts"
- [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
+[1] "No Manta SVs found for 5898 samples and 65 cohorts"
+ [1] "PMBCL_Mottok"            "LLMPP_DLBCL_testicular"  "DLBCL_LSARP_Trios"       "tFL_LSARP_Trios"         "LLMPP_HGBL-DH-BCL2"      "pFL_LSARP_Trios"         "LLMPP_DLBCL_extranodal"  "LLMPP_HGBL-NOS"          "PTCL_Kerry"              "DLBCL_CNS_Relapse"       "LLMPP_DLBCL"             "FL_FOLL_BR"              "MCL_Morin-exomes"        "LLMPP_PBL"               "DLBCL_Weng"              "LLMPP_PCNSL"             "DLBCL_TFRI_DarkZone"     "DLBCL_Epizyme"           "LLMPP_bone_marrow"       "DLBCL_Pasqualucci"       "Lenz"                    "DLBCL_montreal"          "DLBCL_Jain"              "DLBCL_cell_lines"        "BL_UK_Pediatric"         "dlbcl_ly17"              "PMBCL_Schleussner"       "PTCL-NOS_Iqbal"          "PBL_UKM"                 "FL_Crouch"               "dlbcl_chapuy"            "dlbcl_schmitz"           "Roulland_bulk"           "FL_Ott"                  "MCL_CellLines"           "cHL_Maura"               "NCI_DLBCL_Golub"         "Ennishi_tapestri"        "DLBCL_OZM073"            "PBL_Lubeck"              "MM_mmsanger"             "PBL_Columbia"            "BL_panea"                "DLBCL_QCROC2"            "dlbcl_reddy"             "SMZL_Strefford"          "SMZL_dbGAP"              "LLMPP_BL"                "ALCL_Feldman"            "cHL_cell_lines"          "CLL_LSARP_Trios"         "DLBCL_DLC"               "DLBCL_HTMCP"             "FFPE_Benchmarking"       "LLMPP_P01"               "MCL_Barcelona"           "MMGS"                    "BL_Adult"                "BL_Pediatric"            "BLGSP_Bcell_UNC"         "DLBCL_BLGSP"             "DLBCL_DLC_Ribodepletion" "MCL_Morin"               "PMBCL_Sarkozy"           "CLL_ICGC"               
 
 > dplyr::select(all_sv, 1:14) %>% head()
 genomic_data Object
@@ -672,14 +669,13 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner   fusion
-   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char>   <char>
-1:      2  28983233  28983240      8 127711264 127711271      .    43       -       -  02-14764_tumorB    ALK    <NA>   NA-ALK
-2:      3 187747202 187747205      8 127744764 127744767      .    79       +       -  17-33848_tumorB   BCL6    <NA>  NA-BCL6
-3:      3 187811601 187811601      8 127745649 127745649      .   106       -       +         FL1008T2   BCL6    <NA>  NA-BCL6
-4:      3 188074182 188074327      8 127749381 127749593      .    92       +       -      140127-PL02   BCL6    <NA>  NA-BCL6
-5:      4   1746419   1746421      8 127723483 127723485      .    77       -       -        09-41114T  WHSC1    <NA> NA-WHSC1
-6:      8 127226860 127226862      8 127759782 127759784      .    56       +       +          SP13307    MYC    <NA>   NA-MYC
+  chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id  gene partner   fusion
+1      2  28983233  28983240      8 127711264 127711271    .    43       -       -  02-14764_tumorB   ALK    <NA>   NA-ALK
+2      4   1746419   1746421      8 127723483 127723485    .    77       -       -        09-41114T WHSC1    <NA> NA-WHSC1
+3      8 127226860 127226862      8 127759782 127759784    .    56       +       +          SP13307   MYC    <NA>   NA-MYC
+4      8 127226860 127226860      8 127759821 127759821    .    51       -       -          SP13307   MYC    <NA>   NA-MYC
+5      8 127301019 127301020      8 127742838 127742839    .    71       -       -      365-16-01TD   MYC    <NA>   NA-MYC
+6      8 127301020 127301022      8 127742838 127742840    .    65       +       +      365-16-01TD   MYC    <NA>   NA-MYC
 
 > table(annotated_myc_hg38$partner)
 
@@ -690,14 +686,13 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner fusion
-   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char> <char>
-1:      8 128726344 128727379     11  93629113  93629647      .    66       -       +        01-20774T    MYC    <NA> NA-MYC
-2:      8 128726820 128726820      8 128726825 128726825      .    76       +       -         PD26403a    MYC    <NA> NA-MYC
-3:      8 128726820 128726820      8 128726825 128726825      .    84       +       -         PD26403c    MYC    <NA> NA-MYC
-4:      8 128738979 128738983      8 128752584 128752588      .   118       +       -  04-14093_tumorA    MYC    <NA> NA-MYC
-5:      8 128738979 128738983      8 128752584 128752588      .   127       +       -  04-14093_tumorB    MYC    <NA> NA-MYC
-6:      8 128738981 128738981      8 128752584 128752584      .   126       +       -        05-24065T    MYC    <NA> NA-MYC
+  chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
+1      8 128726344 128727379     11  93629113  93629647    .    66       -       +        01-20774T  MYC    <NA> NA-MYC
+2      8 128726820 128726820      8 128726825 128726825    .    76       +       -         PD26403a  MYC    <NA> NA-MYC
+3      8 128726820 128726820      8 128726825 128726825    .    84       +       -         PD26403c  MYC    <NA> NA-MYC
+4      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
+5      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
+6      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -840,4 +835,4 @@ Showing first 10 rows:
 
 > pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
 +     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2025-09-02 16:02:43 ==="
+[1] "=== COMPLETED AT 2025-10-14 15:13:14.388424 ==="

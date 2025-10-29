@@ -35,9 +35,14 @@ get_manta_sv_by_samples = function(these_samples_metadata,
                                    pass_filters = TRUE,
                                    projection = "grch37",
                                    verbose = TRUE){
-
+  
   #check remote configuration
   remote_session = check_remote_configuration(auto_connect = TRUE)
+  
+  #check metadata seq_type
+  if ("capture" %in% these_samples_metadata$seq_type){
+    warning("Be aware that you're including 'capture' seq_type data based on your these_samples_metadata!!!")
+  }
 
   #get sample IDs from metadata.
   samples = pull(these_samples_metadata, sample_id)

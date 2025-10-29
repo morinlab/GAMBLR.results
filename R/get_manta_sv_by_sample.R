@@ -55,26 +55,31 @@ get_manta_sv_by_sample = function(this_sample_id,
                                   projection = "grch37",
                                   verbose = TRUE){
 
+  # Filter these_samples_metadata to c("genome", "capture)
+  these_samples_metadata = these_samples_metadata %>% dplyr::filter(seq_type %in% c("genome", "capture"))
+  
   #safetynet for preventing users to mistakenly return un-lifted variant calls.
   if(!force_lift){ #i.e I will run liftover on my own, based on the information in the extra column (need_lift).
     if(!return_anyway){
       stop("If you know what you are doing and wish to liftover the returned sample yourself, set return_anyway to TRUE. If you want this function to handle the liftover for you, set force_lift = TRUE")
     }
   }
-
+  
   #check remote configuration
   remote_session = check_remote_configuration(auto_connect = TRUE)
-
+  
   if(missing(this_sample_id)){
     if(!nrow(these_samples_metadata) == 1){
-      stop("There is more than one sample in the supplied metadata table. Either subset metadata to only have one sample, provide the this_sample_id parameter OR consider running get_manta_sv_by_samples")
+      warning("There is more than one sample in the supplied metadata table. Either subset metadata to only have one sample, provide the this_sample_id parameter OR consider running get_manta_sv_by_samples")
+      return(dplyr::tibble())
     }
     this_sample_id = these_samples_metadata$sample_id
   }
-
+  
   these_samples_metadata = dplyr::filter(these_samples_metadata, sample_id == this_sample_id)
-  if(!nrow(these_samples_metadata==1)){
-    stop("metadata does not seem to contain your this_sample_id or you didn't provide one")
+  if(!nrow(these_samples_metadata) == 1){
+    warning("metadata does not seem to contain your this_sample_id or you didn't provide one: ", this_sample_id)
+    return(dplyr::tibble())
   }
 
   #get wildcards
@@ -180,7 +185,7 @@ get_manta_sv_by_sample = function(this_sample_id,
 
   #create new columns with sample IDs
   bedpe_dat = bedpe_dat_raw %>%
-    mutate(tumour_sample_id = tumour_sample_id, normal_sample_id = normal_sample_id, pair_status = pairing_status)
+    mutate(tumour_sample_id = tumour_sample_id, normal_sample_id = normal_sample_id, pair_status = pairing_status, seq_type = seq_type)
 
   #rename columns to match the expected format
   colnames(bedpe_dat)[c(1:6)] = c("CHROM_A", "START_A", "END_A", "CHROM_B", "START_B", "END_B")
@@ -202,7 +207,7 @@ get_manta_sv_by_sample = function(this_sample_id,
     rename("DP" = "DP_tumour", "manta_name" = "ID") %>%
     dplyr::select("CHROM_A", "START_A", "END_A", "CHROM_B", "START_B", "END_B",
                   "manta_name", "SCORE", "STRAND_A", "STRAND_B", "tumour_sample_id",
-                  "normal_sample_id", "VAF_tumour", "DP", "pair_status", "FILTER", "need_lift")
+                  "normal_sample_id", "VAF_tumour", "DP", "pair_status", "FILTER", "need_lift", "seq_type")
 
   #VAF and somatic score filtering.
   bedpe_dat = bedpe_dat %>%
@@ -237,7 +242,7 @@ get_manta_sv_by_sample = function(this_sample_id,
 
   #enforce column types and sort returned calls
   bedpe_dat = bedpe_dat %>%
-    mutate(across(c(CHROM_A, CHROM_B, manta_name, STRAND_A, STRAND_B, tumour_sample_id, normal_sample_id, pair_status, FILTER), as.character)) %>%
+    mutate(across(c(CHROM_A, CHROM_B, manta_name, STRAND_A, STRAND_B, tumour_sample_id, normal_sample_id, pair_status, FILTER, seq_type), as.character)) %>%
     mutate(across(c(START_A, END_A, START_B, END_B, SCORE, VAF_tumour, DP), as.numeric)) %>%
     arrange(CHROM_A, CHROM_B, START_A)
   bedpe_dat = create_genomic_data(bedpe_dat,projection)

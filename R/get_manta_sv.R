@@ -137,8 +137,10 @@ get_manta_sv <- function(these_samples_metadata = NULL,
        print("no metadata provided, fetching all samples...")
     }
     these_samples_metadata <- suppressMessages(get_gambl_metadata())
-    this_meta = these_samples_metadata
   }
+  this_meta = these_samples_metadata %>% filter(seq_type != "mrna")
+  seq_type = unique(this_meta$seq_type)
+  
   if (!missing(region)) {
     region <- gsub(",", "", region)
     split_chunks <- unlist(strsplit(region, ":"))
@@ -150,15 +152,10 @@ get_manta_sv <- function(these_samples_metadata = NULL,
 
   if ("capture" %in% these_samples_metadata$seq_type) {
     if(verbose){
-      print("dropping capture samples because manta results
-      are only available for genome seq_type")
+      warning("Be aware that you're including 'capture' seq_type data!!!")
     }
-    these_samples_metadata <- dplyr::filter(
-      these_samples_metadata,
-      seq_type == "genome"
-    )
   }
-  this_meta = these_samples_metadata
+  
   if (write_to_file) {
     from_cache <- FALSE # override default automatically for nonsense combination of options
   }
@@ -195,8 +192,7 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     }
 
     # read merged data
-    manta_sv <- suppressMessages(read_tsv(output_file,
-                                         progress = FALSE)) %>%
+    manta_sv <- suppressMessages(output_file %>% lapply(read_tsv) %>% bind_rows()) %>%
       dplyr::filter(
         tumour_sample_id %in% this_meta$sample_id,
         VAF_tumour >= min_vaf,
@@ -217,7 +213,7 @@ get_manta_sv <- function(these_samples_metadata = NULL,
       # enforce all samples in the latest metadata to be in the merge,
       # if the user decides to overwrite the cached results.
       this_meta <- suppressMessages(get_gambl_metadata()) %>%
-        dplyr::filter(seq_type == "genome")
+        dplyr::filter(seq_type != "mrna")
     }
 
     # compile the merge based on selected projection (with no filters)
@@ -247,7 +243,7 @@ get_manta_sv <- function(these_samples_metadata = NULL,
       icgc_dart_file <- GAMBLR.helpers::check_config_and_value("results_merged$manta_sv$icgc_dart")
       icgc_dart_file <- paste0(output_base, icgc_dart_file)
       icgc_dart_file <- glue::glue(icgc_dart_file)
-      icgc_dart_folder <- gsub(paste0("manta.genome--", projection, ".bedpe"), "", icgc_dart_file)
+      icgc_dart_folder <- file.path(dirname(icgc_dart_file), "") %>% unique()
 
       icgc_permissions <- file.access(icgc_dart_folder, 2) # get write permission for the icgc_dart merge (all samples).
 
@@ -264,8 +260,18 @@ get_manta_sv <- function(these_samples_metadata = NULL,
           dplyr::filter(tumour_sample_id %in% gambl_samples$sample_id)
 
         # write merges to file
-        write_tsv(manta_sv, file = icgc_dart_file, append = FALSE)
-        write_tsv(gambl_manta_sv, file = gambl_file, append = FALSE)
+        for (s_typ in unique(manta_sv$seq_type)) {
+          patrn <- paste0("manta\\.", s_typ, "--")          
+          out <- icgc_dart_file[grepl(patrn, icgc_dart_file)]
+          write_tsv(filter(manta_sv, seq_type == s_typ), file = out, append = FALSE)
+        }
+        #write_tsv(manta_sv, file = icgc_dart_file, append = FALSE)
+        for (s_typ in unique(gambl_manta_sv$seq_type)) {
+          patrn <- paste0("manta\\.", s_typ, "--")          
+          out <- gambl_file[grepl(patrn, gambl_file)]
+          write_tsv(filter(gambl_manta_sv, seq_type == s_typ), file = out, append = FALSE)
+        }
+        #write_tsv(gambl_manta_sv, file = gambl_file, append = FALSE)
       } else {
         stop("You do not have sufficient permissions to write the manta merged files to disk... ")
       }
