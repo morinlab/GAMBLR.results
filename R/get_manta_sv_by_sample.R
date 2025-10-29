@@ -185,7 +185,7 @@ get_manta_sv_by_sample = function(this_sample_id,
 
   #create new columns with sample IDs
   bedpe_dat = bedpe_dat_raw %>%
-    mutate(tumour_sample_id = tumour_sample_id, normal_sample_id = normal_sample_id, pair_status = pairing_status)
+    mutate(tumour_sample_id = tumour_sample_id, normal_sample_id = normal_sample_id, pair_status = pairing_status, seq_type = seq_type)
 
   #rename columns to match the expected format
   colnames(bedpe_dat)[c(1:6)] = c("CHROM_A", "START_A", "END_A", "CHROM_B", "START_B", "END_B")
@@ -207,7 +207,7 @@ get_manta_sv_by_sample = function(this_sample_id,
     rename("DP" = "DP_tumour", "manta_name" = "ID") %>%
     dplyr::select("CHROM_A", "START_A", "END_A", "CHROM_B", "START_B", "END_B",
                   "manta_name", "SCORE", "STRAND_A", "STRAND_B", "tumour_sample_id",
-                  "normal_sample_id", "VAF_tumour", "DP", "pair_status", "FILTER", "need_lift")
+                  "normal_sample_id", "VAF_tumour", "DP", "pair_status", "FILTER", "need_lift", "seq_type")
 
   #VAF and somatic score filtering.
   bedpe_dat = bedpe_dat %>%
@@ -242,7 +242,7 @@ get_manta_sv_by_sample = function(this_sample_id,
 
   #enforce column types and sort returned calls
   bedpe_dat = bedpe_dat %>%
-    mutate(across(c(CHROM_A, CHROM_B, manta_name, STRAND_A, STRAND_B, tumour_sample_id, normal_sample_id, pair_status, FILTER), as.character)) %>%
+    mutate(across(c(CHROM_A, CHROM_B, manta_name, STRAND_A, STRAND_B, tumour_sample_id, normal_sample_id, pair_status, FILTER, seq_type), as.character)) %>%
     mutate(across(c(START_A, END_A, START_B, END_B, SCORE, VAF_tumour, DP), as.numeric)) %>%
     arrange(CHROM_A, CHROM_B, START_A)
   bedpe_dat = create_genomic_data(bedpe_dat,projection)
