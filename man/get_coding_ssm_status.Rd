@@ -146,5 +146,13 @@ coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
                                           include_hotspots=FALSE)
  dim(coding_tabulated2)
  head(colnames(coding_tabulated2))
+ 
+coding_tabulated3 = get_coding_ssm_status(gene_symbols=c("MYD88","CREBBP","KMT2D"),
+                                          these_samples_metadata = fl_meta,
+                                          maf_data = maf_data,
+                                          include_hotspots=TRUE,
+                                          genes_of_interest = c("MYD88","CREBBP")) \%>\%
+                                          tibble::column_to_rownames("sample_id")
+ print(colSums(coding_tabulated3))
 
 }
