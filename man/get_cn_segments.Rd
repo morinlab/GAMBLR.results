@@ -10,6 +10,8 @@ get_cn_segments(
   flavour = "combined",
   this_seq_type,
   fill_missing_with = "nothing",
+  adjust_for_ploidy = FALSE,
+  max_CN = 20,
   verbose = FALSE
 )
 }
@@ -21,7 +23,10 @@ seq_type in the metadata faithfully represents the seq_type of the data}
 \item{projection}{Desired genome coordinate system for returned CN segments. Default is "grch37".}
 
 \item{flavour}{Specify what pipeline or source of data to use.
-Available options are "combined" or "battenberg". Battenberg outputs are incomplete.}
+Available options are "combined" (for the merge of the best tool for each data type),
+or one of "purecn_cnvkit", "purecn_denovo", or "battenberg".
+Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
+matched or capture samples).}
 
 \item{this_seq_type}{Deprecated.}
 
@@ -30,6 +35,11 @@ The default is "nothing", which causes these to be dropped so empty regions
 can be handled in subsequent processing steps. For creating a GISTIC input,
 you would typically want to set this to "avg_ploidy".
 This is taken care of for you by \link[GAMBLR.utils:prepare_gistic_inputs]{GAMBLR.utils::prepare_gistic_inputs}}
+
+\item{adjust_for_ploidy}{Set to TRUE to force segments to be adjusted
+for the average genome-wide copy number (ploidy) of the sample. Beware! There are multiple
+GAMBLR.* functions that can do this adjustment.
+If you apply it at this stage you should \emph{NOT} apply it again to the resulting data!}
 
 \item{verbose}{Set to TRUE for a chattier experience}
 }
