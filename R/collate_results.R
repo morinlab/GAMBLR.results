@@ -39,7 +39,7 @@
 #' fl_collated = collate_results(these_samples_metadata = fl_metadata,
 #'                               write_to_file = FALSE,
 #'                               from_cache = TRUE)
-#' }
+#' 
 #' #use an already subset metadata table for getting collated results (without using cached results)
 #' my_metadata = get_gambl_metadata()
 #' fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
@@ -48,6 +48,7 @@
 #'                               write_to_file = FALSE,
 #'                               from_cache = FALSE)
 #' dplyr::select(fl_collated, 1:14) %>% head()
+#' }
 collate_results = function(these_samples_metadata,
                            write_to_file = FALSE,
                            join_with_full_metadata = FALSE,

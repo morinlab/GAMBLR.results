@@ -1,3 +1,285 @@
+
+#' @export 
+annotate_focal_and_arm_level_CNV <- function(seg_data,
+these_samples_metadata,
+  focal_peak_file = "DLBCL_focal_peaks.18Aug2024.tsv",
+  broad_peak_file = "DLBCL_broad_significance.18Aug2024.tsv",
+  single_del_threshold = 1.3,
+  double_del_threshold = 0.9,
+  single_amp_threshold = 2.5,
+  double_amp_threshold = 3.5,
+  adjust_for_ploidy = FALSE,
+  rounded = TRUE){
+  #minimum CN delta between the segment and the background
+  #single_amp_threshold = single_copy_logr_thresh #2*2^single_copy_logr_thresh
+  #single_del_threshold = -1 * single_copy_logr_thresh#2*2^-single_copy_logr_thresh
+  #double_amp_threshold = double_copy_logr_thresh #2*2^double_copy_logr_thresh
+  #double_del_threshold = -1 * double_copy_logr_thresh #2*2^-double_copy_logr_thresh
+  #absolute CN thresholds
+  #single_amp_threshold = 2*2^single_copy_logr_thresh
+  #single_del_threshold = 2*2^-single_copy_logr_thresh
+  #double_amp_threshold = 2*2^double_copy_logr_thresh
+  #double_del_threshold = 2*2^-double_copy_logr_thresh
+  
+  
+  arm_length_fraction_threshold = 0.5
+  seg_data = mutate(seg_data,size = end - start + 1)
+  genome_build = get_genome_build(seg_data)
+  focals = read_tsv(focal_peak_file)
+  
+  if(genome_build == "hg38"){
+    #use lifted files instead
+    broad_peak_file = "DLBCL_broad_significance.hg38.perchr.tsv"
+    focal_peak_file = "DLBCL_focal_peaks.hg38.perchr.tsv"
+  }
+  arm_level_significance = read_tsv(broad_peak_file)
+  arm_level_significance = filter(arm_level_significance,significant_deletion + significant_amplification > 0)
+  arm_regions = mutate(arm_level_significance,
+    chrom = case_when(chrn < 23 ~ as.character(chrn), chrn == as.character(23) ~ "X", TRUE~ "Y")) %>%
+    mutate(size = xEnd - start + 1) %>%
+    select(-x1:-x2)
+  if(genome_build == "hg38"){
+    #add missing chr prefix
+    arm_regions = mutate(arm_regions,chrom=paste0("chr",chrom))
+  }
+  arm_regions = mutate(arm_regions,
+    region = paste0(chrom,":",as.integer(start+1),"-",as.integer(xEnd))) 
+  arm_regions = mutate(arm_regions,arm = str_to_upper(arm))
+  
+  regions = arm_regions %>% 
+    pull(region)
+
+  names(regions)=arm_regions$arm
+  message("running segmented_data_to_cn_matrix with custom",length(regions),"custom regions")
+
+  cnv_mat_arm = segmented_data_to_cn_matrix(seg_data = seg_data,
+    these_samples_metadata = these_samples_metadata,
+    strategy = 'custom_regions', 
+    adjust_for_ploidy = adjust_for_ploidy,
+    regions=regions,
+    rounded = F)
+
+ #count up arm-level events by direction
+ 
+ del_arm = filter(arm_regions, significant_deletion == 1)
+ gain_arm = filter(arm_regions, significant_amplification == 1)
+
+ del_arm_mat = cnv_mat_arm[,del_arm$arm]
+ del_arm_score = del_arm_mat
+ del_arm_score[del_arm_mat>single_del_threshold]=0
+ del_arm_score[del_arm_mat<=single_del_threshold ] = 1
+ del_arm_score[del_arm_mat<=double_del_threshold ] = 2
+
+ gain_arm_mat = cnv_mat_arm[,gain_arm$arm]
+ gain_arm_score = gain_arm_mat
+
+ gain_arm_score[gain_arm_mat < single_amp_threshold]=0
+ 
+ gain_arm_score[gain_arm_mat >= single_amp_threshold ] = 1
+ gain_arm_score[gain_arm_mat >= double_amp_threshold] = 2
+ 
+focal_regions = focals %>% 
+mutate(chrom = case_when(chr < 23 ~ as.character(chr), chr == as.character(23) ~ "X", TRUE~ "Y"),
+    region = paste0(chrom,":",as.integer(peak_start),"-",as.integer(peak_end))) 
+  if(genome_build == "hg38"){
+    focal_regions = mutate(focal_regions,region = paste0("chr",region))
+  }
+
+focal_regions = mutate(focal_regions,Descriptor = gsub("p","P",Descriptor))
+focal_regions = mutate(focal_regions,Descriptor = gsub("q","Q",Descriptor))
+focal_regions = mutate(focal_regions,Descriptor = gsub(":",".",Descriptor))
+#focal_regions = mutate(focal_regions,Descriptor = gsub("q","Q",Descriptor))
+  del_focal = filter(focal_regions,type == "DEL")
+  gain_focal = filter(focal_regions,type == "AMP")
+  regions = focal_regions %>% 
+    pull(region)
+  #print(focal_regions)
+  names(regions)=focal_regions$Descriptor
+
+cnv_mat_focal = segmented_data_to_cn_matrix(seg_data = seg_data,
+    these_samples_metadata = these_samples_metadata,
+    strategy = 'custom_regions',
+    adjust_for_ploidy = adjust_for_ploidy,
+    regions=regions,
+  rounded = F)
+
+del_focal_mat = cnv_mat_focal[,del_focal$Descriptor]
+
+del_focal_score = del_focal_mat
+
+del_focal_score[del_focal_mat>single_del_threshold]=0
+del_focal_score[del_focal_mat<=single_del_threshold ] = 1
+del_focal_score[del_focal_mat<=double_del_threshold ] = 2
+
+gain_focal_mat = cnv_mat_focal[,gain_focal$Descriptor]
+gain_focal_score = gain_focal_mat
+
+gain_focal_score[gain_focal_mat< single_amp_threshold]=0
+gain_focal_score[gain_focal_mat>=single_amp_threshold ] = 1
+gain_focal_score[gain_focal_mat>=double_amp_threshold ] = 2
+colnames(del_arm_score) = paste0(colnames(del_arm_score),".DEL")
+colnames(gain_arm_score) = paste0(colnames(gain_arm_score),".AMP")
+
+#just the arm name for easier matching
+colnames(del_arm_mat) = gsub(".DEL","",colnames(del_arm_mat))
+colnames(gain_arm_mat) = gsub(".AMP","",colnames(gain_arm_mat))
+gain_focal_score_adj = gain_focal_score
+gain_focal_mat_adj = gain_focal_mat
+del_focal_score_adj = del_focal_score
+del_focal_mat_adj = del_focal_mat
+
+for(arm in colnames(del_arm_mat)){
+  focal_this_arm= grep(paste0("^",arm),colnames(del_focal_score_adj),value=T)
+    if(length(focal_this_arm)>0){
+      background = del_arm_mat[[arm]]
+      for(event in focal_this_arm){
+        foreground = del_focal_mat[[event]]
+        adjusted = foreground + background
+        adjusted_score= adjusted
+        del_focal_mat_adj[[event]] = adjusted
+        adjusted_score[adjusted>single_del_threshold]=0
+        adjusted_score[adjusted<=single_del_threshold ] = 1
+        adjusted_score[adjusted<=double_del_threshold ] = 2
+        del_focal_score_adj[[event]] = adjusted_score
+        
+      }
+    }
+}
+#revise arm-level events based on segment coverage criteria
+# Gain/loss segment must cover at least 50% of the arm!
+# 
+
+gain_arm_score_orig = gain_arm_score
+for(sample in rownames(gain_arm_score)){
+  #if(!sample %in% rownames())
+  for(gain_arm in colnames(gain_arm_score)){
+    if(gain_arm_score[sample,gain_arm]>0){
+      #get relevant segments
+      this_arm = gsub(".AMP","",gain_arm)
+      arm_region = filter(arm_regions,arm==this_arm)
+  
+      arm_start = pull(arm_region,start)
+      arm_end = pull(arm_region,xEnd)
+      
+      arm_chrom = pull(arm_region,chrom)
+      arm_size = pull(arm_region,size)
+      segs = filter(seg_data,ID==sample,chrom==arm_chrom)
+      segs = filter(segs,(start >= arm_start & end <= arm_end) | #within
+                         (start <= arm_start & end >= arm_start)| #encompassing
+                         (start >= arm_start & end >= arm_end) | #offset1
+                         (start >= arm_start & end <= arm_end)) %>%
+                         filter(CN > single_amp_threshold)
+      #trim to constrain to this region
+      segs = mutate(segs,
+        start=ifelse(start< arm_start,arm_start,start),
+        end=ifelse(end > arm_end,arm_end,end)
+      )
+      #print(segs)
+      #stop()
+      segs = mutate(segs,frac_size = size/arm_size)
+      segs_total = sum(segs$frac_size)
+      if(any(segs$frac_size > arm_length_fraction_threshold) || segs_total > arm_length_fraction_threshold){
+        #qualifies
+        #print(segs)
+        #print(segs_total)
+        #print(any(segs$frac_size > arm_length_fraction_threshold))
+      }else{
+        print(paste("setting arm-level back to zero",sample,gain_arm))
+        print(segs)
+        gain_arm_score[sample,gain_arm] = 0
+        #print(arm_region)
+        #stop()
+      }
+    }
+  }
+}
+for(arm in colnames(gain_arm_mat)){
+  focal_this_arm= grep(paste0("^",arm),colnames(gain_focal_score_adj),value=T)
+    if(length(focal_this_arm)>0){
+      background = gain_arm_mat[[arm]]
+      names(background) = rownames(gain_arm_mat)
+      for(event in focal_this_arm){
+
+        foreground = gain_focal_mat[[event]]
+        names(foreground) = rownames(gain_arm_mat)
+        adjusted = foreground - background
+        adjusted_score= adjusted 
+        gain_focal_mat_adj[[event]] = adjusted
+        adjusted_score[adjusted < single_amp_threshold]=0
+        adjusted_score[adjusted >= single_amp_threshold ] = 1
+        adjusted_score[adjusted >= double_amp_threshold ] = 2
+        gain_focal_score_adj[[event]] = adjusted_score
+        if(event == "18Q21.32.AMP"){
+          print(foreground["DLBCL11005T"])
+          print(background["DLBCL11005T"])
+          print(adjusted["DLBCL11005T"])
+          print(adjusted_score["DLBCL11005T"])
+        }
+        
+      }
+    }
+}
+
+gsm = bind_cols(del_arm_score,gain_arm_score,del_focal_score,gain_focal_score) 
+gsm_adjusted = bind_cols(del_arm_score,gain_arm_score,del_focal_score_adj,gain_focal_score_adj) 
+gsm_1 = gsm_adjusted
+gsm_1[gsm_1>1]=1
+
+#colnames(gsm)=paste0("X",colnames(gsm))
+return(list(not_arm_adjusted = gsm,
+  all_ones = gsm_1,
+   gsm = gsm_adjusted,
+   cnv=cnv_mat_arm,
+   focal_cnv = cnv_mat_focal,
+    unthresholded_gsm = bind_cols(del_arm_mat,gain_arm_mat,del_focal_mat,gain_focal_mat),
+    arm_level_deletions=del_arm_score,
+    arm_level_gains = gain_arm_score,
+    arm_level_gains_old = gain_arm_score_orig,
+    focal_deletions = del_focal_score,
+    focal_gains = gain_focal_score))
+}
+
+#' @export
+assign_segment_to_cytoband <- function(seg_data, genome_build){
+  gb = get_genome_build(seg_data)
+  if(gb=="grch37"){
+    arm_df = cytobands_grch37
+  }else if(gb == "hg38"){
+    arm_df = cytobands_hg38
+  }else{
+    stop(paste("cannot find arms for",gb))
+  }
+  matched = cool_overlaps(seg_data,arm_df,
+  columns1 = c("chrom","start","end"),
+  columns2 =  c("cb.chromosome","cb.start","cb.end"))
+  matched = mutate(matched,
+    chrom_name = gsub("chr","",chrom),
+    cytoband = cb.name
+    ) %>% select(-chrom_name,-cb.name)
+  matched
+}
+
+#' @export
+assign_segment_to_arm <- function(seg_data,genome_build){
+  gb = get_genome_build(seg_data)
+  if(gb=="grch37"){
+    arm_df = chromosome_arms_grch37 %>% rename(band_start=start,band_end=end)
+  }else if(gb == "hg38"){
+    arm_df = chromosome_arms_hg38 %>% rename(band_start=start,band_end=end)
+  }else{
+    stop(paste("cannot find arms for",gb))
+  }
+  
+  matched = cool_overlaps(seg_data,arm_df,
+  columns1 = c("chrom","start","end"),
+  columns2 =  c("chromosome","band_start","band_end"))
+  matched = mutate(matched,
+    chrom_name = gsub("chr","",chrom),
+    arm_name = paste0(chrom_name,str_to_upper(arm))
+    ) %>% select(-chrom_name)
+  matched
+}
+
 #' @title Get CN Segments.
 #'
 #' @description Retrieve all copy number segments from the GAMBL outputs
@@ -9,13 +291,21 @@
 #' The metadata also ensures the proper handling of duplicate sample_id across seq_types and ensures the
 #' seq_type in the metadata faithfully represents the seq_type of the data
 #' @param flavour Specify what pipeline or source of data to use.
-#' Available options are "combined" or "battenberg". Battenberg outputs are incomplete.
+#' Available options are "combined" (for the merge of the best tool for each data type),
+#' or one of "purecn_cnvkit", "purecn_denovo", or "battenberg". 
+#' Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
+#' matched or capture samples).
 #' @param projection Desired genome coordinate system for returned CN segments. Default is "grch37".
 #' @param fill_missing_with Specify how to fill values in dummy segments that were created to satisfy GISTIC.
 #' The default is "nothing", which causes these to be dropped so empty regions
 #' can be handled in subsequent processing steps. For creating a GISTIC input,
 #' you would typically want to set this to "avg_ploidy". 
 #' This is taken care of for you by [GAMBLR.utils::prepare_gistic_inputs]
+#' @param adjust_for_ploidy Set to TRUE to force segments to be adjusted
+#' for the average genome-wide copy number (ploidy) of the sample. Beware! There are multiple
+#' GAMBLR.* functions that can do this adjustment.
+#' If you apply it at this stage you should *NOT* apply it again to the resulting data!
+#' 
 #' @param verbose Set to TRUE for a chattier experience
 #' @param this_seq_type Deprecated.
 #'
@@ -56,6 +346,8 @@ get_cn_segments <- function(these_samples_metadata,
                             flavour = "combined",
                             this_seq_type,
                             fill_missing_with = "nothing",
+                            adjust_for_ploidy = FALSE,
+                            max_CN = 20,
                             verbose = FALSE) {
   if (!missing(this_seq_type)) {
     stop("this_seq_type is deprecated. Subset your metadata instead.")
@@ -84,12 +376,18 @@ get_cn_segments <- function(these_samples_metadata,
     )
     coltypes = "cciiid"
   } else if (flavour == "battenberg") {
+    seq_types = "genome"
     cnv_flatfile_template <- check_config_and_value(
       "results_merged$battenberg"
     )
     coltypes = "cciiidi"
-  } else {
-    stop("currently available flavours are combined or battenberg")
+  } else if(grepl("purecn",flavour)){
+    seq_types = "capture"
+    coltypes = "cciidd"
+    cnv_flatfile_template <- check_config_and_value(
+      paste0("results_merged$",flavour))
+  } else{
+    stop("currently available flavours: combined, purecn_denovo, purecn_cnvkit or battenberg")
   }
   df_list <- list()
   for (seq_type in seq_types) {
@@ -141,11 +439,18 @@ get_cn_segments <- function(these_samples_metadata,
   }
 
   all_segs <- do.call("bind_rows", df_list)
+  if(!"log.ratio" %in% colnames(all_segs)){
+    all_segs = rename(all_segs,
+      c("log.ratio"="seg.mean"))
+  }
+  all_segs <- dplyr::mutate(all_segs, CN = ifelse(log.ratio == -2,0,2 * 2^log.ratio))
 
-  all_segs <- dplyr::mutate(all_segs, CN = 2 * 2^log.ratio)
+ 
 
-
-  if ("dummy_segment" %in% colnames(all_segs)) {
+  if (adjust_for_ploidy || "dummy_segment" %in% colnames(all_segs)) {
+    if(!"dummy_segment" %in% colnames(all_segs)){
+      all_segs$dummy_segment = 0
+    }
     if (fill_missing_with == "diploid") {
       if(verbose){
         print("Using diploid")
@@ -155,9 +460,10 @@ get_cn_segments <- function(these_samples_metadata,
         CN = ifelse(dummy_segment == 1, 2, CN),
         log.ratio = ifelse(dummy_segment == 1, 0, log.ratio)
       )
-    } else if (fill_missing_with == "avg_ploidy") {
+    }
+    if (adjust_for_ploidy || fill_missing_with == "avg_ploidy") {
       if(verbose){
-        print("Using Avg_ploidy")
+        print("Calculating sample-wide Avg_ploidy")
       }
       
       real_segs <- dplyr::filter(
@@ -177,20 +483,25 @@ get_cn_segments <- function(these_samples_metadata,
           real_mean_logr = sum(logr_seg) / sum(length)
         ) # actual average per base
       all_segs <- left_join(all_segs, select(real_segs, ID, real_mean, real_mean_logr), by = "ID")
+      all_segs = mutate(all_segs,CN=ifelse(CN>max_CN,max_CN,CN))
       all_segs <- mutate(all_segs,
         CN = ifelse(dummy_segment == 1, real_mean, CN),
-        log.ratio = ifelse(dummy_segment == 1, real_mean_logr, log.ratio)
+        log.ratio = ifelse(dummy_segment == 1, real_mean_logr, log.ratio),
+        adjusted_CN = 2 + CN - real_mean,
+        rounded_CN = round(adjusted_CN, 0)
       )
-    } else if (fill_missing_with == "nothing") {
-      #drop dummy segments entirely
-      all_segs <- dplyr::filter(all_segs, dummy_segment == 0)
-    } else {
-      stop("fill_missing_with must be 'nothing', 'diploid', or 'avg_ploidy'")
     }
-  }else{
-    message("dummy segments are not annotated in the inputs")
-    message("fill_missing_with parameter will be ignored")
+    #if (fill_missing_with == "nothing") {
+    #  #drop dummy segments entirely
+    #  all_segs <- dplyr::filter(all_segs, dummy_segment == 0)
+    #} else {
+    #  stop("fill_missing_with must be 'nothing', 'diploid', or 'avg_ploidy'")
+    #}
   }
+  #else{
+  #  message("dummy segments are not annotated in the inputs")
+  #  message("fill_missing_with parameter will be ignored")
+  #}
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)
   return(all_segs)

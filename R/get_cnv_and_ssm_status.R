@@ -1,13 +1,21 @@
 #' @title Get CNV and coding SSM combined status
 #' 
-#' @description For each specified chromosome region (gene name), return status 1 if the copy number (CN) 
-#'   state is non-neutral, *i.e.* different from 2, or if the region contains any coding simple somatic mutation (SSM).
+#' @description For each specified chromosome region
+#' (gene name), return status 1 if the copy number (CN) 
+#'   state is non-neutral, *i.e.* different from 2,
+#' or if the region contains any coding simple somatic mutation (SSM).
+#' If the parameter `only_cnv`` is "all" and `binary` is FALSE,
+#' the result will include the rounded absolute copy number values
 #' 
-#' @details The user can choose from which regions are intended to return only copy number variation (CNV) status, 
-#'   only coding SSM status, or at least the presence of one of them. This behavior is controlled by the arguments 
-#'   `genes_and_cn_threshs` (column `cn_thresh`) and `only_cnv`.
+#' @details The user can choose from which regions
+#' are intended to return only copy number variation
+#' (CNV) status, 
+#' only coding SSM status, or at least the presence
+#' of one of them. This behavior is controlled by the arguments 
+#' `genes_and_cn_threshs` (column `cn_thresh`) and `only_cnv`.
 #'   
-#'   This function internally calls the `get_cn_states`, `get_ssm_by_samples` and `get_coding_ssm_status`functions. 
+#'   This function internally calls the `get_cn_states`,
+#' `get_ssm_by_samples` and `get_coding_ssm_status`functions. 
 #'   Therefore, many of its arguments are assigned to these functions. If needed, see the documentation of these 
 #'   functions for more information. 
 #'   
@@ -28,14 +36,24 @@
 #'   of the genes, respectively.
 #' @param genome_build Reference genome build. Possible values are "grch37" (default) or "hg38".
 
-#' @param include_hotspots Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.
-#' @param review_hotspots Logical parameter indicating whether hotspots object should be reviewed to include 
-#'   functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
-#' @param seg_data Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles
-#' @param cn_matrix Instead of seg_data, you can provide a matrix of CN values for the samples in the metadata.
-#' See [GAMBLR.utils::segmented_data_to_cn_matrix] for more information on how to create this matrix.
-#' @param include_silent Set to TRUE if you want Synonymous mutations to also be considered
-#' @param adjust_for_ploidy Set to FALSE to disable scaling of CN values by the genome-wide average per sample
+#' @param include_hotspots Logical parameter indicating whether
+#' hotspots object should also be tabulated. Default is TRUE.
+#' @param review_hotspots Logical parameter indicating whether
+#' hotspots object should be reviewed to include 
+#'   functionally relevant mutations or rare lymphoma-related
+#' genes. Default is TRUE.
+#' @param seg_data Optionally provide the function with a data
+#' frame of segments that will be used instead of the GAMBL flatfiles
+#' @param cn_matrix Instead of seg_data, you can provide a matrix
+#' of CN values for the samples in the metadata.
+#' See [GAMBLR.utils::segmented_data_to_cn_matrix] for more
+#' information on how to create this matrix.
+#' @param include_silent Set to TRUE if you want Synonymous
+#' mutations to also be considered
+#' @param adjust_for_ploidy Set to FALSE to disable scaling
+#' of CN values by the genome-wide average per sample
+#' @param binary Set to FALSE and combine with only_cnv = "all"
+#' to obtain the actual values (absolute CN) instead of binary status
 #' @param this_seq_type Deprecated
 #' 
 #' @return A data frame with CNV and SSM combined status.
@@ -86,6 +104,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   review_hotspots = TRUE,
                                   adjust_for_ploidy=TRUE,
                                   include_silent=FALSE,
+                                  binary = TRUE,
                                   this_seq_type){
   
   # check parameters
@@ -111,6 +130,11 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
       "all" %in% only_cnv |
       all(only_cnv %in% genes_and_cn_threshs$gene_id)
   })
+  if(!binary){
+    if(only_cnv != "all"){
+      stop("When setting binary to FALSE you must also set only_cnv to 'all'")
+    }
+  }
   
   # get gene regions
   my_regions = GAMBLR.utils::gene_to_region(gene_symbol = genes_and_cn_threshs$gene_id,
@@ -135,13 +159,16 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     names(regions)=genes_and_cn_threshs_non_neutral$gene_id
     if(!missing(cn_matrix)){
       if(any(!these_samples_metadata$sample_id %in% rownames(cn_matrix))){
-        missing = these_samples_metadata$sample_id[!these_samples_metadata$sample_id %in% rownames(cn_matrix)]
+        missing = these_samples_metadata$sample_id[
+          !these_samples_metadata$sample_id %in% rownames(cn_matrix)]
         if(verbose){
-          print("cn_matrix is missing some of the samples in these_samples_metadata, these will be dropped")
+          print("cn_matrix is missing some of the samples in
+                these_samples_metadata, these will be dropped")
           print(missing)
         }
 
-        these_samples_metadata = dplyr::filter(these_samples_metadata, sample_id %in% rownames(cn_matrix))
+        these_samples_metadata = dplyr::filter(these_samples_metadata,
+            sample_id %in% rownames(cn_matrix))
       }
       #convert a bin-based CN matrix to a gene-centric matrix
       gene_bins = unlist(map_regions_to_bins(
@@ -151,7 +178,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
         first = TRUE
       ))
 
-      cn_matrix = cn_matrix[these_samples_metadata$sample_id,gene_bins,drop = FALSE] %>% as.data.frame()
+      cn_matrix = cn_matrix[these_samples_metadata$sample_id,
+          gene_bins,drop = FALSE] %>% as.data.frame()
   
       colnames(cn_matrix) = names(gene_bins)
 
@@ -176,22 +204,29 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     #order needs to match
     idx = match(genes_and_cn_threshs_non_neutral$gene_id, colnames(cn_matrix))
     genes_and_cn_threshs_non_neutral = genes_and_cn_threshs_non_neutral[order(idx),,drop=FALSE]
-
-
-    # get cnv status
-    cnv_status = mapply(function(cnstate, thresh){
-      if(thresh < 2){
-        cnstate <= thresh
-      }else if(thresh == 2){
-        cnstate != thresh
-      }else if(thresh > 2){
-        cnstate >= thresh
-      }
-    }, cn_matrix, genes_and_cn_threshs_non_neutral$cn_thresh, USE.NAMES = TRUE, SIMPLIFY = FALSE) %>% 
-      as.data.frame %>% 
-      {. * 1}
-    idx = match(names(name_map), colnames(cnv_status))
-   
+    to_return = list(regions = my_regions)
+    if(binary){
+      # get cnv status
+      cnv_status = mapply(function(cnstate, thresh){
+        if(thresh < 2){
+          cnstate <= thresh
+        }else if(thresh == 2){
+          cnstate != thresh
+        }else if(thresh > 2){
+          cnstate >= thresh
+        }
+      }, cn_matrix,
+         genes_and_cn_threshs_non_neutral$cn_thresh,
+         USE.NAMES = TRUE,
+         SIMPLIFY = FALSE) %>% 
+          as.data.frame %>% 
+        {. * 1}
+        idx = match(names(name_map), colnames(cnv_status))
+    }else{
+      to_return[["CN"]]= cn_matrix
+      return(to_return)
+    }
+    
 
     colnames(cnv_status)[idx] = unname(name_map)
     if("name" %in% colnames(genes_and_cn_threshs)){
