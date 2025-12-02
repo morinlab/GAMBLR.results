@@ -1,4 +1,50 @@
 
+
+#' @title Annotate focal and arm-level CNVs
+#'
+#' @description Convert segmented CN data into arm- and focal-level gain/loss calls using
+#' default DLBCL significance peaks (or user-supplied peak files). Produces both raw
+#' copy-number matrices and thresholded “GSM” (genome state matrix) scores.
+#'
+#' @param seg_data Copy-number segments, typically from [get_cn_segments()], with columns
+#'   `ID`, `chrom`, `start`, `end`, and `CN` (and optionally `log.ratio`/`adjusted_CN`).
+#' @param these_samples_metadata Sample metadata used by [GAMBLR.utils::segmented_data_to_cn_matrix]
+#'   to align sample IDs and seq_type.
+#' @param focal_peak_file Path to the focal GISTIC peaks file (default
+#'   `DLBCL_focal_peaks.18Aug2024.tsv`; hg38 automatically switches to the lifted file).
+#' @param broad_peak_file Path to the arm-level GISTIC significance file (default
+#'   `DLBCL_broad_significance.18Aug2024.tsv`; hg38 automatically switches to the lifted file).
+#' @param single_del_threshold Absolute CN threshold used for a single-copy loss call.
+#' @param double_del_threshold Absolute CN threshold used for a homozygous loss call.
+#' @param single_amp_threshold Absolute CN threshold used for a single-copy gain call.
+#' @param double_amp_threshold Absolute CN threshold used for a high-level gain call.
+#' @param adjust_for_ploidy Pass through to [GAMBLR.utils::segmented_data_to_cn_matrix]; set TRUE
+#'   to center CN values on each sample’s average ploidy.
+#' @param rounded Currently unused (kept for backward compatibility).
+#'
+#' @return A list with matrices/vectors:
+#' \itemize{
+#'   \item `gsm`: thresholded focal + arm scores after adjusting focal calls for arm-level background.
+#'   \item `not_arm_adjusted`: thresholded scores without focal adjustment.
+#'   \item `all_ones`: same as `gsm` but high-level events collapsed to 1 (present/absent).
+#'   \item `cnv`: arm-level CN matrix (unthresholded) for significant arms.
+#'   \item `focal_cnv`: focal CN matrix (unthresholded) for significant focal peaks.
+#'   \item `unthresholded_gsm`: raw CN values for all arm and focal regions.
+#'   \item `arm_level_deletions`, `arm_level_gains`, `arm_level_gains_old`: arm-level scores (0/1/2) with
+#'     and without length filtering.
+#'   \item `focal_deletions`, `focal_gains`: focal scores (0/1/2) before adjustment for arm background.
+#' }
+#'
+#' @details Arm events must span ≥50% of the chromosome arm to count. Focal deletions are
+#' adjusted upward by arm losses; focal gains are adjusted downward by arm gains to avoid
+#' double-counting. Uses hg38 peak files automatically when `seg_data` reports hg38.
+#'
+#' @examples
+#' \dontrun{
+#' segs <- get_cn_segments(these_samples_metadata = metas, projection = "grch37")
+#' gsm_out <- annotate_focal_and_arm_level_CNV(segs, metas)
+#' head(gsm_out$gsm)
+#' }
 #' @export 
 annotate_focal_and_arm_level_CNV <- function(seg_data,
 these_samples_metadata,
@@ -239,6 +285,28 @@ return(list(not_arm_adjusted = gsm,
     focal_gains = gain_focal_score))
 }
 
+#' @title Annotate CN segments with cytobands
+#'
+#' @description Map each copy-number segment to its overlapping cytogenetic band(s)
+#' using bundled cytoband tables for grch37 or hg38.
+#'
+#' @param seg_data Data frame of CN segments with `chrom`, `start`, and `end`
+#'   columns (and any other per-segment fields). The genome build is inferred via
+#'   `get_genome_build(seg_data)`.
+#' @param genome_build Optional build hint (currently unused; kept for compatibility).
+#'
+#' @return `seg_data` with cytoband annotations from the matching build, including
+#'   `cb.chromosome`, `cb.start`, `cb.end`, and `cytoband` (the cytoband name).
+#'
+#' @details Uses `cytobands_grch37` or `cytobands_hg38` and `cool_overlaps` to join
+#' segments to cytobands; overlapping bands are returned as separate rows if applicable.
+#'
+#' @examples
+#' \dontrun{
+#' segs <- get_cn_segments(these_samples_metadata = metas)
+#' segs_cb <- assign_segment_to_cytoband(segs)
+#' head(segs_cb$cytoband)
+#' }
 #' @export
 assign_segment_to_cytoband <- function(seg_data, genome_build){
   gb = get_genome_build(seg_data)
@@ -259,6 +327,29 @@ assign_segment_to_cytoband <- function(seg_data, genome_build){
   matched
 }
 
+#' @title Annotate CN segments with chromosome arms
+#'
+#' @description Map each copy-number segment to its chromosome arm (p/q) for the
+#' appropriate genome build (grch37 or hg38).
+#'
+#' @param seg_data Data frame of CN segments with `chrom`, `start`, and `end`
+#'   columns; build is inferred via `get_genome_build(seg_data)`.
+#' @param genome_build Optional build hint (currently unused; kept for compatibility).
+#'
+#' @return `seg_data` with arm annotations, including `chromosome`, `band_start`,
+#'   `band_end`, and `arm_name` (e.g., `1p`, `8q`). Overlapping arms (rare) will
+#'   yield multiple rows per segment.
+#'
+#' @details Chooses `chromosome_arms_grch37` or `chromosome_arms_hg38`, then uses
+#' `cool_overlaps` to assign segments to arms; `arm_name` is the chromosome plus
+#' uppercased arm label.
+#'
+#' @examples
+#' \dontrun{
+#' segs <- get_cn_segments(these_samples_metadata = metas)
+#' segs_arm <- assign_segment_to_arm(segs)
+#' table(segs_arm$arm_name)
+#' }
 #' @export
 assign_segment_to_arm <- function(seg_data,genome_build){
   gb = get_genome_build(seg_data)
