@@ -69,16 +69,15 @@ capture_segments_hg38 <- get_cn_segments(
 print(capture_segments_hg38)
 
 genome_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
-  dplyr::filter(seq_type == "genome") \%>\%
-  head()
+  dplyr::filter(seq_type == "genome")
 # Create a metadata table with a mix of seq_types
 mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
 ## We can load the copy number segments for all samples across seq_types
-capture_segments_default <- get_cn_segments(
+all_seq_type_segs <- get_cn_segments(
   these_samples_metadata = mixed_seq_type_meta
 )
-dplyr::group_by(capture_segments_default, ID) \%>\%
-  dplyr::summarize(n = dplyr::n())
+
+dplyr::group_by(all_seq_type_segs,seg_seq_type) \%>\% count()
+
 # Note the default projection is "grch37"
-print(capture_segments_default)
 }
