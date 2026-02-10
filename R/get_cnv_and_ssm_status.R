@@ -152,23 +152,23 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   check_cnv = nrow(genes_and_cn_threshs_non_neutral) > 0
   these_samples_metadata = these_samples_metadata %>% 
     dplyr::filter(! seq_type  %in% c("mrna","promethION"))
+  sample_ids = these_samples_metadata$sample_id
+  if(any(is.na(sample_ids) | sample_ids == "")){
+    stop("these_samples_metadata contains missing or empty sample_id values.")
+  }
   if(check_cnv){
     # get cn states
     regions=my_regions[genes_and_cn_threshs_non_neutral$gene_id]
     
     names(regions)=genes_and_cn_threshs_non_neutral$gene_id
     if(!missing(cn_matrix)){
-      if(any(!these_samples_metadata$sample_id %in% rownames(cn_matrix))){
-        missing = these_samples_metadata$sample_id[
-          !these_samples_metadata$sample_id %in% rownames(cn_matrix)]
-        if(verbose){
-          print("cn_matrix is missing some of the samples in
-                these_samples_metadata, these will be dropped")
-          print(missing)
-        }
-
-        these_samples_metadata = dplyr::filter(these_samples_metadata,
-            sample_id %in% rownames(cn_matrix))
+      missing_sample_ids = sample_ids[!sample_ids %in% rownames(cn_matrix)]
+      if(length(missing_sample_ids) > 0){
+        message(paste0(
+          "cn_matrix is missing ",
+          length(missing_sample_ids),
+          " sample_id(s) from these_samples_metadata; filling missing samples with zero status."
+        ))
       }
       #convert a bin-based CN matrix to a gene-centric matrix
       gene_bins = unlist(map_regions_to_bins(
@@ -244,6 +244,13 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
 
     # if only CNV statuses (statii?) are desired, just return them and skip everything else
     if("all" %in% only_cnv){
+      if(is.null(rownames(cnv_status))){
+        rownames(cnv_status) = these_samples_metadata$sample_id
+      }
+      idx = match(sample_ids, rownames(cnv_status))
+      cnv_status = cnv_status[idx, , drop = FALSE]
+      rownames(cnv_status) = sample_ids
+      cnv_status[is.na(cnv_status)] = 0
       return(cnv_status)
     }
     
@@ -302,9 +309,17 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
   ssm_status = ssm_status[these_samples_metadata$sample_id,, drop=FALSE]
   
   # combine cnv and ssm status
-  if(check_cnv){
+  out = if(check_cnv){
     (cnv_status | ssm_status) * 1
   }else{
     ssm_status
   }
+  if(is.null(rownames(out))){
+    rownames(out) = these_samples_metadata$sample_id
+  }
+  idx = match(sample_ids, rownames(out))
+  out = out[idx, , drop = FALSE]
+  rownames(out) = sample_ids
+  out[is.na(out)] = 0
+  out
 }

@@ -61,7 +61,7 @@
 #'   these_samples_metadata = mixed_seq_type_meta
 #' )
 #'
-#' dplyr::group_by(all_seq_type_segs,seg_seq_type) %>% count()
+#' dplyr::group_by(all_seq_type_segs,seg_seq_type) %>% dplyr::count()
 #'
 
 get_cn_segments <- function(these_samples_metadata,
