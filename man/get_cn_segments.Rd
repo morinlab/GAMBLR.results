@@ -9,8 +9,6 @@ get_cn_segments(
   projection = "grch37",
   flavour = "combined",
   this_seq_type,
-  fill_missing_with = "nothing",
-  adjust_for_ploidy = FALSE,
   max_CN = 20,
   verbose = FALSE
 )
@@ -22,26 +20,24 @@ seq_type in the metadata faithfully represents the seq_type of the data}
 
 \item{projection}{Desired genome coordinate system for returned CN segments. Default is "grch37".}
 
-\item{flavour}{Specify what pipeline or source of data to use.
+\item{flavour}{Specify what pipeline or source of data to use.}
+
+\item{this_seq_type}{Deprecated.}
+
+\item{max_CN}{Cap CN values at this value. Default is 20. This is to avoid extreme CN values dominating the colour scale in visualisations.
 Available options are "combined" (for the merge of the best tool for each data type),
 or one of "purecn_cnvkit", "purecn_denovo", or "battenberg".
 Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
 matched or capture samples).}
 
-\item{this_seq_type}{Deprecated.}
-
-\item{fill_missing_with}{Specify how to fill values in dummy segments that were created to satisfy GISTIC.
-The default is "nothing", which causes these to be dropped so empty regions
-can be handled in subsequent processing steps. For creating a GISTIC input,
-you would typically want to set this to "avg_ploidy".
-This is taken care of for you by \link[GAMBLR.utils:prepare_gistic_inputs]{GAMBLR.utils::prepare_gistic_inputs}}
-
-\item{adjust_for_ploidy}{Set to TRUE to force segments to be adjusted
-for the average genome-wide copy number (ploidy) of the sample. Beware! There are multiple
-GAMBLR.* functions that can do this adjustment.
-If you apply it at this stage you should \emph{NOT} apply it again to the resulting data!}
-
 \item{verbose}{Set to TRUE for a chattier experience}
+
+\item{fill_missing_with}{Deprecated.
+This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
+For simplicity, dummy segments (if detected) are now dropped.}
+
+\item{adjust_for_ploidy}{Deprecated.
+This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.}
 }
 \value{
 A data frame with CN segments for the specified region.
@@ -67,17 +63,22 @@ capture_segments_hg38 <- get_cn_segments(
   projection = "hg38"
 )
 print(capture_segments_hg38)
+# Note the default projection is "grch37"
 
 genome_metadata <- suppressMessages(get_gambl_metadata()) \%>\%
   dplyr::filter(seq_type == "genome")
+
 # Create a metadata table with a mix of seq_types
 mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
+
 ## We can load the copy number segments for all samples across seq_types
+## To differentiate samples that share a sample_id but differ in seq_type,
+## a new column seg_seq_type is added to the output
+
 all_seq_type_segs <- get_cn_segments(
   these_samples_metadata = mixed_seq_type_meta
 )
 
 dplyr::group_by(all_seq_type_segs,seg_seq_type) \%>\% count()
 
-# Note the default projection is "grch37"
 }
