@@ -120,10 +120,16 @@ get_manta_sv_by_sample = function(this_sample_id,
   if(verbose){
     message(paste0("Reading ", this_sample_id, " from: ", bedpe_path))
   }
-  bedpe_dat_raw = suppressMessages(read_tsv(bedpe_path,
-                                            progress = FALSE,
-                                            comment = "##",
-                                            col_types = "cddcddccccccccccccccccc"))
+  if(file.exists(bedpe_path)){
+    bedpe_dat_raw = suppressMessages(read_tsv(bedpe_path,
+                                                progress = FALSE,
+                                                comment = "##",
+                                                col_types = "cddcddccccccccccccccccc"))
+  }else{
+    message("DID NOT FIND THE FILE AT THE EXPECTED PATH!!!")
+    message(paste0("Skipping ", this_sample_id, " from: ", bedpe_path))
+    return()
+  }
 
   #return empty data frame
   if(!nrow(bedpe_dat_raw==0)){
