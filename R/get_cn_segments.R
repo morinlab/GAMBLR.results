@@ -20,7 +20,7 @@
 #' @param projection Desired genome coordinate system for returned CN segments. Default is "grch37".
 #' @param fill_missing_with Deprecated.
 #' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
-#' For simplicity, dummy segments (if detected) are now dropped.  
+#' For simplicity, dummy segments (if detected) are now dropped.
 #' @param adjust_for_ploidy Deprecated.
 #' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
 #'
@@ -49,14 +49,14 @@
 #'
 #' genome_metadata <- suppressMessages(get_gambl_metadata()) %>%
 #'   dplyr::filter(seq_type == "genome")
-#' 
+#'
 #' # Create a metadata table with a mix of seq_types
 #' mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
-#' 
+#'
 #' ## We can load the copy number segments for all samples across seq_types
 #' ## To differentiate samples that share a sample_id but differ in seq_type,
 #' ## a new column seg_seq_type is added to the output
-#' 
+#'
 #' all_seq_type_segs <- get_cn_segments(
 #'   these_samples_metadata = mixed_seq_type_meta
 #' )
@@ -158,6 +158,9 @@ get_cn_segments <- function(these_samples_metadata,
   if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
     stop("overlapping IDs found!")
   }
+  if(verbose){
+    print(names(df_list))
+  }
 
   all_segs <- do.call("bind_rows", df_list)
   if(!"log.ratio" %in% colnames(all_segs)){
@@ -170,12 +173,15 @@ get_cn_segments <- function(these_samples_metadata,
   if(max_CN > 0){
     all_segs = dplyr::mutate(all_segs, CN = ifelse(CN > max_CN, max_CN, CN))
   }
-  # If dummy segments are present, drop them. 
-  # This is to avoid confusion and to simplify downstream processing. 
+  # If dummy segments are present, drop them.
+  # This is to avoid confusion and to simplify downstream processing.
   # This change could impact the GISTIC functionality in GAMBLR so this may need to be revisited in the future.
   # If you want to keep them, you can always load the raw seg files yourself and specify fill_missing_with or adjust_for_ploidy as needed.
   if("dummy_segment" %in% colnames(all_segs)){
-    all_segs = dplyr::filter(all_segs, dummy_segment!=1) %>%
+    if(verbose){
+      message("dropping all rows where dummy_segment == 1")
+    }
+    all_segs = dplyr::filter(all_segs, dummy_segment!=1 | is.na(dummy_segment)) %>%
       dplyr::select(-dummy_segment)
   }
   # return S3 class with CN segments and genome_build
