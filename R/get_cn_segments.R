@@ -153,6 +153,11 @@ get_cn_segments <- function(these_samples_metadata,
         dplyr::filter(ID %in% genome_ids)
     }
     seg <- mutate(seg, seg_seq_type = seq_type)
+    if(verbose){
+      print(seq_type)
+      print(head(seg))
+    }
+    
     df_list[[seq_type]] <- seg
   }
   if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
