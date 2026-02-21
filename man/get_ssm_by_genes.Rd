@@ -26,3 +26,12 @@ A data frame containing all the MAF data columns (one row per mutation).
 \description{
 Retrieve all SSMs from GAMBL for one or more genes
 }
+\examples{
+dlbcl_meta = get_gambl_metadata() \%>\% 
+ dplyr::filter(pathology=="DLBCL", seq_type!= "mrna")
+genes_maf = get_ssm_by_genes(genes = c("EZH2","KMT2D"),these_samples_metadata = dlbcl_meta)
+genes_maf \%>\% 
+ dplyr::group_by(Hugo_Symbol,Tumor_Sample_Barcode) \%>\% 
+ count()
+
+}

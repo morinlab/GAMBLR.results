@@ -13,9 +13,15 @@
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
-#' @import dplyr RMariaDB DBI stringr glue GAMBLR.helpers
+#' @import dplyr DBI stringr glue GAMBLR.helpers
 #'
 #' @examples
+#' dlbcl_meta = get_gambl_metadata() %>% 
+#'  dplyr::filter(pathology=="DLBCL", seq_type!= "mrna")
+#' genes_maf = get_ssm_by_genes(genes = c("EZH2","KMT2D"),these_samples_metadata = dlbcl_meta)
+#' genes_maf %>% 
+#'  dplyr::group_by(Hugo_Symbol,Tumor_Sample_Barcode) %>% 
+#'  count()
 #' 
 #' @export
 get_ssm_by_genes = function(genes,
@@ -46,14 +52,15 @@ get_ssm_by_genes = function(genes,
         gene_region = suppressMessages(gene_to_region(gene,projection=projection))
         these_samples_metadata = filter(these_samples_metadata,seq_type %in% c("genome","capture"))
         
-        for(seq_type in unique(these_samples_metadata$seq_type)){
+        for(s_type in unique(these_samples_metadata$seq_type)){
             seq_type_ssms = get_ssm_by_region(region=gene_region,
                                             basic_columns=TRUE,
                                             streamlined=FALSE,
-                                            this_seq_type = seq_type,
+                                            these_samples_metadata =  filter(these_samples_metadata,seq_type == s_type),
                                             projection=projection) %>%
                                             filter(Hugo_Symbol==gene)
-            all_ssms[[paste0(gene,"-",seq_type)]] = seq_type_ssms %>% mutate(maf_seq_type = seq_type)
+            all_ssms[[paste0(gene,"-",s_type)]] = seq_type_ssms %>% 
+              mutate(maf_seq_type = s_type)
             
         }
         
