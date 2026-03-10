@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_ssm_by_genes.R
 \name{get_ssm_by_genes}
 \alias{get_ssm_by_genes}
-\title{Get SSM By Gene}
+\title{Get all available SSMs for an arbitrary set of genes}
 \usage{
 get_ssm_by_genes(
   genes,
@@ -19,19 +19,39 @@ get_ssm_by_genes(
 \item{these_samples_metadata}{Optional, a metadata table (with sample IDs in a column) to subset the return to.}
 
 \item{projection}{Obtain variants projected to this reference (one of grch37 or hg38).}
+
+\item{ashm_regions}{Optional coordinates defining aSHM space if you don't want to use the default bundled with GAMBLR.data}
+
+\item{drop_silent_outside_ashm_regions}{Default FALSE. Convenience feature to restrict non-coding variants to aSHM space.}
+
+\item{expand_by}{Optional padding to expand region around genes (default 0)}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
 }
 \description{
-Retrieve all SSMs from GAMBL for one or more genes
+Retrieve all SSMs from GAMBL for one or more genes using a coordinate-based lookup
+}
+\details{
+Internally, this function uses gene_to_region to obtain the genomic coordinates for each
+gene then it uses get_ssm_by_region to retrieve them.
+The MAF data returned by this function, unlike get_coding_ssm and get_all_coding_ssm,
+will include all non-coding variant classes (Intron, 5'UTR, 3'UTR, etc).
 }
 \examples{
-dlbcl_meta = get_gambl_metadata() \%>\% 
+\dontrun{
+dlbcl_meta = get_gambl_metadata() \%>\%
  dplyr::filter(pathology=="DLBCL", seq_type!= "mrna")
+
+
 genes_maf = get_ssm_by_genes(genes = c("EZH2","KMT2D"),these_samples_metadata = dlbcl_meta)
-genes_maf \%>\% 
- dplyr::group_by(Hugo_Symbol,Tumor_Sample_Barcode) \%>\% 
+genes_maf \%>\%
+ dplyr::group_by(Hugo_Symbol,Tumor_Sample_Barcode) \%>\%
  count()
 
+ dlbcl_genes = lymphoma_genes \%>\% filter(DLBCL_Tier==1) \%>\% pull(Gene)
+ dlbcl_gene_maf = get_ssm_by_genes(dlbcl_genes,
+    these_samples_metadata = dlbcl_meta,
+    drop_silent_outside_ashm_regions = T)
+}
 }

@@ -1,6 +1,6 @@
-[1] "=== STARTED AT 2026-02-18 11:57:08.801823 ==="
+[1] "=== STARTED AT 2026-03-10 15:28:34.199559 ==="
 [1] "=== RUNNING devtools::run_examples() ==="
-── Running 74 example files ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+── Running 74 example files ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -208,7 +208,7 @@ FL1015T2                   0                      1                      0      
 
 > colMeans(pax5_matrix)
             PAX5-TSS-1 PAX5-distal-enhancer-1 PAX5-distal-enhancer-3          PAX5-intron-1 PAX5-distal-enhancer-2 
-             0.3864266              0.4750693              1.1246537              1.7119114              0.5858726 
+             0.3775372              0.4641407              1.0987821              1.6725304              0.5723951 
 
 > capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "capture") %>% head()
@@ -257,7 +257,7 @@ Showing first 10 rows:
   seq_type     n
   <chr>    <int>
 1 capture    176
-2 genome     259
+2 genome     260
 3 mrna       279
 
 > genes_and_cn_threshs = data.frame(gene_id = c("MYC", 
@@ -268,16 +268,16 @@ Showing first 10 rows:
 +     dplyr::filter(all_types_meta, seq_type == "genome"), only_cnv = "MIR17HG"))
 
 > print(dim(genome_cnv_ssm_status))
-[1] 259   6
+[1] 260   6
 
 > head(genome_cnv_ssm_status)
                           MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
+LyCA0278_DNA                0       0     0   0     0       0
 BLGSP-71-06-00001-01A-11D   0       0     1   1     1       0
 BLGSP-71-06-00002-01C-01D   1       0     0   1     0       0
 BLGSP-71-06-00004-01A-11D   0       0     1   1     1       0
 BLGSP-71-06-00005-01A-21D   0       0     1   1     0       0
 BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
-BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > colSums(genome_cnv_ssm_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
@@ -287,16 +287,16 @@ BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 +     all_types_meta, only_cnv = "MIR17HG"))
 
 > print(dim(all_seq_type_status))
-[1] 435   6
+[1] 436   6
 
 > head(all_seq_type_status)
                           MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
+LyCA0278_DNA                0       0     0   0     0       0
 BLGSP-71-06-00001-01A-11D   0       0     1   1     1       0
 BLGSP-71-06-00002-01C-01D   1       0     0   1     0       0
 BLGSP-71-06-00004-01A-11D   0       0     1   1     1       0
 BLGSP-71-06-00005-01A-21D   0       0     1   1     0       0
 BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
-BLGSP-71-06-00008-01A-11D   0       0     0   0     0       0
 
 > colSums(all_seq_type_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
@@ -352,7 +352,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    394     530 
+    394     536 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -361,7 +361,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 924  55
+[1] 930  55
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -373,7 +373,7 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 924  55
+[1] 930  55
 
 > head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -515,21 +515,21 @@ Showing first 10 rows:
 
 > dplyr::group_by(my_metadata, pathology, seq_type) %>% 
 +     dplyr::count()
-# A tibble: 72 × 3
-# Groups:   pathology, seq_type [72]
+# A tibble: 79 × 3
+# Groups:   pathology, seq_type [79]
    pathology seq_type     n
    <chr>     <chr>    <int>
  1 AITL      capture      2
- 2 AITL      mrna        22
- 3 ALCL      capture    102
- 4 B-ALL     genome       1
- 5 BL        capture    176
- 6 BL        genome     259
- 7 BL        mrna       279
- 8 CLL       genome     213
- 9 CLL       mrna       157
-10 COMFL     capture      1
-# ℹ 62 more rows
+ 2 AITL      genome       6
+ 3 AITL      mrna        22
+ 4 ALCL      capture    102
+ 5 B-ALL     genome       1
+ 6 BL        capture    176
+ 7 BL        genome     260
+ 8 BL        mrna       279
+ 9 CLL       genome     285
+10 CLL       mrna       157
+# ℹ 69 more rows
 
 > all_fusions = get_gene_fusions()
 
@@ -577,7 +577,7 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 565 samples and 16 cohorts"
+[1] "No Manta SVs found for 703 samples and 16 cohorts"
  [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "MM_mmsanger"         "SMZL_Strefford"     
 
 > dplyr::select(all_sv, 1:14) %>% head()
@@ -816,13 +816,4 @@ Showing first 10 rows:
 
 > maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
 +     output_file = "myc_capture_hg19.bed")
-
-> meta_df = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(seq_type %in% c("genome", "capture")) %>% dplyr::filter(pathology == 
-+     "DLBCL")
-
-> pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
-
-> pretty_lymphoplot(meta_df, show_side_annotation = TRUE, 
-+     flavour = "with_cnvs.with_sv.no_A53")
-[1] "=== COMPLETED AT 2026-02-18 12:07:05.033924 ==="
+[1] "=== COMPLETED AT 2026-03-10 15:35:32.893596 ==="
