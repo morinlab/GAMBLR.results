@@ -1,3 +1,6 @@
+
+
+
 #' @title Get CN Segments.
 #'
 #' @description Retrieve all copy number segments from the GAMBL outputs
@@ -9,13 +12,18 @@
 #' The metadata also ensures the proper handling of duplicate sample_id across seq_types and ensures the
 #' seq_type in the metadata faithfully represents the seq_type of the data
 #' @param flavour Specify what pipeline or source of data to use.
-#' Available options are "combined" or "battenberg". Battenberg outputs are incomplete.
+#' @param max_CN Cap CN values at this value. Default is 20. This is to avoid extreme CN values dominating the colour scale in visualisations.
+#' Available options are "combined" (for the merge of the best tool for each data type),
+#' or one of "purecn_cnvkit", "purecn_denovo", or "battenberg".
+#' Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
+#' matched or capture samples).
 #' @param projection Desired genome coordinate system for returned CN segments. Default is "grch37".
-#' @param fill_missing_with Specify how to fill values in dummy segments that were created to satisfy GISTIC.
-#' The default is "nothing", which causes these to be dropped so empty regions
-#' can be handled in subsequent processing steps. For creating a GISTIC input,
-#' you would typically want to set this to "avg_ploidy". 
-#' This is taken care of for you by [GAMBLR.utils::prepare_gistic_inputs]
+#' @param fill_missing_with Deprecated.
+#' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
+#' For simplicity, dummy segments (if detected) are now dropped.
+#' @param adjust_for_ploidy Deprecated.
+#' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
+#'
 #' @param verbose Set to TRUE for a chattier experience
 #' @param this_seq_type Deprecated.
 #'
@@ -37,25 +45,30 @@
 #'   projection = "hg38"
 #' )
 #' print(capture_segments_hg38)
+#' # Note the default projection is "grch37"
 #'
 #' genome_metadata <- suppressMessages(get_gambl_metadata()) %>%
-#'   dplyr::filter(seq_type == "genome") %>%
-#'   head()
+#'   dplyr::filter(seq_type == "genome")
+#'
 #' # Create a metadata table with a mix of seq_types
 #' mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
+#'
 #' ## We can load the copy number segments for all samples across seq_types
-#' capture_segments_default <- get_cn_segments(
+#' ## To differentiate samples that share a sample_id but differ in seq_type,
+#' ## a new column seg_seq_type is added to the output
+#'
+#' all_seq_type_segs <- get_cn_segments(
 #'   these_samples_metadata = mixed_seq_type_meta
 #' )
-#' dplyr::group_by(capture_segments_default, ID) %>%
-#'   dplyr::summarize(n = dplyr::n())
-#' # Note the default projection is "grch37"
-#' print(capture_segments_default)
+#'
+#' dplyr::group_by(all_seq_type_segs,seg_seq_type) %>% dplyr::count()
+#'
+
 get_cn_segments <- function(these_samples_metadata,
                             projection = "grch37",
                             flavour = "combined",
                             this_seq_type,
-                            fill_missing_with = "nothing",
+                            max_CN = 20,
                             verbose = FALSE) {
   if (!missing(this_seq_type)) {
     stop("this_seq_type is deprecated. Subset your metadata instead.")
@@ -63,7 +76,7 @@ get_cn_segments <- function(these_samples_metadata,
   if (missing(these_samples_metadata)) {
     message("no metadata provided")
     message("will get segments for all available genome and capture samples")
-    these_samples_metadata <- suppressMessages(get_gambl_metadata()) %>% 
+    these_samples_metadata <- suppressMessages(get_gambl_metadata()) %>%
       dplyr::filter(seq_type %in% c("genome", "capture"))
     seq_types <- pull(these_samples_metadata, seq_type) %>% unique()
   } else {
@@ -73,10 +86,10 @@ get_cn_segments <- function(these_samples_metadata,
   }
 
   genome_ids <- dplyr::filter(these_samples_metadata,
-    seq_type == "genome") %>% 
+    seq_type == "genome") %>%
     pull(sample_id)
   capture_ids <- dplyr::filter(these_samples_metadata,
-    seq_type == "capture") %>% 
+    seq_type == "capture") %>%
     pull(sample_id)
   if (flavour == "combined") {
     cnv_flatfile_template <- check_config_and_value(
@@ -84,12 +97,18 @@ get_cn_segments <- function(these_samples_metadata,
     )
     coltypes = "cciiid"
   } else if (flavour == "battenberg") {
+    seq_types = "genome"
     cnv_flatfile_template <- check_config_and_value(
       "results_merged$battenberg"
     )
     coltypes = "cciiidi"
-  } else {
-    stop("currently available flavours are combined or battenberg")
+  } else if(grepl("purecn",flavour)){
+    seq_types = "capture"
+    coltypes = "cciidd"
+    cnv_flatfile_template <- check_config_and_value(
+      paste0("results_merged$",flavour))
+  } else{
+    stop("currently available flavours: combined, purecn_denovo, purecn_cnvkit or battenberg")
   }
   df_list <- list()
   for (seq_type in seq_types) {
@@ -116,7 +135,7 @@ get_cn_segments <- function(these_samples_metadata,
       if(verbose){
         print(full_cnv_path)
       }
-      
+
       seg <- suppressMessages(read_tsv(full_cnv_path,
                                       col_types = coltypes,
                                       na = c("NA", "NaN"),
@@ -126,7 +145,7 @@ get_cn_segments <- function(these_samples_metadata,
       if(verbose){
         print(full_cnv_path)
       }
-      
+
       seg <- suppressMessages(read_tsv(full_cnv_path,
                                        col_types = coltypes,
                                        na = c("NA", "NaN"),
@@ -134,62 +153,41 @@ get_cn_segments <- function(these_samples_metadata,
         dplyr::filter(ID %in% genome_ids)
     }
     seg <- mutate(seg, seg_seq_type = seq_type)
+    if(verbose){
+      print(seq_type)
+      print(head(seg))
+    }
+    
     df_list[[seq_type]] <- seg
   }
   if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
     stop("overlapping IDs found!")
   }
+  if(verbose){
+    print(names(df_list))
+  }
 
   all_segs <- do.call("bind_rows", df_list)
-
-  all_segs <- dplyr::mutate(all_segs, CN = 2 * 2^log.ratio)
-
-
-  if ("dummy_segment" %in% colnames(all_segs)) {
-    if (fill_missing_with == "diploid") {
-      if(verbose){
-        print("Using diploid")
-      }
-      
-      all_segs <- mutate(all_segs,
-        CN = ifelse(dummy_segment == 1, 2, CN),
-        log.ratio = ifelse(dummy_segment == 1, 0, log.ratio)
-      )
-    } else if (fill_missing_with == "avg_ploidy") {
-      if(verbose){
-        print("Using Avg_ploidy")
-      }
-      
-      real_segs <- dplyr::filter(
-        all_segs,
-        dummy_segment == 0
-      )
-      real_segs <- real_segs %>%
-        mutate(
-          length = end - start + 1,
-          CN_seg = CN * length,
-          logr_seg = log.ratio * length
-        ) %>%
-        group_by(ID) %>%
-        summarise(
-          mean = mean(CN),
-          real_mean = sum(CN_seg) / sum(length),
-          real_mean_logr = sum(logr_seg) / sum(length)
-        ) # actual average per base
-      all_segs <- left_join(all_segs, select(real_segs, ID, real_mean, real_mean_logr), by = "ID")
-      all_segs <- mutate(all_segs,
-        CN = ifelse(dummy_segment == 1, real_mean, CN),
-        log.ratio = ifelse(dummy_segment == 1, real_mean_logr, log.ratio)
-      )
-    } else if (fill_missing_with == "nothing") {
-      #drop dummy segments entirely
-      all_segs <- dplyr::filter(all_segs, dummy_segment == 0)
-    } else {
-      stop("fill_missing_with must be 'nothing', 'diploid', or 'avg_ploidy'")
+  if(!"log.ratio" %in% colnames(all_segs)){
+    all_segs = rename(all_segs,
+      c("log.ratio"="seg.mean"))
+  }
+  if(!"CN" %in% colnames(all_segs)){
+    all_segs = dplyr::mutate(all_segs, CN = 2 * 2^log.ratio)
+  }
+  if(max_CN > 0){
+    all_segs = dplyr::mutate(all_segs, CN = ifelse(CN > max_CN, max_CN, CN))
+  }
+  # If dummy segments are present, drop them.
+  # This is to avoid confusion and to simplify downstream processing.
+  # This change could impact the GISTIC functionality in GAMBLR so this may need to be revisited in the future.
+  # If you want to keep them, you can always load the raw seg files yourself and specify fill_missing_with or adjust_for_ploidy as needed.
+  if("dummy_segment" %in% colnames(all_segs)){
+    if(verbose){
+      message("dropping all rows where dummy_segment == 1")
     }
-  }else{
-    message("dummy segments are not annotated in the inputs")
-    message("fill_missing_with parameter will be ignored")
+    all_segs = dplyr::filter(all_segs, dummy_segment!=1 | is.na(dummy_segment)) %>%
+      dplyr::select(-dummy_segment)
   }
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)

@@ -48,7 +48,7 @@ If a dataframe is not provided, the function will default to all genome metadata
 refer to function examples, vignettes and parameter descriptions.
 }
 \examples{
-\dontrun{
+
 #get collated results for all capture samples, using cached results
 capture_metadata = get_gambl_metadata(dna_seq_type_priority = "capture") \%>\% dplyr::filter(seq_type == "capture")
 capture_collated_everything = collate_results(these_samples_metadata = capture_metadata,
@@ -56,19 +56,20 @@ capture_collated_everything = collate_results(these_samples_metadata = capture_m
                                               write_to_file = FALSE)
 
 #use an already subset metadata table for getting collated results (cached)
-my_metadata = get_gambl_metadata()
+my_metadata = get_gambl_metadata() \%>\% dplyr::filter(seq_type !="mrna")
 fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 
 fl_collated = collate_results(these_samples_metadata = fl_metadata,
                               write_to_file = FALSE,
                               from_cache = TRUE)
-}
+\dontrun{
 #use an already subset metadata table for getting collated results (without using cached results)
-my_metadata = get_gambl_metadata()
+my_metadata = get_gambl_metadata()  \%>\% dplyr::filter(seq_type !="mrna")
 fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 
 fl_collated = collate_results(these_samples_metadata = fl_metadata,
                               write_to_file = FALSE,
                               from_cache = FALSE)
 dplyr::select(fl_collated, 1:14) \%>\% head()
+}
 }

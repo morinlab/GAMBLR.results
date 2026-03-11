@@ -104,6 +104,14 @@
 #'                                           include_hotspots=FALSE)
 #'  dim(coding_tabulated2)
 #'  head(colnames(coding_tabulated2))
+#'  
+#' coding_tabulated3 = get_coding_ssm_status(gene_symbols=c("MYD88","CREBBP","KMT2D"),
+#'                                           these_samples_metadata = fl_meta,
+#'                                           maf_data = maf_data,
+#'                                           include_hotspots=TRUE,
+#'                                           genes_of_interest = c("MYD88","CREBBP")) %>%
+#'                                           tibble::column_to_rownames("sample_id")
+#'  print(colSums(coding_tabulated3))
 #' 
 get_coding_ssm_status = function(
     gene_symbols,
@@ -200,18 +208,21 @@ get_coding_ssm_status = function(
             "
         )
     )
+
     coding_ssm <- coding_ssm %>%
         dplyr::filter(
-            Variant_Classification %in% coding_class |
+            
             (
                 Hugo_Symbol %in% include_silent_genes &
                 Variant_Classification == "Silent"
-            )
+            ) |
+            Variant_Classification %in% coding_class 
         )
+
   }
 
   coding = coding_ssm %>%
-    dplyr::filter(Hugo_Symbol %in% gene_symbols & Variant_Classification != "Synonymous") %>%
+    dplyr::filter(Hugo_Symbol %in% gene_symbols) %>%
     dplyr::select(Tumor_Sample_Barcode, Hugo_Symbol) %>%
     dplyr::rename("sample_id" = "Tumor_Sample_Barcode", "gene" = "Hugo_Symbol") %>%
     unique() %>%
@@ -225,11 +236,12 @@ get_coding_ssm_status = function(
 
   # include hotspots if user chooses to do so
   if(include_hotspots){
-    # first annotate
-    
-    # review for the supported genes
-    
-    if(!missing(custom_coordinates)){
+    if("hot_spot" %in% colnames(coding_ssm)){
+      
+      message("hot_spot column exists, will not re-annotate.",
+              "Remove this column and re-run if you think this is a problem")
+      annotated = coding_ssm
+    } else if(!missing(custom_coordinates)){
 
         annotated = review_hotspots(coding_ssm,
                                     custom_coordinates = custom_coordinates,
@@ -240,11 +252,13 @@ get_coding_ssm_status = function(
         annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
         
         if(review_hotspots){
+          message("reviewing hotspots")
           annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
         }
     }
-      
+
     message("annotating hotspots")
+    
     hotspots = annotated %>%
       dplyr::filter(Hugo_Symbol %in% genes_of_interest) %>%
       dplyr::select(Tumor_Sample_Barcode, Hugo_Symbol, hot_spot) %>%
