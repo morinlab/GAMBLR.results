@@ -42,7 +42,8 @@ get_ssm_by_genes = function(genes,
                            projection = "grch37",
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
-                           expand_by = 0) {
+                           expand_by = 0,
+                           verbose = FALSE) {
 
     all_ssms = list()
     if(!missing(ashm_regions)){
@@ -63,6 +64,14 @@ get_ssm_by_genes = function(genes,
     for(gene in genes){
         #get gene region first
         gene_region = suppressMessages(gene_to_region(gene,projection=projection))
+       
+        if(is.null(gene_region) || length(gene_region)==0){
+          warning(paste0("No coordinates found for gene: ", gene, " skipping..."))
+          next
+        }
+        if(verbose){
+          message(paste0("Processing gene: ", gene, " with region: ", gene_region))
+        }
         these_samples_metadata = filter(these_samples_metadata,seq_type %in% c("genome","capture"))
 
         for(s_type in unique(these_samples_metadata$seq_type)){
@@ -92,5 +101,6 @@ get_ssm_by_genes = function(genes,
         columns2=c("chrom","ashm_region_start","ashm_region_end"))
         all_ssm_maf = bind_rows(silent_ssm_maf,coding_ssm_maf)
     }
+  all_ssm_maf = create_maf_data(all_ssm_maf, genome_build = projection)
   return(all_ssm_maf)
 }
