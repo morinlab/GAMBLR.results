@@ -18,13 +18,19 @@
 #' }
 collate_qc_results = function(sample_table){
 
-    #get paths
+    # Fool-proof against unexpected seq types
+    supported_seq_types <- sample_table %>%
+        filter(
+            seq_type %in% c("genome", "capture")
+        )
+
+    # get paths
     base <- GAMBLR.helpers::check_config_value(config::get("project_base"))
     qc_template <- GAMBLR.helpers::check_config_value(config::get("qc_met"))
 
     paths <- expand.grid(
-        unix_group = unique(sample_table$unix_group),
-        seq_type_filter = unique(sample_table$seq_type),
+        unix_group = unique(supported_seq_types$unix_group),
+        seq_type_filter = unique(supported_seq_types$seq_type),
         stringsAsFactors = FALSE
     ) %>%
     mutate(
