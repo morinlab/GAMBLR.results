@@ -45,6 +45,8 @@
 #' @param recurrence_min Integer value indicating minimal recurrence level.
 #' @param projection Specify projection (grch37 or hg38) of mutations. Default
 #'      is grch37.
+#' @param custom_coordinates Optional set of coordinates specifying regions
+#'      containing hot spots that will be used instead of the results from annotate_hotspots
 #' @param review_hotspots Logical parameter indicating whether hotspots object
 #'      should be reviewed to include functionally relevant mutations or rare
 #'      lymphoma-related genes. Default is TRUE.
@@ -102,6 +104,14 @@
 #'                                           include_hotspots=FALSE)
 #'  dim(coding_tabulated2)
 #'  head(colnames(coding_tabulated2))
+#'  
+#' coding_tabulated3 = get_coding_ssm_status(gene_symbols=c("MYD88","CREBBP","KMT2D"),
+#'                                           these_samples_metadata = fl_meta,
+#'                                           maf_data = maf_data,
+#'                                           include_hotspots=TRUE,
+#'                                           genes_of_interest = c("MYD88","CREBBP")) %>%
+#'                                           tibble::column_to_rownames("sample_id")
+#'  print(colSums(coding_tabulated3))
 #' 
 get_coding_ssm_status = function(
     gene_symbols,
@@ -114,6 +124,7 @@ get_coding_ssm_status = function(
     keep_multihit_hotspot = FALSE,
     recurrence_min = 5,
     review_hotspots = TRUE,
+    custom_coordinates,
     genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
     genome_build,
     include_silent = FALSE,
@@ -197,18 +208,21 @@ get_coding_ssm_status = function(
             "
         )
     )
+
     coding_ssm <- coding_ssm %>%
         dplyr::filter(
-            Variant_Classification %in% coding_class |
+            
             (
                 Hugo_Symbol %in% include_silent_genes &
                 Variant_Classification == "Silent"
-            )
+            ) |
+            Variant_Classification %in% coding_class 
         )
+
   }
 
   coding = coding_ssm %>%
-    dplyr::filter(Hugo_Symbol %in% gene_symbols & Variant_Classification != "Synonymous") %>%
+    dplyr::filter(Hugo_Symbol %in% gene_symbols) %>%
     dplyr::select(Tumor_Sample_Barcode, Hugo_Symbol) %>%
     dplyr::rename("sample_id" = "Tumor_Sample_Barcode", "gene" = "Hugo_Symbol") %>%
     unique() %>%
@@ -222,13 +236,29 @@ get_coding_ssm_status = function(
 
   # include hotspots if user chooses to do so
   if(include_hotspots){
-    # first annotate
-    annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
-    # review for the supported genes
-    if(review_hotspots){
-      annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+    if("hot_spot" %in% colnames(coding_ssm)){
+      
+      message("hot_spot column exists, will not re-annotate.",
+              "Remove this column and re-run if you think this is a problem")
+      annotated = coding_ssm
+    } else if(!missing(custom_coordinates)){
+
+        annotated = review_hotspots(coding_ssm,
+                                    custom_coordinates = custom_coordinates,
+                                    genes_of_interest = genes_of_interest, 
+                                    genome_build = genome_build)
+
+    }else{
+        annotated = annotate_hotspots(coding_ssm, recurrence_min = recurrence_min)
+        
+        if(review_hotspots){
+          message("reviewing hotspots")
+          annotated = review_hotspots(annotated, genes_of_interest = genes_of_interest, genome_build = genome_build)
+        }
     }
+
     message("annotating hotspots")
+    
     hotspots = annotated %>%
       dplyr::filter(Hugo_Symbol %in% genes_of_interest) %>%
       dplyr::select(Tumor_Sample_Barcode, Hugo_Symbol, hot_spot) %>%

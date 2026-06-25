@@ -15,7 +15,8 @@
 #' @import dplyr ggsci stringr tidyr ComplexHeatmap grid GAMBLR.helpers circlize
 #'
 #' @examples 
-#' meta_df = suppressMessages(get_gambl_metadata()) %>% 
+#'\dontrun{
+#'  meta_df = suppressMessages(get_gambl_metadata()) %>% 
 #'   dplyr::filter(seq_type %in% c("genome", "capture")) %>%
 #'      dplyr::filter(pathology == "DLBCL")
 #' pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
@@ -24,7 +25,7 @@
 #'      show_side_annotation = TRUE,
 #'      flavour = "with_cnvs.with_sv.no_A53"
 #' )
-#' 
+#' }
 pretty_lymphoplot = function(
     these_samples_metadata,
     flavour = "with_cnvs.with_sv.with_A53",

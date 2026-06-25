@@ -15,6 +15,7 @@ get_coding_ssm_status(
   keep_multihit_hotspot = FALSE,
   recurrence_min = 5,
   review_hotspots = TRUE,
+  custom_coordinates,
   genes_of_interest = c("FOXO1", "MYD88", "CREBBP"),
   genome_build,
   include_silent = FALSE,
@@ -61,6 +62,9 @@ presence.}
 \item{review_hotspots}{Logical parameter indicating whether hotspots object
 should be reviewed to include functionally relevant mutations or rare
 lymphoma-related genes. Default is TRUE.}
+
+\item{custom_coordinates}{Optional set of coordinates specifying regions
+containing hot spots that will be used instead of the results from annotate_hotspots}
 
 \item{genes_of_interest}{A vector of genes for hotspot review. Currently only
 FOXO1, MYD88, and CREBBP are supported.}
@@ -142,5 +146,13 @@ coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
                                           include_hotspots=FALSE)
  dim(coding_tabulated2)
  head(colnames(coding_tabulated2))
+ 
+coding_tabulated3 = get_coding_ssm_status(gene_symbols=c("MYD88","CREBBP","KMT2D"),
+                                          these_samples_metadata = fl_meta,
+                                          maf_data = maf_data,
+                                          include_hotspots=TRUE,
+                                          genes_of_interest = c("MYD88","CREBBP")) \%>\%
+                                          tibble::column_to_rownames("sample_id")
+ print(colSums(coding_tabulated3))
 
 }

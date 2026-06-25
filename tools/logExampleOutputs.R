@@ -1,9 +1,9 @@
 library(optparse)
 
 option_list = list(
-	make_option(c("-e", "--renv"), type="logical", default=FALSE, action="store_true", 
+	make_option(c("-e", "--renv"), type="logical", default=FALSE, action="store_true",
 		help="Flag to specify whether to use renv or not. [default %default]", metavar="character"),
-	make_option(c("-p", "--path"), type="character", default=NULL, action="store_true", 
+	make_option(c("-p", "--path"), type="character", default=NULL, action="store",
 		help="Full path to the directory with the renv files.", metavar="character")
 )
 

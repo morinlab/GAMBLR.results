@@ -16,6 +16,7 @@ get_cnv_and_ssm_status(
   review_hotspots = TRUE,
   adjust_for_ploidy = TRUE,
   include_silent = FALSE,
+  binary = TRUE,
   this_seq_type
 )
 }
@@ -32,10 +33,13 @@ Can be created with \code{get_gambl_metadata} function.}
 
 \item{maf_df}{Optional data frame containing the coding variants for your samples (i.e. output from \code{get_all_coding_ssm})}
 
-\item{seg_data}{Optionally provide the function with a data frame of segments that will be used instead of the GAMBL flatfiles}
+\item{seg_data}{Optionally provide the function with a data
+frame of segments that will be used instead of the GAMBL flatfiles}
 
-\item{cn_matrix}{Instead of seg_data, you can provide a matrix of CN values for the samples in the metadata.
-See \link[GAMBLR.utils:segmented_data_to_cn_matrix]{GAMBLR.utils::segmented_data_to_cn_matrix} for more information on how to create this matrix.}
+\item{cn_matrix}{Instead of seg_data, you can provide a matrix
+of CN values for the samples in the metadata.
+See \link[GAMBLR.utils:segmented_data_to_cn_matrix]{GAMBLR.utils::segmented_data_to_cn_matrix} for more
+information on how to create this matrix.}
 
 \item{only_cnv}{A vector of gene names indicating the genes for which only CNV status should be considered,
 ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none
@@ -43,14 +47,22 @@ of the genes, respectively.}
 
 \item{genome_build}{Reference genome build. Possible values are "grch37" (default) or "hg38".}
 
-\item{include_hotspots}{Logical parameter indicating whether hotspots object should also be tabulated. Default is TRUE.}
+\item{include_hotspots}{Logical parameter indicating whether
+hotspots object should also be tabulated. Default is TRUE.}
 
-\item{review_hotspots}{Logical parameter indicating whether hotspots object should be reviewed to include
-functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.}
+\item{review_hotspots}{Logical parameter indicating whether
+hotspots object should be reviewed to include
+functionally relevant mutations or rare lymphoma-related
+genes. Default is TRUE.}
 
-\item{adjust_for_ploidy}{Set to FALSE to disable scaling of CN values by the genome-wide average per sample}
+\item{adjust_for_ploidy}{Set to FALSE to disable scaling
+of CN values by the genome-wide average per sample}
 
-\item{include_silent}{Set to TRUE if you want Synonymous mutations to also be considered}
+\item{include_silent}{Set to TRUE if you want Synonymous
+mutations to also be considered}
+
+\item{binary}{Set to FALSE and combine with only_cnv = "all"
+to obtain the actual values (absolute CN) instead of binary status}
 
 \item{this_seq_type}{Deprecated}
 }
@@ -58,15 +70,23 @@ functionally relevant mutations or rare lymphoma-related genes. Default is TRUE.
 A data frame with CNV and SSM combined status.
 }
 \description{
-For each specified chromosome region (gene name), return status 1 if the copy number (CN)
-state is non-neutral, \emph{i.e.} different from 2, or if the region contains any coding simple somatic mutation (SSM).
+For each specified chromosome region
+(gene name), return status 1 if the copy number (CN)
+state is non-neutral, \emph{i.e.} different from 2,
+or if the region contains any coding simple somatic mutation (SSM).
+If the parameter \verb{only_cnv`` is "all" and }binary` is FALSE,
+the result will include the rounded absolute copy number values
 }
 \details{
-The user can choose from which regions are intended to return only copy number variation (CNV) status,
-only coding SSM status, or at least the presence of one of them. This behavior is controlled by the arguments
+The user can choose from which regions
+are intended to return only copy number variation
+(CNV) status,
+only coding SSM status, or at least the presence
+of one of them. This behavior is controlled by the arguments
 \code{genes_and_cn_threshs} (column \code{cn_thresh}) and \code{only_cnv}.
 
-This function internally calls the \code{get_cn_states}, \code{get_ssm_by_samples} and \code{get_coding_ssm_status}functions.
+This function internally calls the \code{get_cn_states},
+\code{get_ssm_by_samples} and \code{get_coding_ssm_status}functions.
 Therefore, many of its arguments are assigned to these functions. If needed, see the documentation of these
 functions for more information.
 
