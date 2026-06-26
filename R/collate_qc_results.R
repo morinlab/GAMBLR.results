@@ -48,7 +48,10 @@ collate_qc_results = function(sample_table){
     qc_metrics <- pmap_dfr(
         paths,
     \(unix_group, seq_type_filter, qc_path, qc_path_full) {
-        read_tsv(qc_path_full) %>%
+        read_tsv(
+            qc_path_full,
+            show_col_types = FALSE
+        )%>%
         mutate(
             unix_group = unix_group,
             seq_type = seq_type_filter
