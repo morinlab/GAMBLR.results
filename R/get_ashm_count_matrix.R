@@ -125,6 +125,14 @@ get_ashm_count_matrix = function(
         values_from = n
     ) %>%
         column_to_rownames(var = "sample_id")
+    
+    consistent_order <- all_counts %>%
+        pull(region_name) %>%
+        sort %>%
+        unique
+    
+    all_counts_wide <- all_counts_wide %>%
+        select(all_of(consistent_order))
 
     return(all_counts_wide)
 }

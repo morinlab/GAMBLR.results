@@ -60,7 +60,6 @@
 #'                                   these_samples_metadata = some_meta)
 #'  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
 #'  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
-#' }
 #'
 #' # Easiest/laziest way: Let the function obtain
 #' # the seg_data and maf_data for you
@@ -74,6 +73,7 @@
 #'
 #' cn_list$maf %>% dplyr::group_by(Tumor_Sample_Barcode,CN) %>%
 #'   dplyr::count()
+#' }
 #'
 assign_cn_to_ssm = function(
     these_samples_metadata,
