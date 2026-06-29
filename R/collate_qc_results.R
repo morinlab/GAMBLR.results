@@ -5,11 +5,10 @@
 #' @details INTERNAL FUNCTION called by [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
 #' @param sample_table df with sample ids in the first column.
-#' @param seq_type_filter default is genome, capture is also available.
 #'
 #' @return The sample table with additional columns.
 #'
-#' @import dplyr readr glue GAMBLR.helpers
+#' @import dplyr readr glue purrr GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -17,44 +16,60 @@
 #' \dontrun{
 #'   qc_metrics = collate_qc_results(sample_table = sample_table)
 #' }
-collate_qc_results = function(sample_table,
-                              seq_type_filter = "genome"){
+collate_qc_results = function(sample_table){
 
-  if(! seq_type_filter %in% c("genome", "capture")){
-    stop("Please provide a valid seq_type (\"genome\" or \"capture\").")
-  }
+    # Fool-proof against unexpected seq types
+    supported_seq_types <- sample_table %>%
+        filter(
+            seq_type %in% c("genome", "capture")
+        )
 
-  #get paths
-  base = GAMBLR.helpers::check_config_value(config::get("project_base"))
-  qc_template = GAMBLR.helpers::check_config_value(config::get("qc_met"))
+    # get paths
+    base <- GAMBLR.helpers::check_config_value(config::get("project_base"))
+    qc_template <- GAMBLR.helpers::check_config_value(config::get("qc_met"))
 
-  #icgc_dart
-  unix_group = "icgc_dart"
-  icgc_qc_path = glue::glue(qc_template)
-  icgc_qc_path_full = paste0(base, icgc_qc_path)
+    paths <- expand.grid(
+        unix_group = unique(supported_seq_types$unix_group),
+        seq_type_filter = unique(supported_seq_types$seq_type),
+        stringsAsFactors = FALSE
+    ) %>%
+    mutate(
+        qc_path = pmap_chr(
+            list(unix_group, seq_type_filter),
+            ~ glue(
+                qc_template,
+                unix_group = ..1,
+                seq_type_filter = ..2
+            )
+        ),
+        qc_path_full = paste0(base, qc_path)
+    )
 
-  #gambl
-  unix_group = "gambl"
-  gambl_qc_path = glue::glue(qc_template)
-  gambl_qc_path_full = paste0(base, gambl_qc_path)
+    qc_metrics <- pmap_dfr(
+        paths,
+    \(unix_group, seq_type_filter, qc_path, qc_path_full) {
+        read_tsv(
+            qc_path_full,
+            show_col_types = FALSE
+        )%>%
+        mutate(
+            unix_group = unix_group
+        ) %>%
+        dplyr::rename(
+            sample_id = UID,
+            seq_type = SeqType
+        )
 
-  #read in icgc qc data, rename sample id column and filter on samples in sample id in sample_table
-  icgc_qc = suppressMessages(read_tsv(icgc_qc_path_full)) %>%
-      dplyr::rename(sample_id = UID) %>%
-      dplyr::select(-SeqType)
+    }
+    )
 
-  #read in gambl qc data, rename sample id column and filter on samples in sample id in sample_table
-  gambl_qc = suppressMessages(read_tsv(gambl_qc_path_full)) %>%
-    dplyr::rename(sample_id = UID) %>%
-    dplyr::select(-SeqType)
 
-  #join gambl and icgc QC data
-  full_qc = rbind(gambl_qc, icgc_qc)
-  sample_table = left_join(sample_table, full_qc)
+    # join sample table and QC data
+    sample_table = left_join(sample_table, qc_metrics)
 
-  #print n samples with QC metrics
-  qc_samples = length(unique(full_qc$sample_id))
-  message(paste("QC metrics for", qc_samples, "samples retrieved."))
+    #print n samples with QC metrics
+    qc_samples = length(unique(qc_metrics$sample_id))
+    message(paste("QC metrics for", qc_samples, "samples retrieved."))
 
-  return(sample_table)
+    return(sample_table)
 }

@@ -10,7 +10,8 @@ get_ssm_by_genes(
   projection = "grch37",
   ashm_regions,
   drop_silent_outside_ashm_regions = FALSE,
-  expand_by = 0
+  expand_by = 0,
+  verbose = FALSE
 )
 }
 \arguments{

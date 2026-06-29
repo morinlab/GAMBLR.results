@@ -18,6 +18,10 @@
 #' @param include_unavailable Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
 #' @param exclude Specify one or more seq_type to drop from the output. 
+#' @param min_corrected_cov Minimum value for the MeanCorrectedCoverage QC
+#'      metric for the genome and capture samples. The samples with
+#'      MeanCorrectedCoverage below this value will be excluded from the
+#'      metadata output. A numeric value is expected. The default is set to 15.
 #' This prevents metadata from containing anythong other than the three standard
 #' seq_type (genome, capture, mrna). Default setting will exclude "promethION".
 #' @param ... Additional arguments
@@ -112,6 +116,7 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                verbose=FALSE,
                                invert=FALSE,
                                exclude = "promethION",
+                               min_corrected_cov = 15,
                               ...){
   if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
     args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
@@ -375,10 +380,17 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
   
     if(also_normals){
     # add normals to the data frame
-    all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-any_of(c("priority", "mrna_sample_id")))
+        all_meta_kept = bind_rows(all_meta_kept,sample_meta_normal_dna,filter(sample_meta_rna_kept,tissue_status=="normal")) %>% select(-any_of(c("priority", "mrna_sample_id")))
+    }
+    
+    # Add QC and filter out samples with low coverage
+    all_meta_kept <- collate_qc_results(
+        all_meta_kept
+    ) %>%
+        filter(
+            coalesce(MeanCorrectedCoverage >= min_corrected_cov, TRUE)
+        )
+
     return(all_meta_kept)
-  }else{
-    return(all_meta_kept)
-  }
 
 }
