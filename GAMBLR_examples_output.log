@@ -1,6 +1,6 @@
-[1] "=== STARTED AT 2026-06-26 12:04:36 ==="
+[1] "=== STARTED AT 2026-06-29 09:08:40 ==="
 [1] "=== RUNNING devtools::run_examples() ==="
-── Running 74 example files ──────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+── Running 74 example files ─── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -145,7 +145,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 892905  230503 
+ 975658  241719 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -153,16 +153,16 @@ genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1     IGHV2-70      Missense_Mutation 3119
-2      IGLV3-1      Missense_Mutation 3072
-3        IGLL5      Missense_Mutation 2700
-4         BCL2      Missense_Mutation 2615
-5          TTN      Missense_Mutation 2448
-6         PIM1      Missense_Mutation 1670
-7     IGHV1-69      Missense_Mutation 1570
-8          MYC      Missense_Mutation 1298
-9        MUC16      Missense_Mutation 1261
-10      CREBBP      Missense_Mutation 1128
+1     IGHV2-70      Missense_Mutation 3423
+2      IGLV3-1      Missense_Mutation 3404
+3        IGLL5      Missense_Mutation 2868
+4         BCL2      Missense_Mutation 2813
+5          TTN      Missense_Mutation 2699
+6     IGHV1-69      Missense_Mutation 1835
+7         PIM1      Missense_Mutation 1830
+8          MYC      Missense_Mutation 1395
+9        MUC16      Missense_Mutation 1366
+10      CREBBP      Missense_Mutation 1184
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -176,16 +176,16 @@ Showing first 10 rows:
 
 > head(pax5_matrix)
                   PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3 PAX5-intron-1 PAX5-TSS-1
+00-14595_tumorC                        4                      0                      3            12          2
 00-15201_tumorA                        0                      0                      3             7          0
 00-15201_tumorB                        0                      0                      0             1          0
 00-17960_CLC01670                      0                      2                      0            11          0
 FL1015T2                               1                      0                      0             0          0
-00-26427_tumorC                        0                      0                      0             0          0
-FL1002T2                               0                      0                      6             2          0
+00-23442_tumorB                        0                      0                      2             0          0
 
 > colMeans(pax5_matrix)
 PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3          PAX5-intron-1             PAX5-TSS-1 
-             0.6626866              0.7522388              1.3791045              2.0820896              0.4985075 
+             0.6367347              0.7115646              1.3374150              2.0408163              0.4761905 
 
 > capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "capture") %>% head()
@@ -224,7 +224,7 @@ Genome Build: grch37
 Showing first 10 rows:
   seg_seq_type      n
 1      capture   1120
-2       genome 405301
+2       genome 441137
 
 > all_types_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(pathology == "BL")
@@ -233,8 +233,8 @@ Showing first 10 rows:
 # A tibble: 3 × 2
   seq_type     n
   <chr>    <int>
-1 capture    141
-2 genome     241
+1 capture    150
+2 genome     257
 3 mrna       280
 
 > genes_and_cn_threshs = data.frame(gene_id = c("MYC", 
@@ -245,7 +245,7 @@ Showing first 10 rows:
 +     dplyr::filter(all_types_meta, seq_type == "genome"), only_cnv = "MIR17HG"))
 
 > print(dim(genome_cnv_ssm_status))
-[1] 241   6
+[1] 257   6
 
 > head(genome_cnv_ssm_status)
                           MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
@@ -258,13 +258,13 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
 
 > colSums(genome_cnv_ssm_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    163       0      70     117     116       7 
+    174       0      76     119     122       7 
 
 > all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     all_types_meta, only_cnv = "MIR17HG"))
 
 > print(dim(all_seq_type_status))
-[1] 382   6
+[1] 407   6
 
 > head(all_seq_type_status)
                           MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
@@ -277,7 +277,7 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
 
 > colSums(all_seq_type_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    252       0     111     189     178      10 
+    269       0     118     194     186      10 
 
 > maf_genome = get_coding_ssm()
 
@@ -329,7 +329,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    384     516 
+    390     534 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -338,7 +338,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 900  55
+[1] 924  55
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -350,7 +350,7 @@ capture  genome
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
 
 > dim(coding_tabulated2)
-[1] 900  55
+[1] 924  55
 
 > head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -362,7 +362,7 @@ capture  genome
 
 > print(colSums(coding_tabulated3))
         KMT2D        CREBBP         MYD88 CREBBPHOTSPOT  MYD88HOTSPOT 
-          534           185             7           338             6 
+          545           189             7           344             6 
 
 > all_sv <- get_combined_sv()
 
@@ -490,8 +490,8 @@ Showing first 10 rows:
 
 > dplyr::group_by(my_metadata, pathology, seq_type) %>% 
 +     dplyr::count()
-# A tibble: 99 × 3
-# Groups:   pathology, seq_type [99]
+# A tibble: 101 × 3
+# Groups:   pathology, seq_type [101]
    pathology     seq_type     n
    <chr>         <chr>    <int>
  1 AILT_DLBCEBV  genome       1
@@ -504,7 +504,7 @@ Showing first 10 rows:
  8 AITL_PTCL_TFH genome       1
  9 AITL_SLL      genome       1
 10 ALCL          capture    100
-# ℹ 89 more rows
+# ℹ 91 more rows
 
 > all_fusions = get_gene_fusions()
 
@@ -552,7 +552,7 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 836 samples and 19 cohorts"
+[1] "No Manta SVs found for 862 samples and 19 cohorts"
  [1] "DLBCL_LSARP_Trios"   "PTCL_AITL"           "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "PMBCL_cell_lines"    "MM_mmsanger"         "SMZL_Strefford"      "Baylor_TXCRB"       
 
 > dplyr::select(all_sv, 1:14) %>% head()
@@ -605,10 +605,10 @@ Showing first 10 rows:
 3    chr2 88858802 88858802    chr8 127744262 127744262    MantaBND:279432:0:1:0:0:0   148        +        +                   SP59344                   SP59342      0.386  88
 4    chr2 88860304 88860306    chr8 127751936 127751938  MantaBND:194837:0:1:0:0:0:0   102        +        + BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.171 280
 5    chr2 88860417 88860417    chr8 127751955 127751955  MantaBND:194837:0:1:0:0:0:0    73        -        - BLGSP-71-27-00414-01A-01E BLGSP-71-27-00414-10A-01D      0.117 230
-6    chr2 89298017 89298019    chr8 127744262 127744264    MantaBND:279432:1:2:0:0:0    82        -        -                   SP59344                   SP59342      0.229  48
+6    chr2 88861500 88861500    chr8 127748752 127748752   MantaBND:1102030:0:1:0:0:0    89        +        + BLGSP-71-30-00647-01A-01E BLGSP-71-06-00286-99A-01D      0.283  46
 
 > nrow(hg38_myc_locus_sv)
-[1] 444
+[1] 457
 
 > incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37, 
 +     projection = "hg38", verbose = FALSE)
@@ -623,10 +623,10 @@ Showing first 10 rows:
 3    chr8 128726344 128727379   chr11  93629113  93629647   MantaBND:28037:1:9:0:0:0    66        -        +        01-20774T        14-11247N      0.280  25
 4    chr8 128726820 128726820    chr8 128726825 128726825  MantaINS:242009:0:0:0:3:0    76        +        -         PD26403a         PD26403b      0.400 105
 5    chr8 128726820 128726820    chr8 128726825 128726825  MantaINS:226876:7:7:1:3:0    84        +        -         PD26403c         PD26403b      0.407 113
-6    chr8 128738981 128738981    chr8 128752584 128752584  MantaDEL:829962:0:1:0:0:0   126        +        -        05-24065T        14-11247N      0.286  98
+6    chr8 128738979 128738983    chr8 128752584 128752588 MantaDEL:1407936:0:1:0:0:0   118        +        -  04-14093_tumorA  04-14093_normal      0.442  43
 
 > nrow(incorrect_myc_locus_sv)
-[1] 26
+[1] 28
 
 > annotated_myc_hg38 = suppressMessages(GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, 
 +     genome_build = "hg38"))
@@ -643,19 +643,19 @@ Showing first 10 rows:
 > table(annotated_myc_hg38$partner)
 
  BCL6 CCNL1   DMD   IGH   IGK   IGL  LRMP  PAX5 RFTN1 
-    3     1     2   288     4     6     1     4     1 
+    3     1     2   293     5     6     1     5     1 
 
 > annotated_myc_incorrect = suppressMessages(GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, 
 +     genome_build = "hg38"))
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2          tumour_sample_id gene partner fusion
-1:      8 128726344 128727379     11  93629113  93629647    .    66       -       +                 01-20774T  MYC    <NA> NA-MYC
-2:      8 128726820 128726820      8 128726825 128726825    .    76       +       -                  PD26403a  MYC    <NA> NA-MYC
-3:      8 128726820 128726820      8 128726825 128726825    .    84       +       -                  PD26403c  MYC    <NA> NA-MYC
-4:      8 128738981 128738981      8 128752584 128752584    .   126       +       -                 05-24065T  MYC    <NA> NA-MYC
-5:      8 128738981 128738981      8 128752584 128752584    .   250       +       -                 10-27119T  MYC    <NA> NA-MYC
-6:      8 128738981 128738981      8 128752584 128752584    .    95       +       - BLGSP-71-17-00357-01B-09E  MYC    <NA> NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
+1:      8 128726344 128727379     11  93629113  93629647    .    66       -       +        01-20774T  MYC    <NA> NA-MYC
+2:      8 128726820 128726820      8 128726825 128726825    .    76       +       -         PD26403a  MYC    <NA> NA-MYC
+3:      8 128726820 128726820      8 128726825 128726825    .    84       +       -         PD26403c  MYC    <NA> NA-MYC
+4:      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
+5:      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
+6:      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -743,7 +743,9 @@ genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
        Tumor_Sample_Barcode    n
-1 HTMCP-01-06-00485-01A-01D 2160
+1           14-35472_tumorA 5265
+2           14-35472_tumorB 7966
+3 HTMCP-01-06-00485-01A-01D 2160
 
 > hg38_ssms_no_aug = get_ssm_by_samples(projection = "hg38", 
 +     these_samples_metadata = my_meta, augmented = FALSE)
@@ -754,7 +756,9 @@ genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
        Tumor_Sample_Barcode    n
-1 HTMCP-01-06-00485-01A-01D 2160
+1           14-35472_tumorA 4001
+2           14-35472_tumorB 7470
+3 HTMCP-01-06-00485-01A-01D 2160
 
 > myc_grch37 <- GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_lymphoma_genes_bed) %>% 
 +     dplyr::filter(name == "MYC")
@@ -785,4 +789,4 @@ Showing first 10 rows:
 
 > maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
 +     output_file = "myc_capture_hg19.bed")
-[1] "=== COMPLETED AT 2026-06-26 12:23:26 ==="
+[1] "=== COMPLETED AT 2026-06-29 09:30:16 ==="
