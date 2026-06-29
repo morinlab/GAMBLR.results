@@ -18,7 +18,7 @@ get_gambl_metadata(
   verbose = FALSE,
   invert = FALSE,
   exclude = "promethION",
-  min_corrected_cov = 25,
+  min_corrected_cov = 15,
   ...
 )
 }
@@ -48,7 +48,7 @@ get_gambl_metadata(
 \item{min_corrected_cov}{Minimum value for the MeanCorrectedCoverage QC
 metric for the genome and capture samples. The samples with
 MeanCorrectedCoverage below this value will be excluded from the
-metadata output. A numeric value is expected. The default is set to 25.
+metadata output. A numeric value is expected. The default is set to 15.
 This prevents metadata from containing anythong other than the three standard
 seq_type (genome, capture, mrna). Default setting will exclude "promethION".}
 
