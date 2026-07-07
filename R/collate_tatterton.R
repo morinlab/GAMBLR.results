@@ -38,4 +38,37 @@ collate_tatterton = function(){
         warning(n_expected - n, " Tatterton patient(s) had no matching ",
                 "sample in the metadata and are not in the output.")
     }
+
+    # Reorder columns. First, sample_id, manntype data first, and key metadata
+    first_cols <- c(
+        "sample_id", "manntype", "FL_signature",
+        "AGS", "AGS_location_type", "AGS_Motif",
+        "patient_id", "pathology", "seq_type",
+        "capture_space", "pairing_status", "ffpe_or_frozen",
+        "biopsy_id", "genome_build", "COO_Class",
+        "LymphGen_call", "BCL2_TR", "MYC_TR",
+        "DZsig", "bcl6_ba", "bcl2_ba",
+        "myc_ba"
+    )
+
+
+    # The remaining Tatterton columns
+    tatterton_cols <- setdiff(
+        colnames(tatterton_full),
+        c("Donor_Name", first_cols)
+    )
+
+    # More relevant GAMBL metadata columns
+    end_cols <- c("lymphgen", "Tumor_Sample_Barcode")
+
+    # The rest of the GAMBL metadata columns are in everything()
+    joined <- joined %>%
+        select(
+            any_of(first_cols),
+            any_of(tatterton_cols),
+            any_of(end_cols),
+            everything()
+        )
+
+    return(joined)
 }
