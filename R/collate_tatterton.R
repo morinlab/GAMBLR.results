@@ -31,7 +31,7 @@
 #'
 #' @examples
 #' \dontrun{
-#'   sample_table <- get_gambl_metadata(seq_type_filter = "capture")
+#'   sample_table <- get_gambl_metadata()
 #'   sample_table <- collate_tatterton(sample_table = sample_table)
 #' }
 collate_tatterton = function(
