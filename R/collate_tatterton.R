@@ -22,8 +22,8 @@
 #'  and Tatterton table columns.
 #'
 #' @import dplyr readr GAMBLR.helpers
-#'
-#' @noRd
+#' 
+#' @export
 #'
 #' @references Tatterton DJ, Newby ML, Allen JD, et al. The origin, diagnosis,
 #'  and prognosis of oligomannose-type diffuse large B-cell lymphoma. Blood.
