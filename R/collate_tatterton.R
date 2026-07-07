@@ -30,4 +30,12 @@ collate_tatterton = function(){
             ),
             across(c(FL_signature, manntype), ~ factor(.x, levels = c("NEG", "POS"))) # Convert column types to factor
         )
+
+    # Warn if any Tatterton patient had no matching sample in the metadata
+    n_expected <- dplyr::n_distinct(tatterton_full$Donor_Name)
+    n <- dplyr::n_distinct(joined$patient_id)
+    if(n < n_expected){
+        warning(n_expected - n, " Tatterton patient(s) had no matching ",
+                "sample in the metadata and are not in the output.")
+    }
 }
