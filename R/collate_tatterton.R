@@ -7,7 +7,7 @@ collate_tatterton = function(){
     )
     tatterton_full <- suppressMessages(read_csv(tatterton_file, col_names = TRUE))
 
-    # Fetch dlbcl_schmtiz cohort metadata
+    # Fetch dlbcl_schmitz cohort metadata
     # Keep samples in Tatterton using inner_join
     joined <- get_gambl_metadata() %>%
         filter(cohort == "dlbcl_schmitz") %>%
