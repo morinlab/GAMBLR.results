@@ -1,3 +1,35 @@
+#' @title Collate oligomannose type DLBCL annotations from Tatterton et al 2025.
+#'
+#' @description Return the Tatterton et al. (Blood 2025, supplemental Table 1B) NCI
+#'      DLBCL cohort samples with their Mann-type (oligomannose-type) classification,
+#'      joined to GAMBL metadata. Takes no arguments; always builds from the
+#'      dlbcl_schmitz cohort (the only cohort with Tatterton data).
+#'
+#' @details A case is Mann-type when it has both an acquired N-glycosylation site
+#'      (AGS) in the CDR AND a follicular-lymphoma (FL) signature (EZB subtype
+#'      or a BCL2 translocation). AGS calls are patient-level (derived from
+#'      RNA-seq), so the Tatterton table (keyed on `Donor_Name`) is joined onto
+#'      the metadata `patient_id` via an inner join, returning only samples
+#'      present in the Tatterton cohort. `manntype` and `FL_signature` are POS/NEG
+#'      factors. Note the join is patient-level, so a patient with both a capture
+#'      and an mrna sample yields one row per seq_type carrying the same call.
+#'      Use `dplyr::distinct(patient_id, manntype)` for per-patient counts.
+#'
+#' @return A data frame of dlbcl_schmitz samples that are in the Tatterton
+#'      cohort, with information from Tatterton supplemental table 1b columns plus
+#'      `manntype` and `FL_signature` annotations, reordered with the Mann-type
+#'      annotation information up front. One row per sample (not per patient).
+#'
+#' @import dplyr readr stringr GAMBLR.helpers
+#'
+#' @references Tatterton DJ, Newby ML, Allen JD, et al. The origin, diagnosis,
+#'      and prognosis of oligomannose-type diffuse large B-cell lymphoma. Blood.
+#'      2025;146(23):2808-2820.
+#'
+#' @examples
+#' \dontrun{
+#'   manntype_meta <- collate_tatterton()
+#' }
 collate_tatterton = function(){
     # Get Tatterton supplemental table 1b
     base <- GAMBLR.helpers::check_config_value(config::get("project_base"))
