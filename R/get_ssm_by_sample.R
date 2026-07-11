@@ -326,6 +326,26 @@ get_ssm_by_sample = function(these_samples_metadata,
       sample_ssm = fread(full_maf_path)
     }
   }
+  # fread() infers column types per-file; for sparsely-populated columns
+  # (e.g. gnomAD_* frequencies, usually NA) this can disagree across samples
+  # (logical in one file, character/double in another), which breaks
+  # bind_rows() when per-sample MAFs are later combined (e.g. by
+  # get_ssm_by_samples()). Coerce every column present to its canonical type
+  # (GAMBLR.utils::maf_column_classes(), the same map fread_maf() uses) after
+  # the lenient read, rather than constraining the read itself -- this can
+  # only turn a genuinely non-conforming value into NA, it never drops rows
+  # the way applying colClasses at read time did.
+  col_types = GAMBLR.utils::maf_column_classes()
+  for(col in intersect(names(col_types), names(sample_ssm))){
+    target = col_types[[col]]
+    sample_ssm[[col]] = suppressWarnings(switch(target,
+      character = as.character(sample_ssm[[col]]),
+      integer   = as.integer(sample_ssm[[col]]),
+      numeric   = as.numeric(sample_ssm[[col]]),
+      logical   = as.logical(sample_ssm[[col]]),
+      sample_ssm[[col]]
+    ))
+  }
   if(!is.null(variant_classification_filter)){
     # grep above is a superset match (whole word, anywhere on the line);
     # this exact filter is what guarantees correctness.
