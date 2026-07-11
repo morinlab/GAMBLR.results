@@ -144,7 +144,7 @@ get_ssm_by_regions = function(regions_list,
 
   genome_build = projection
   if(missing(maf_data)){
-      region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
+      region_mafs = lapply(regions, function(x){get_ssm_by_region(
       region = x,
       these_samples_metadata = these_samples_metadata,
       streamlined = streamlined,
@@ -154,10 +154,9 @@ get_ssm_by_regions = function(regions_list,
       projection = genome_build,
       min_read_support = min_read_support,
       verbose = verbose
-      )},
-      mc.cores = 12)
+      )})
   }else{
-    region_mafs = parallel::mclapply(regions, function(x){get_ssm_by_region(
+    region_mafs = lapply(regions, function(x){get_ssm_by_region(
       region = x,
       these_samples_metadata = these_samples_metadata,
       maf_data = maf_data,
@@ -168,8 +167,7 @@ get_ssm_by_regions = function(regions_list,
       projection = genome_build,
       min_read_support = min_read_support,
       verbose = verbose
-      )},
-      mc.cores = 12)
+      )})
   }
 
   if(!use_name_column){
@@ -179,11 +177,14 @@ get_ssm_by_regions = function(regions_list,
   }
 
   region_mafs <- list_rbind(region_mafs, names_to = "region_name")
-
   if(streamlined){
+    
+    
     region_mafs = mutate(region_mafs, start = Start_Position, sample_id =Tumor_Sample_Barcode) %>%
       dplyr::select(start, sample_id, region_name)
   }else{
+    
+    
     region_mafs = region_mafs %>%
       select(-region_name) %>%
       unique() %>%

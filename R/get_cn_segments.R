@@ -172,7 +172,7 @@ get_cn_segments <- function(these_samples_metadata,
     all_segs = rename(all_segs,
       c("log.ratio"="seg.mean"))
   }
-  if(!"CN" %in% colnames(all_segs)){
+  if(!"CN" %in% colnames(all_segs) || any(is.na(all_segs[["CN"]]))){
     all_segs = dplyr::mutate(all_segs, CN = 2 * 2^log.ratio)
   }
   if(max_CN > 0){
