@@ -13,7 +13,14 @@
 #' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param drop_silent_outside_ashm_regions Default FALSE. Convenience feature to restrict non-coding variants to aSHM space.
 #' @param ashm_regions Optional coordinates defining aSHM space if you don't want to use the default bundled with GAMBLR.data
-#' @param expand_by Optional padding to expand region around genes (default 0)
+#' @param expand_by Padding (bp) to expand the tabix pull region around each
+#' gene's coordinates before filtering to the gene itself. Default 10000 (a
+#' 2x margin over VEP's default 5kb upstream/downstream annotation window),
+#' matching GAMBLR.data::assemble_bundled_data.R's GENE_PAD_BP -- without
+#' this, real gene-attributed mutations just outside gene_to_region()'s exact
+#' span (promoter/UTR/annotation-source discrepancies, e.g. a long first
+#' intron) are never fetched in the first place, and the Hugo_Symbol filter
+#' below can't recover rows that were never pulled.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
@@ -42,7 +49,7 @@ get_ssm_by_genes = function(genes,
                            projection = "grch37",
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
-                           expand_by = 0,
+                           expand_by = 10000,
                            verbose = FALSE) {
 
     all_ssms = list()
@@ -62,8 +69,10 @@ get_ssm_by_genes = function(genes,
         rename(c("chrom"="chr_name","ashm_region_start"="hg38_start","ashm_region_end"="hg38_end"))
     }
     for(gene in genes){
-        #get gene region first
-        gene_region = suppressMessages(gene_to_region(gene,projection=projection))
+        #get gene region first, padded by expand_by so real gene-attributed
+        #mutations just outside gene_to_region()'s exact span aren't lost
+        #before the Hugo_Symbol filter below even sees them
+        gene_region = suppressMessages(gene_to_region(gene,projection=projection,pad_length=expand_by))
        
         if(is.null(gene_region) || length(gene_region)==0){
           warning(paste0("No coordinates found for gene: ", gene, " skipping..."))

@@ -13,6 +13,7 @@ get_ssm_by_sample(
   min_read_support = 3,
   basic_columns = TRUE,
   maf_cols = NULL,
+  variant_classification_filter = NULL,
   verbose = FALSE,
   this_sample_id,
   this_seq_type
@@ -43,6 +44,21 @@ details. Default is TRUE.}
 \item{maf_cols}{if basic_columns is set to FALSE, the user can specify
 which columns to be returned within the MAF. This parameter can either
 be a vector of indexes (integer) or a vector of characters.}
+
+\item{variant_classification_filter}{Optional character vector of
+Variant_Classification values to keep (e.g. GAMBLR.helpers::vc_nonSynonymous).
+When supplied, the MAF is pre-filtered with grep before it is ever parsed
+by R: locally, this means non-matching lines are never type-converted
+into a data frame; when the file must be fetched from a remote host over
+the existing ssh_session, the grep is instead run on the remote host so
+only the (pre-filtered) matching lines are transferred over the network
+rather than the whole MAF. This avoids the memory, CPU and (for remote
+sessions) network cost of materializing the full MAF when, as is typical,
+only a small fraction of variants match. grep matches whole words
+anywhere on the line, so it is a fast superset filter; an exact
+dplyr::filter on Variant_Classification is always applied afterwards to
+guarantee correctness. Default NULL returns all variant classifications
+(original behaviour, and no ssh optimization is attempted).}
 
 \item{verbose}{Enable for debugging/noisier output.}
 
@@ -92,6 +108,12 @@ nrow(maf_samp_aug)
                                      seq_type == "genome"),
                          projection = "hg38")
  dplyr::select(some_maf,1:10)
- 
+
+ # only load non-synonymous variants, avoiding the cost of materializing
+ # the full MAF when most rows will just be discarded
+ nonsyn_maf = GAMBLR.results:::get_ssm_by_sample(
+   get_gambl_metadata() \%>\% dplyr::filter(sample_id=="13-27975_tumorA"),
+   variant_classification_filter = GAMBLR.helpers::vc_nonSynonymous
+ )
 
 }
