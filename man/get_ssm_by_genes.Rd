@@ -62,4 +62,27 @@ genes_maf \%>\%
     these_samples_metadata = dlbcl_meta,
     drop_silent_outside_ashm_regions = T)
 }
+
+# Not wrapped in \dontrun, so tools/logExampleOutputs_test.R
+# (devtools::run_examples()) captures and diffs this on every run.
+# Covers established drivers (EZH2, KMT2D, MYD88) alongside genes whose
+# real mutations sit outside gene_to_region()'s unpadded span (ID3, FOXO1
+# -- see expand_by) -- an unexpected drop in these counts flags a
+# padding/alias regression. Restricted to two frozen cohorts (not all of
+# get_gambl_metadata()) so counts stay stable as new, unrelated cohorts
+# are added to GAMBL over time.
+test_meta = suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(cohort \%in\% c("DLBCL_GenomeCanada", "DLBCL_cell_lines"),
+                seq_type != "mrna")
+test_genes = c("EZH2", "KMT2D", "MYD88", "ID3", "FOXO1")
+test_maf = get_ssm_by_genes(genes = test_genes, these_samples_metadata = test_meta)
+dplyr::count(test_maf, Hugo_Symbol, sort = TRUE)
+
+# HIST1H1C was renamed to H1-2 on hg38 (grch37 still uses the old name
+# natively, so this specifically exercises the hg38 alias-fallback path in
+# gene_to_region() / GAMBLR.utils::expand_gene_aliases() -- a broken alias
+# table or fallback would silently return 0 rows here).
+hist_maf = get_ssm_by_genes(genes = "HIST1H1C", these_samples_metadata = test_meta,
+                            projection = "hg38")
+dplyr::count(hist_maf, Hugo_Symbol, sort = TRUE)
 }
