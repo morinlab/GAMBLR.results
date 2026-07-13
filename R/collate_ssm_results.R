@@ -78,7 +78,7 @@ collate_ssm_results = function(sample_table,
   sample_table = left_join(sample_table, coding_mut_count)
   #check for coding SSMs in lymphoma genes
   coding_nhl = coding_mut %>%
-    dplyr::filter(Hugo_Symbol %in% GAMBLR.data::lymphoma_genes$Gene)
+    dplyr::filter(Hugo_Symbol %in% GAMBLR.utils::expand_gene_aliases(GAMBLR.data::lymphoma_genes$Gene))
 
   coding_nhl_count = coding_nhl %>%
     group_by(sample_id) %>%

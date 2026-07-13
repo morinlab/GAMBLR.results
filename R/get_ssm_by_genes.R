@@ -75,12 +75,17 @@ get_ssm_by_genes = function(genes,
         these_samples_metadata = filter(these_samples_metadata,seq_type %in% c("genome","capture"))
 
         for(s_type in unique(these_samples_metadata$seq_type)){
+            # gene_to_region() resolves `gene` to the right coordinates even
+            # if the actual MAF Hugo_Symbol annotation uses a different name
+            # (e.g. old/new HGNC histone names) for that build -- match on
+            # all known aliases here too, not just the literal input string,
+            # so those rows aren't dropped by this filter.
             seq_type_ssms = get_ssm_by_region(region=gene_region,
                                             basic_columns=TRUE,
                                             streamlined=FALSE,
                                             these_samples_metadata =  filter(these_samples_metadata,seq_type == s_type),
                                             projection=projection) %>%
-                                            filter(Hugo_Symbol==gene)
+                                            filter(Hugo_Symbol %in% GAMBLR.utils::expand_gene_aliases(gene))
             all_ssms[[paste0(gene,"-",s_type)]] = seq_type_ssms %>%
               mutate(maf_seq_type = s_type)
 

@@ -137,7 +137,7 @@ get_coding_ssm_status = function(
   }
   if(missing(gene_symbols)){
     message("defaulting to all lymphoma genes")
-    gene_symbols = pull(GAMBLR.data::lymphoma_genes, Gene)
+    gene_symbols = GAMBLR.utils::expand_gene_aliases(pull(GAMBLR.data::lymphoma_genes, Gene))
   }
 
   if(!missing(include_silent_genes)){
