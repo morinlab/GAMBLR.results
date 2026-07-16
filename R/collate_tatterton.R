@@ -138,17 +138,57 @@ collate_tatterton = function(
             )
         )
     
-    # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
-    sample_table_cols <- colnames(sample_table)
- 
-    # Left join onto the sample table (Donor_Name links to patient_id). Samples not in the Tatterton table get NA for the added columns
-    sample_table <- left_join(sample_table, tatterton, by = "patient_id")
+    # Annotate manntype and FL_signature
+    # FL_signature = POS if LymphGen subtype is EZB or BCL2 translocation is present
+    # manntype = POS if FL_signature == "POS" and AGS count >= 1 and AGS location == "CDR"
+    sample_table <- sample_table %>%
+        dplyr::mutate(
+            # GAMBL-derived manntype annotations
+            FL_signature = dplyr::if_else(
+                !is.na(tatterton_link) & (
+                    grepl("EZB", toupper(dplyr::coalesce(lymphgen, ""))) |
+                    toupper(dplyr::coalesce(bcl2_ba, "")) == "POS"),
+                "POS", "NEG"
+            ),
+            manntype = dplyr::if_else(
+                !is.na(tatterton_link) &
+                    grepl("CDR", toupper(dplyr::coalesce(igseqr_external_AGS_location, ""))) &
+                    dplyr::coalesce(suppressWarnings(as.numeric(igseqr_external_AGS_count)), 0) >= 1 &
+                    FL_signature == "POS",
+                "POS", "NEG"
+            ),
+            # Tatterton-derived manntype annotations (original)
+            FL_signature_tatterton = dplyr::if_else(
+                !is.na(tatterton_link) & (
+                    grepl("EZB", toupper(dplyr::coalesce(lymphgen_tatterton, ""))) |
+                    toupper(dplyr::coalesce(bcl2_tr_tatterton, "")) == "POS"),
+                "POS", "NEG"
+            ),
+            manntype_tatterton = dplyr::if_else(
+                !is.na(tatterton_link) &
+                    grepl("CDR", toupper(dplyr::coalesce(igseqr_external_AGS_location, ""))) &
+                    dplyr::coalesce(suppressWarnings(as.numeric(igseqr_external_AGS_count)), 0) >= 1 &
+                    FL_signature_tatterton == "POS",
+                "POS", "NEG"
+            ),
+            # Set manntype annotations to NA for rows without a match in Tatterton data
+            dplyr::across(
+                c(FL_signature, manntype, FL_signature_tatterton, manntype_tatterton),
+                ~ dplyr::if_else(is.na(tatterton_link), NA_character_, .x)
+            ),
+            # Set manntype annotations to character
+            dplyr::across(
+                c(FL_signature, manntype, FL_signature_tatterton, manntype_tatterton),
+                ~ factor(.x, levels = c("NEG", "POS"))
+            )
+        )
  
     # Reorder columns to sample_id, Mann-type annotations, the remaining original sample_table columns, and the remaining Tatterton columns
     first_cols <- c(
         "sample_id", "manntype", "FL_signature",
         "AGS", "AGS_location_type", "AGS_Motif"
     )
+    
     sample_table <- sample_table %>%
         dplyr::select(
             dplyr::any_of(first_cols),
