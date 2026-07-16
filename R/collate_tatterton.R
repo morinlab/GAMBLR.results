@@ -72,6 +72,15 @@ collate_tatterton = function(
     tatterton <- dplyr::bind_rows(s1a, s1b) %>%
         dplyr::distinct(Donor_Name, .keep_all = TRUE)
 
+    # Read in Assay_Sequencing table excerpt to support S1a sample annotation
+    assay_dlc <- suppressMessages(read_tsv(assay_path, col_types = cols(.default = "c")))
+
+    # Create Assay_Sequencing map for linking S1a samples
+    map_s1a <- assay_dlc %>%
+        dplyr::distinct(patient_id, biopsy_id, Donor_Name) %>%
+        dplyr::rename(tatterton_rna_biopsy = biopsy_id) %>%
+        dplyr::filter(Donor_Name %in% s1a$Donor_Name)
+    
     # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
     sample_table_cols <- colnames(sample_table)
  
