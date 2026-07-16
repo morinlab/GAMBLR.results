@@ -43,7 +43,7 @@ collate_tatterton = function(
         config::get("project_base")
     )
 
-    tatterton_table <- "icgc_dart/exome_data/tatterton_s1b.tsv"
+    s1b_path <- "icgc_dart/exome_data/tatterton_s1b.tsv"
 
     full_path <- paste0(base, tatterton_table)
 
