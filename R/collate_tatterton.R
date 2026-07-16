@@ -86,6 +86,9 @@ collate_tatterton = function(
         dplyr::transmute(patient_id = Donor_Name, Donor_Name,
                          tatterton_rna_biopsy = NA_character_)
     
+    id_map <- dplyr::bind_rows(map_s1a, map_s1b) %>%
+        dplyr::distinct(patient_id, tatterton_rna_biopsy, .keep_all = TRUE)
+        
     # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
     sample_table_cols <- colnames(sample_table)
  
