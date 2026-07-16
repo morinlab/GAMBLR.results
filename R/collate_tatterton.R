@@ -43,9 +43,9 @@ collate_tatterton = function(
         config::get("project_base")
     )
 
-    s1b_path <- "icgc_dart/exome_data/tatterton_s1b.tsv"
-
-    full_path <- paste0(base, tatterton_table)
+    s1a_path   <- paste0(base, "icgc_dart/exome_data/tatterton_s1a.tsv")
+    s1b_path   <- paste0(base, "icgc_dart/exome_data/tatterton_s1b.tsv")
+    assay_path <- paste0(base, "icgc_dart/exome_data/assay_sequencing_data_for_tatterton_s1a.tsv")
 
     # Read Tatterton s1b and derive the Mann-type calls per patient
     # FL_signature: POS if LymphGen_call contains "EZB" or BCL2_TR == "POS"
