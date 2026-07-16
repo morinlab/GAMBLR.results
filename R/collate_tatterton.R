@@ -43,9 +43,25 @@ collate_tatterton = function(
         config::get("project_base")
     )
 
-    s1a_path   <- paste0(base, "icgc_dart/exome_data/tatterton_s1a.tsv")
-    s1b_path   <- paste0(base, "icgc_dart/exome_data/tatterton_s1b.tsv")
+    s1a_path <- paste0(base, "icgc_dart/exome_data/tatterton_s1a.tsv")
+    s1b_path <- paste0(base, "icgc_dart/exome_data/tatterton_s1b.tsv")
     assay_path <- paste0(base, "icgc_dart/exome_data/assay_sequencing_data_for_tatterton_s1a.tsv")
+
+    # Rename non-redundant Tatterton columns
+    keep_rename <- c(
+        Donor_Name = "Donor_Name",
+        igseqr_external_AGS_count = "AGS",
+        igseqr_external_AGS_location = "AGS_location_type",
+        igseqr_external_AGS_motif = "AGS_motif",
+        igseqr_external_AGS_codon = "AGS_codon_location",
+        igseqr_external_IGHV = "IGHV",
+        igseqr_external_IGHJ = "IGHJ",
+        igseqr_external_IGHD = "IGHD",
+        igseqr_external_IGHC = "IGHC",
+        igseqr_external_IGHV_homology_pct = "IGHV_homol_pct",
+        lymphgen_tatterton = "LymphGen_call",
+        bcl2_tr_tatterton = "BCL2_TR"
+    )
 
     # Read Tatterton s1b and derive the Mann-type calls per patient
     # FL_signature: POS if LymphGen_call contains "EZB" or BCL2_TR == "POS"
