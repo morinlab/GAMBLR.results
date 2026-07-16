@@ -183,12 +183,13 @@ collate_tatterton = function(
             )
         )
  
-    # Reorder columns to sample_id, Mann-type annotations, the remaining original sample_table columns, and the remaining Tatterton columns
+    # Reorder columns
     first_cols <- c(
-        "sample_id", "manntype", "FL_signature",
-        "AGS", "AGS_location_type", "AGS_Motif"
+        "sample_id", "Donor_Name", "manntype", "FL_signature", "manntype_tatterton",
+        "FL_signature_tatterton", "igseqr_external_AGS_count", "igseqr_external_AGS_location",
+        "igseqr_external_AGS_motif", "igseqr_external_AGS_codon"
     )
-    
+
     sample_table <- sample_table %>%
         dplyr::select(
             dplyr::any_of(first_cols),
