@@ -1,28 +1,51 @@
-#' @title Collate oligomannose type DLBCL annotations from Tatterton et al 2025.
+#' @title Collate oligomannose-type (Mann-type) DLBCL annotations from Tatterton et al. 2025.
 #'
-#' @description Expand a sample table horizontally with the Mann-type
-#'      (oligomannose-type) DLBCL classifications from Tatterton et al., Blood 2025
-#'      (supplemental Table 1B). These columns are populated for samples that have
-#'      Tatterton data (the dlbcl_schmitz cohort) and NA otherwise.
-#'      A case is Mann-type when it has BOTH an acquired N-glycosylation
-#'      site (AGS) in the CDR AND a follicular-lymphoma (FL) signature (EZB subtype or a BCL2
-#'      translocation). AGS calls are patient-level (RNA-seq derived), so the
-#'      Tatterton table (keyed on Donor_Name) is left-joined onto the sample table
-#'      `patient_id`. Samples absent from the Tatterton table (outside dlbcl_schmitz cohort)
-#'      receive NA for the added columns. `manntype` and `FL_signature` are POS/NEG factors.
+#' @description Expand a sample table horizontally with Mann-type (oligomannose-type)
+#'      DLBCL classifications from Tatterton et al., Blood 2025, covering BOTH
+#'      supplemental cohorts: Table S1A (BCCA) and Table S1B (NCI). A case is
+#'      Mann-type when it has BOTH an acquired N-glycosylation site (AGS) in the CDR
+#'      AND a follicular-lymphoma (FL) signature (EZB subtype or a BCL2 translocation).
+#'
+#'      The AGS call (CDR N-glycosylation site) is IgSeqR-derived from mRNA and has no
+#'      GAMBL equivalent, so it is taken from Tatterton and retained under
+#'      `igseqr_external_*` column names. Two Mann-type derivations are returned:
+#'      `manntype` / `FL_signature` derive the FL signature from GAMBL's own `lymphgen`
+#'      and `bcl2_ba` (GAMBL as source of truth), while `manntype_tatterton` /
+#'      `FL_signature_tatterton` reproduce the original published derivation using
+#'      Tatterton's `LymphGen_call` and `BCL2_TR` (retained as `lymphgen_tatterton`
+#'      and `bcl2_tr_tatterton`). Both share the same Tatterton AGS half.
+#'
+#'      Tatterton's AGS is anchored to the specific mRNA biopsy it was derived from.
+#'      S1A (BCCA) donors are `DLC####` and are linked to that biopsy via an
+#'      Assay_Sequencing crosswalk (microRNA libraries excluded); a sample is
+#'      annotated only if it is on that mRNA biopsy (its mRNA plus any DNA sharing it),
+#'      so a patient's other biopsies are NOT annotated. S1B (NCI) donors equal
+#'      `patient_id` and are linked patient-level, since their RNA and DNA share
+#'      biopsies. Samples outside both cohorts receive NA for the added columns.
+#'      `manntype`, `FL_signature`, `manntype_tatterton`, and `FL_signature_tatterton`
+#'      are POS/NEG factors.
 #'
 #' @details This is an internal function called by
 #'  [GAMBLR.results::collate_results], not meant for out-of-package usage.
 #'
-#' @param sample_table df with sample ids in the first column. The output of
-#'  [GAMBLR.results::get_gambl_metadata] is expected. The column patient_id is also required to join the information from Tatterton table S1b.
+#' @param sample_table df with `sample_id` in the first column, expected to be the
+#'  output of [GAMBLR.results::get_gambl_metadata] with NO seq_type filter applied
+#'  (mRNA samples are required to anchor the biopsy link). The columns `patient_id`,
+#'  `biopsy_id`, and `seq_type` are required.
+#' @param compare_derivations logical; if TRUE, print how many `manntype` and
+#'  `FL_signature` calls differ between the GAMBL-derived and Tatterton-derived
+#'  versions, and list the flipped samples. Default FALSE.
 #'
-#' @return The sample table with `sample_id`, `manntype`, `FL_signature`, `AGS`,
-#'  `AGS_location_type`, and `AGS_Motif` appended, followed by the remaining metadata 
-#'  and Tatterton table columns.
+#' @return The sample table with Mann-type annotations appended
+#'  (`manntype`, `FL_signature`, `manntype_tatterton`, `FL_signature_tatterton`),
+#'  the IgSeqR-derived AGS columns (`igseqr_external_AGS_count`,
+#'  `igseqr_external_AGS_location`, `igseqr_external_AGS_motif`,
+#'  `igseqr_external_AGS_codon`), a `tatterton_link` provenance column, followed by
+#'  the remaining metadata and Tatterton columns. Samples outside the Tatterton
+#'  cohorts receive NA for the added columns.
 #'
 #' @import dplyr readr GAMBLR.helpers
-#' 
+#'
 #' @export
 #'
 #' @references Tatterton DJ, Newby ML, Allen JD, et al. The origin, diagnosis,
