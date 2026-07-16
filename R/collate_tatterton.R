@@ -120,7 +120,7 @@ collate_tatterton = function(
         dplyr::filter(!is.na(tatterton_link)) %>%
         dplyr::select(sample_id, seq_type, biopsy_id, tatterton_link)
     
-        sample_table_cols <- colnames(sample_table)
+    sample_table_cols <- colnames(sample_table)
 
     # Attach Tatterton columns to matching rows from sample table
     tatterton_join <- tatterton_calls %>%
