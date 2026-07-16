@@ -120,6 +120,24 @@ collate_tatterton = function(
         dplyr::filter(!is.na(tatterton_link)) %>%
         dplyr::select(sample_id, seq_type, biopsy_id, tatterton_link)
     
+        sample_table_cols <- colnames(sample_table)
+
+    # Attach Tatterton columns to matching rows from sample table
+    tatterton_join <- tatterton_calls %>%
+        dplyr::select(-tatterton_rna_biopsy) %>%
+        dplyr::rename(dplyr::any_of(keep_rename)) %>%
+        dplyr::distinct(patient_id, .keep_all = TRUE)
+
+    sample_table <- sample_table %>%
+        dplyr::left_join(matched, by = c("sample_id", "seq_type", "biopsy_id")) %>%
+        dplyr::left_join(tatterton_join, by = "patient_id", na_matches = "never") %>%
+        dplyr::mutate(
+            dplyr::across(
+                dplyr::any_of(names(keep_rename)[-1]),   # incl. lymphgen/bcl2 tatterton
+                ~ dplyr::if_else(is.na(tatterton_link), NA, .x)
+            )
+        )
+    
     # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
     sample_table_cols <- colnames(sample_table)
  
