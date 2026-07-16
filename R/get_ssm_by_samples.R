@@ -14,6 +14,11 @@
 #' @param these_samples_metadata Optional metadata table.
 #' If provided, it will return SSM calls for the samples in the metadata table.
 #' @param tool_name Only supports slms_3 currently.
+#' @param flavour One of "clustered" (slms-3, default), "sage", or "legacy"
+#' (not currently supported). `subset_from_merge = TRUE` is only available
+#' for "clustered" -- "sage" only has individual per-sample files (see
+#' [GAMBLR.results::get_ssm_by_sample]), so `subset_from_merge` must be left
+#' FALSE (the default) when using it.
 #' @param augmented default: TRUE. Set to FALSE if you instead want
 #' the original MAF from each sample for multi-sample patients instead.
 #' @param projection Obtain variants projected to this reference
@@ -143,7 +148,19 @@ get_ssm_by_samples = function(these_samples_metadata,
     # TODO: implement loading of the old merged MAF under icgc_dart... vcf2maf-1.2 ..level_3 as per the other from_flatfile functions
     return()
 
-  }else if(flavour=="clustered"){
+  }else if(flavour %in% c("clustered", "sage")){
+    if(subset_from_merge && flavour != "clustered"){
+      # Only "clustered" (slms-3) has a config$results_flatfiles$ssm$template$merged
+      # entry -- "sage" only has per-sample clustered$sage$deblacklisted/augmented
+      # paths (see get_ssm_by_sample(), which already handles flavour = "sage"
+      # correctly). Failing loudly here avoids silently reading the wrong
+      # (clustered) merge file under a "sage" label.
+      stop(glue::glue(
+        "subset_from_merge = TRUE is only supported for flavour = \"clustered\" ",
+        "currently; flavour = \"{flavour}\" only has individual per-sample files ",
+        "available. Use subset_from_merge = FALSE instead."
+      ))
+    }
     if(subset_from_merge && !augmented){
       if(length(unique(these_samples_metadata$seq_type))>1){
         print("more than one seq_type provided")
@@ -289,6 +306,11 @@ get_ssm_by_samples = function(these_samples_metadata,
         # Merge all the maf data frames from different seq_types
         maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
     }
+  }else{
+    # Previously, an unrecognized flavour silently fell through the whole
+    # if/else if chain without assigning maf_df_merge at all, only failing
+    # later at return() with a confusing "object not found" error.
+    stop(glue::glue("flavour must be one of \"clustered\", \"sage\", or \"legacy\"; got \"{flavour}\"."))
   }
 
     return(maf_df_merge)
