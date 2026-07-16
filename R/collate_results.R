@@ -133,6 +133,7 @@ collate_results = function(these_samples_metadata,
       }
       #sample_table_temp = collate_pga(sample_table = sample_table_temp, this_seq_type = seq)
       sample_table_temp = collate_dlbclass(sample_table = (sample_table_temp))
+      sample_table_temp = collate_tatterton(sample_table = sample_table_temp)
 
       seq_types_df[seq_types_df$seq_type==seq,]$cols = list(colnames(sample_table_temp))
 

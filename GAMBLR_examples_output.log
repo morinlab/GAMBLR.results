@@ -1,14 +1,53 @@
-[1] "=== STARTED AT 2026-06-29 09:43:02 ==="
-[1] "=== RUNNING devtools::run_examples() ==="
-── Running 74 example files ─────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2026-07-16 01:36:47 ==="
+── Running 75 example files ──────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
+> ### Name: add_icgc_metadata
+> ### Title: Add ICGC metadata.
+> ### Aliases: add_icgc_metadata
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   my_meta = get_gambl_metadata()
+> ##D   icgc_metadata = add_icgc_metadata(incoming_metadata = my_meta)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: annotate_focal_and_arm_level_CNV
+> ### Title: Annotate focal and arm-level CNVs
+> ### Aliases: annotate_focal_and_arm_level_CNV
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D segs <- get_cn_segments(these_samples_metadata = metas, projection = "grch37")
+> ##D gsm_out <- annotate_focal_and_arm_level_CNV(segs, metas)
+> ##D head(gsm_out$gsm)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: annotate_hotspots
+> ### Title: Annotate Hotspots.
+> ### Aliases: annotate_hotspots
+> 
+> ### ** Examples
+> 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
-> some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata, 
-+     projection = "grch37", this_seq_type = "genome") %>% dplyr::filter(Hugo_Symbol %in% 
-+     c("EZH2", "MEF2B", "MYD88", "KMT2D")) %>% dplyr::arrange(Hugo_Symbol)
+> # get a few SSMs to annotate
+> some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata,
++                                 projection = "grch37",
++                                 this_seq_type = "genome") %>% 
++                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
++                   dplyr::arrange(Hugo_Symbol)
 
-> dplyr::select(some_coding_ssm, 1:10, 37) %>% head()
+> # peek at the data
+> dplyr::select(some_coding_ssm,1:10,37) %>% head()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -22,8 +61,9 @@ Showing first 10 rows:
 
 > hot_ssms = annotate_hotspots(some_coding_ssm)
 
-> hot_ssms %>% dplyr::filter(!is.na(hot_spot)) %>% dplyr::select(1:10, 
-+     37, hot_spot)
+> hot_ssms %>% 
++    dplyr::filter(!is.na(hot_spot)) %>% 
++    dplyr::select(1:10,37,hot_spot) 
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -39,8 +79,35 @@ Showing first 10 rows:
 9         EZH2              0      .     GRCh37          7      148508727    148508727      +      Missense_Mutation          SNP     p.Y646F     TRUE
 10        EZH2              0      .     GRCh37          7      148508727    148508727      +      Missense_Mutation          SNP     p.Y646F     TRUE
 
+> ## Not run: 
+> ##D #This example will raise an error due to the user supplying an unsupported genome build:
+> ##D more_coding_ssm = get_coding_ssm(
+> ##D                                 these_samples_metadata = my_metadata,
+> ##D                                 projection = "hg38",
+> ##D                                 this_seq_type = "capture") %>% 
+> ##D                   dplyr::filter(Hugo_Symbol %in% c("EZH2","MEF2B","MYD88","KMT2D")) %>%
+> ##D                   dplyr::arrange(Hugo_Symbol)
+> ##D # peek at the data
+> ##D dplyr::select(more_coding_ssm,1:10,37) %>% head()
+> ##D 
+> ##D more_hot_ssms = annotate_hotspots(more_coding_ssm)
+> ##D more_hot_ssms %>% 
+> ##D    dplyr::filter(!is.na(hot_spot)) %>% 
+> ##D    dplyr::select(1:10,37,hot_spot) 
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: annotate_maf_triplet
+> ### Title: Annotate MAF with triplet context
+> ### Aliases: annotate_maf_triplet
+> 
+> ### ** Examples
+> 
 > maf <- get_coding_ssm(projection = "grch37") %>% head(n = 500)
 
+> # peek at the data
 > dplyr::select(maf, 1:12) %>% head()
 genomic_data Object
 Genome Build: grch37 
@@ -67,15 +134,47 @@ Showing first 10 rows:
 5        SAMD11              0      .     GRCh37          1         865610       865610      +      Missense_Mutation          SNP                A                 A CAG
 6        SAMD11              0      .     GRCh37          1         871158       871158      +                 Silent          SNP                C                 C ACG
 
-> my_maf <- get_coding_ssm() %>% dplyr::filter(Hugo_Symbol == 
-+     "BCL2") %>% dplyr::arrange(Chromosome, Start_Position, Tumor_Sample_Barcode) %>% 
-+     head()
+> # Each mutation is now associated with it's sequence context in the
+> # reference genome in a column named seq
+> ## Not run: 
+> ##D annotate_maf_triplet(maf, all_SNVs = FALSE, "C", "T")
+> ##D annotate_maf_triplet(maf, ref = "C", alt = "T", pyrimidine_collapse = TRUE)
+> ## End(Not run)
+> 
+> 
+> 
 
-> annotated = annotate_ssm_motif_context(maf = my_maf, 
-+     motif = "WRCY")
+> ### Name: annotate_ssm_blacklist
+> ### Title: Annotate SSM with Blacklists
+> ### Aliases: annotate_ssm_blacklist
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D  #annotate MAF
+> ##D  deblacklisted_maf = annotate_ssm_blacklist(grande_maf,
+> ##D                                            this_seq_type = "genome",
+> ##D                                            genome_build = "hg38")
+> ## End(Not run)
+> 
+> 
+> 
 
-> dplyr::select(annotated, 1, 5, 6, 11, 13, 16, seq, 
-+     WRCY)
+> ### Name: annotate_ssm_motif_context
+> ### Title: Annotate mutations target motif
+> ### Aliases: annotate_ssm_motif_context
+> 
+> ### ** Examples
+> 
+> my_maf <- get_coding_ssm() %>% 
++   dplyr::filter(Hugo_Symbol=="BCL2") %>%
++   dplyr::arrange(Chromosome,Start_Position,Tumor_Sample_Barcode) %>%
++   head()
+
+> annotated = annotate_ssm_motif_context(maf = my_maf,
++                                        motif = "WRCY")
+
+> dplyr::select(annotated,1,5,6,11,13,16,seq,WRCY)
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -87,11 +186,150 @@ Showing first 10 rows:
 5        BCL2         18       60795947                C                 G             FL1010T2   AATCAAA FALSE
 6        BCL2         18       60985305              GTG               AAT             SP192988 CAAGTGCAC FALSE
 
-> meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(pathology == "MCL")
+> ### Name: assemble_file_details
+> ### Title: Assemble File Details.
+> ### Aliases: assemble_file_details
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D assemble_file_details(file_paths = c(one.maf, another.maf),
+> ##D                       tool_name = "manta",
+> ##D                       unix_group = "genome",
+> ##D                       output_type = "maf",
+> ##D                       these_sample_ids = c(one_sample, another_sample))
+> ## End(Not run)
+> 
+> 
+> 
+> 
 
-> mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta, 
-+     region = "11:69455000-69459900", slide_by = 10, window_size = 10000)
+> ### Name: assign_cn_to_ssm
+> ### Title: Assign CN state to SSMs.
+> ### Aliases: assign_cn_to_ssm
+> 
+> ### ** Examples
+> 
+> 
+> ## Not run: 
+> ##D  # long-handed way (mostly for illustration)
+> ##D  # 1. get some metadata for a collection of samples
+> ##D  some_meta = suppressMessages(get_gambl_metadata()) %>%
+> ##D         dplyr::filter(cohort=="DLBCL_ICGC")
+> ##D 
+> ##D  # 2. Get the SSMs for these samples
+> ##D 
+> ##D  ssm_genomes_grch37 = get_coding_ssm(projection = "grch37",
+> ##D                                   these_samples_metadata = some_meta)
+> ##D  # peek at the results
+> ##D  ssm_genomes_grch37 %>% dplyr::select(1:8)
+> ##D 
+> ##D  # 3. Lazily let this function obtain the corresponding seg_data
+> ##D  #  for the right genome_build
+> ##D  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_grch37)
+> ##D 
+> ##D  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+> ##D  # or using the other genome build:
+> ##D  ssm_genomes_hg38 = get_coding_ssm(projection = "hg38",
+> ##D                                   these_samples_metadata = some_meta)
+> ##D  cn_list = assign_cn_to_ssm(some_meta,ssm_genomes_hg38)
+> ##D  cn_list$maf %>% dplyr::select(1:8,log.ratio,CN)
+> ##D 
+> ##D # Easiest/laziest way: Let the function obtain
+> ##D # the seg_data and maf_data for you
+> ##D 
+> ##D  # 1. get some metadata for a collection of samples
+> ##D  some_meta = suppressMessages(get_gambl_metadata()) %>%
+> ##D         dplyr::filter(cohort=="DLBCL_ICGC") %>% head(3)
+> ##D 
+> ##D cn_list = assign_cn_to_ssm(these_samples_metadata = some_meta,
+> ##D                            projection = "grch37")
+> ##D 
+> ##D cn_list$maf %>% dplyr::group_by(Tumor_Sample_Barcode,CN) %>%
+> ##D   dplyr::count()
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: assign_segment_to_arm
+> ### Title: Annotate CN segments with chromosome arms
+> ### Aliases: assign_segment_to_arm
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D segs <- get_cn_segments(these_samples_metadata = metas)
+> ##D segs_arm <- assign_segment_to_arm(segs)
+> ##D table(segs_arm$arm_name)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: assign_segment_to_cytoband
+> ### Title: Annotate CN segments with cytobands
+> ### Aliases: assign_segment_to_cytoband
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D segs <- get_cn_segments(these_samples_metadata = metas)
+> ##D segs_cb <- assign_segment_to_cytoband(segs)
+> ##D head(segs_cb$cytoband)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: build_browser_hub
+> ### Title: Build UCSC browser track hub
+> ### Aliases: build_browser_hub
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # create a track hub in LLMPP GitHub repo
+> ##D 
+> ##D library(GAMBLR.data)
+> ##D 
+> ##D local_web_host_dir = "~/repos/LLMPP"
+> ##D hub_dir = "hubs/ashm_test"
+> ##D 
+> ##D my_meta = get_gambl_metadata() %>%
+> ##D   filter(pathology %in% c("BL", "DLBCL", "FL")) %>%
+> ##D   filter(seq_type %in% c("genome", "capture"))
+> ##D 
+> ##D build_browser_hub(
+> ##D   these_samples_metadata = my_meta,
+> ##D   projection = "grch37",
+> ##D   local_web_host_dir = local_web_host_dir,
+> ##D   hub_dir = hub_dir,
+> ##D   splitColumnName = "pathology",
+> ##D   longLabel = "Public aSHM mutations separated by pathologies",
+> ##D   contact_email = "rdmorin@sfu.ca"
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: calc_mutation_frequency_bin_region
+> ### Title: Calculate Mutation Frequency By Sliding Window.
+> ### Aliases: calc_mutation_frequency_bin_region
+> 
+> ### ** Examples
+> 
+> meta = suppressMessages(get_gambl_metadata()) %>% 
++                         dplyr::filter(pathology=="MCL")
+
+> mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
++                                               region = "11:69455000-69459900",
++                                               slide_by = 10,
++                                               window_size = 10000)
 
 > head(mut_freq)
 # A tibble: 6 × 3
@@ -104,23 +342,297 @@ Showing first 10 rows:
 5 01-11817T 11_69455040              5
 6 01-11817T 11_69455050              5
 
-> capture_metadata = get_gambl_metadata(dna_seq_type_priority = "capture") %>% 
-+     dplyr::filter(seq_type == "capture")
+> ## Not run: 
+> ##D # This will fail because the chromosome naming doesn't match the default projection 
+> ##D misguided_attempt = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+> ##D                                                          region = "chr11:69455000-69459900",
+> ##D                                                          slide_by = 10,
+> ##D                                                          window_size = 10000) 
+> ##D # This will work!
+> ##D mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta,
+> ##D                                                          region = "chr11:69455000-69459900",
+> ##D                                                          slide_by = 10,
+> ##D                                                          window_size = 10000,projection="hg38")
+> ##D head(mut_freq)
+> ## End(Not run)
+> 
+> 
+> 
 
-> capture_collated_everything = collate_results(these_samples_metadata = capture_metadata, 
-+     from_cache = TRUE, write_to_file = FALSE)
+> ### Name: calc_mutation_frequency_bin_regions
+> ### Title: Mutation counts across sliding windows for multiple regions.
+> ### Aliases: calc_mutation_frequency_bin_regions
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D  #load metadata.
+> ##D  metadata = suppressMessages(get_gambl_metadata())
+> ##D  dlbcl_bl_meta = dplyr::filter(metadata, pathology %in% c("DLBCL", "BL"))
+> ##D 
+> ##D  #get ashm regions
+> ##D  some_regions = create_bed_data(GAMBLR.data::grch37_ashm_regions,
+> ##D                                fix_names = "concat",
+> ##D                                concat_cols = c("gene","region"),sep="-")
+> ##D  some_regions
+> ##D  mut_count_matrix <- calc_mutation_frequency_bin_regions(
+> ##D    these_samples_metadata = dlbcl_bl_meta,
+> ##D    regions_bed = some_regions
+> ##D  )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: cbio_create
+> ### Title: Create cBioPortal Study.
+> ### Aliases: cbio_create
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #generate cBioPortal study for all GAMBL genome samples:
+> ##D cbio_create()
+> ##D 
+> ##D #generate a cBioPortal study for all GAMVL capture samples:
+> ##D cbio_create(this_seq_type = "capture", description = "GAMBL data from exomes")
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: cbio_custom_caselist
+> ### Title: Custom cBioPortal case list.
+> ### Aliases: cbio_custom_caselist
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #get some sample IDs
+> ##D my_samples = get_gambl_metadata() %>%
+> ##D  dplyr::filter(pathology == "FL") %>%
+> ##D  dplyr::filter(cohort == "FL_GenomeCanada") %>%
+> ##D  pull(sample_id)
+> ##D 
+> ##D #create case list with selected sample IDs
+> ##D cbio_custom_caselist(these_sample_ids = my_samples,
+> ##D                      caselist_name = "FL_Canada",
+> ##D                      caselist_description = "Follicular Lymphoma from the Genome Canada Study",
+> ##D                      dir = "../path/to/study_directory/")
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: cbio_finalize_study
+> ### Title: Finalize Study (cBioPortal).
+> ### Aliases: cbio_finalize_study
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #basic usage
+> ##D cbio_finalize_study(these_sample_ids = c(ids, fusion_ids), out_dir = "GAMBLR/cBioPortal/instance01/")
+> ##D 
+> ##D #advanced usage
+> ##D #get some samples
+> ##D all_meta = get_gambl_metadata()
+> ##D meta_sub = head(all_meta, 5)
+> ##D my_samples = pull(meta_sub, sample_id)
+> ##D 
+> ##D #create a clinical file with additional collated metadata fields
+> ##D cbio_finalize_study(these_sample_ids = my_samples,
+> ##D                     out_dir = "../",
+> ##D                     metacols = c("MeanCorrectedCoverage", "total_ssm"),
+> ##D                     metacol_names = c("Mean Corrected Coverage", "Total SSM"),
+> ##D                     metacol_types = c("NUMBER", "NUMBER"),
+> ##D                     metacol_prior = c("2", "1"))
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: cbio_setup_expreession_data
+> ### Title: Setup Expression Data (cBioPortal).
+> ### Aliases: cbio_setup_expreession_data
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #return expression data for lymphoma genes (all samples)
+> ##D expression_ids = cbio_setup_expression_data(out_dir = "../../")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: cbio_setup_fusions
+> ### Title: Setup Fusions (cBioPortal).
+> ### Aliases: cbio_setup_fusions
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D fusion_ids = cbio_setup_fusions(out_dir = "GAMBLR/cBioPortal/instance01/")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: cbio_setup_study
+> ### Title: Setup Study (cBioPortal).
+> ### Aliases: cbio_setup_study
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> #Setup study and save included ids as a vector of characters:
+> ## Not run: 
+> ##D ids = cbio_setup_study(out_dir = "GAMBLR/cBioPortal/instance01/")
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: cbio_study_check
+> ### Title: Study Check (cBioPortal).
+> ### Aliases: cbio_study_check
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D samples_not_in_clinical = cbio_study_check(out_dir = "GAMBLR/cBioPortal/instance01/")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: check_gambl_metadata
+> ### Title: Check GAMBL Metadata.
+> ### Aliases: check_gambl_metadata
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D this_metadata = get_gambl_metadata()
+> ##D check_gambl_metadata(metadata_df = this_metadata)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: check_gamblr_config
+> ### Title: Check GAMBLR Config.
+> ### Aliases: check_gamblr_config
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D check_gamblr_config()
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: check_host
+> ### Title: Check Host.
+> ### Aliases: check_host
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D check_host(auto_connect=TRUE)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: check_remote_configuration
+> ### Title: Check Remote Configuration.
+> ### Aliases: check_remote_configuration
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D check_remote_configuration()
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: cleanup_maf
+> ### Title: Cleanup MAF.
+> ### Aliases: cleanup_maf
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D maf <- get_coding_ssm(basic_columns = FALSE)
+> ##D clean_maf = cleanup_maf(maf_df = maf)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: collate_lymphgen
+> ### Title: Collate Lymphgen.
+> ### Aliases: collate_lymphgen
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D this_meta = get_gambl_metadata()
+> ##D dlbcl_meta = dplyr::filter(this_meta, pathology == "DLBCL")
+> ##D 
+> ##D wide_lymphgen = collate_lymphgen(these_samples_metadata = dlbcl_meta,
+> ##D                                  lymphgen_version = "default",
+> ##D                                  tidy = FALSE)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: collate_results
+> ### Title: Collate Results
+> ### Aliases: collate_results
+> 
+> ### ** Examples
+> 
+> 
+> #get collated results for all capture samples, using cached results
+> capture_metadata = get_gambl_metadata(dna_seq_type_priority = "capture") %>% dplyr::filter(seq_type == "capture")
+
+> capture_collated_everything = collate_results(these_samples_metadata = capture_metadata,
++                                               from_cache = TRUE,
++                                               write_to_file = FALSE)
 [[1]]
 /projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_capture_results.tsv
 
 
-> my_metadata = get_gambl_metadata() %>% dplyr::filter(seq_type != 
-+     "mrna")
+> #use an already subset metadata table for getting collated results (cached)
+> my_metadata = get_gambl_metadata() %>% dplyr::filter(seq_type !="mrna")
 
-> fl_metadata = dplyr::filter(my_metadata, pathology == 
-+     "FL")
+> fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
 
-> fl_collated = collate_results(these_samples_metadata = fl_metadata, 
-+     write_to_file = FALSE, from_cache = TRUE)
+> fl_collated = collate_results(these_samples_metadata = fl_metadata,
++                               write_to_file = FALSE,
++                               from_cache = TRUE)
 [[1]]
 /projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_genome_results.tsv
 
@@ -128,16 +640,126 @@ Showing first 10 rows:
 /projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_capture_results.tsv
 
 
-> my_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D", seq_type == 
-+         "genome")
+> ## Not run: 
+> ##D #use an already subset metadata table for getting collated results (without using cached results)
+> ##D my_metadata = get_gambl_metadata()  %>% dplyr::filter(seq_type !="mrna")
+> ##D fl_metadata = dplyr::filter(my_metadata, pathology == "FL")
+> ##D 
+> ##D fl_collated = collate_results(these_samples_metadata = fl_metadata,
+> ##D                               write_to_file = FALSE,
+> ##D                               from_cache = FALSE)
+> ##D dplyr::select(fl_collated, 1:14) %>% head()
+> ## End(Not run)
+> 
+> 
+> 
 
-> outputs = estimate_purity(these = my_meta, show_plots = TRUE, 
-+     projection = "grch37")
+> ### Name: collate_tatterton
+> ### Title: Collate oligomannose-type (Mann-type) DLBCL annotations from
+> ###   Tatterton et al. 2025.
+> ### Aliases: collate_tatterton
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   sample_table <- get_gambl_metadata()
+> ##D   sample_table <- collate_tatterton(sample_table = sample_table)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: consolidate_lymphgen
+> ### Title: Consolidate Lymphgen.
+> ### Aliases: consolidate_lymphgen
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   metadata = get_gambl_metadata()
+> ##D   consolidate_lymphgen(sample_table = metadata)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: estimate_purity
+> ### Title: Estimate Purity.
+> ### Aliases: estimate_purity
+> 
+> ### ** Examples
+> 
+> 
+> # get metadata for one sample 
+> my_meta = suppressMessages(get_gambl_metadata()) %>% 
++   dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D",
++   seq_type == "genome")
+
+> #estimate purity, allowing the data to be retrieved for you
+> outputs = estimate_purity(these = my_meta,
++                 show_plots = TRUE,
++                 projection  = "grch37")
 
 > outputs$sample_purity_estimation
 [1] 1
 
+> ### Name: fetch_output_files
+> ### Title: Fetch Output Files.
+> ### Aliases: fetch_output_files
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D ex_outs = fetch_output_files(tool = "manta",
+> ##D                              base_path = "gambl/sequenza_current",
+> ##D                              this_seq_type = "capture",
+> ##D                              build = "hg38")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: find_expected_outputs
+> ### Title: Find Expected Outputs.
+> ### Aliases: find_expected_outputs
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #get paths to unmatched manta bedpe files
+> ##D ex_outs = find_expected_outputs(tool_name = "manta",
+> ##D                                unix_group = "gambl",
+> ##D                                filename_end_pattern = "unmatched.somaticSV.bedpe")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: find_files_extract_wildcards
+> ### Title: Find Files Extract Wildcards
+> ### Aliases: find_files_extract_wildcards
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D file_details_manta = find_files_extract_wildcards(tool_name = "manta",
+> ##D                                                   genome_build = c("hg38", "grch37"),
+> ##D                                                   search_pattern = ".bed")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_all_coding_ssm
+> ### Title: Get all Coding SSMs
+> ### Aliases: get_all_coding_ssm
+> 
+> ### ** Examples
+> 
 > my_meta = suppressMessages(get_gambl_metadata())
 
 > maf_all_seqtype = get_all_coding_ssm(my_meta)
@@ -145,34 +767,51 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 975658  241719 
+ 978167  241982 
 
-> dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
-+     dplyr::count() %>% dplyr::arrange(desc(n))
+> # most common mutations by gene and Variant_Classification
+> dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>% 
++   dplyr::count() %>% 
++   dplyr::arrange(desc(n))
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1     IGHV2-70      Missense_Mutation 3423
-2      IGLV3-1      Missense_Mutation 3404
-3        IGLL5      Missense_Mutation 2868
-4         BCL2      Missense_Mutation 2813
-5          TTN      Missense_Mutation 2699
-6     IGHV1-69      Missense_Mutation 1835
+1     IGHV2-70      Missense_Mutation 3481
+2      IGLV3-1      Missense_Mutation 3431
+3        IGLL5      Missense_Mutation 2873
+4         BCL2      Missense_Mutation 2815
+5          TTN      Missense_Mutation 2706
+6     IGHV1-69      Missense_Mutation 1841
 7         PIM1      Missense_Mutation 1830
 8          MYC      Missense_Mutation 1395
-9        MUC16      Missense_Mutation 1366
-10      CREBBP      Missense_Mutation 1184
+9        MUC16      Missense_Mutation 1367
+10      CREBBP      Missense_Mutation 1188
 
-> DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
-+     "DLBCL")
+> ### Name: get_ashm_count_matrix
+> ### Title: Get ASHM Count Matrix.
+> ### Aliases: get_ashm_count_matrix
+> 
+> ### ** Examples
+> 
+> 
+> 
+>   DLBCL_genome_meta = get_gambl_metadata() %>% 
++     dplyr::filter(pathology=="DLBCL")
 
-> some_regions = GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_ashm_regions, 
-+     fix_names = "concat", concat_cols = c("gene", "region"), 
-+     sep = "-") %>% dplyr::filter(grepl("PAX5", name))
+> #get ashm regions
+> some_regions = GAMBLR.utils::create_bed_data(
++                               GAMBLR.data::grch37_ashm_regions,
++                               fix_names = "concat",
++                               concat_cols = c("gene","region"),
++                               sep="-") %>%
++   dplyr::filter(grepl("PAX5",name))
 
-> pax5_matrix <- get_ashm_count_matrix(regions_bed = some_regions, 
-+     this_seq_type = "genome", these_samples_metadata = DLBCL_genome_meta)
+> pax5_matrix <- get_ashm_count_matrix(
++      regions_bed = some_regions,
++      this_seq_type = "genome",
++      these_samples_metadata = DLBCL_genome_meta
++ )
 
 > head(pax5_matrix)
                   PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3 PAX5-intron-1 PAX5-TSS-1
@@ -185,13 +824,43 @@ FL1015T2                               1                      0                 
 
 > colMeans(pax5_matrix)
 PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3          PAX5-intron-1             PAX5-TSS-1 
-             0.6367347              0.7115646              1.3374150              2.0408163              0.4761905 
+             0.6367347              0.7115646              1.3387755              2.0448980              0.4775510 
 
-> capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(seq_type == "capture") %>% head()
+> ### Name: get_bams
+> ### Title: Get BAMs.
+> ### Aliases: get_bams
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #example 1, using a sample ID
+> ##D bam_details = get_bams(this_sample_id = "HTMCP-01-06-00422-01A-01D")
+> ##D 
+> ##D #example 2, using a patient ID
+> ##D bam_details = get_bams(this_patient_id = "HTMCP-01-06-00422")
+> ## End(Not run)
+> 
+> 
+> 
 
-> capture_segments_hg38 <- get_cn_segments(these_samples_metadata = capture_metadata, 
-+     projection = "hg38")
+> ### Name: get_cn_segments
+> ### Title: Get CN Segments.
+> ### Aliases: get_cn_segments
+> 
+> ### ** Examples
+> 
+> # Example for just exome/capture samples:
+> # Get metadata for just a few capture samples
+> capture_metadata <- suppressMessages(get_gambl_metadata()) %>%
++   dplyr::filter(seq_type == "capture") %>%
++   head()
+
+> # Load the copy number segments for capture samples using hg38 projection
+> capture_segments_hg38 <- get_cn_segments(
++   these_samples_metadata = capture_metadata,
++   projection = "hg38"
++ )
 
 > print(capture_segments_hg38)
 SEG Data Object
@@ -209,16 +878,23 @@ Showing first 10 rows:
 9  00-22011_tumorB  chr1 40922631 47396477       NA    0.0000      capture  2.00000
 10 00-22011_tumorB  chr1 47396477 47439416       NA    2.0000      capture  8.00000
 
-> genome_metadata <- suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(seq_type == "genome")
+> # Note the default projection is "grch37"
+> 
+> genome_metadata <- suppressMessages(get_gambl_metadata()) %>%
++   dplyr::filter(seq_type == "genome")
 
-> mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, 
-+     genome_metadata)
+> # Create a metadata table with a mix of seq_types
+> mixed_seq_type_meta <- dplyr::bind_rows(capture_metadata, genome_metadata)
 
-> all_seq_type_segs <- get_cn_segments(these_samples_metadata = mixed_seq_type_meta)
+> ## We can load the copy number segments for all samples across seq_types
+> ## To differentiate samples that share a sample_id but differ in seq_type,
+> ## a new column seg_seq_type is added to the output
+> 
+> all_seq_type_segs <- get_cn_segments(
++   these_samples_metadata = mixed_seq_type_meta
++ )
 
-> dplyr::group_by(all_seq_type_segs, seg_seq_type) %>% 
-+     dplyr::count()
+> dplyr::group_by(all_seq_type_segs,seg_seq_type) %>% dplyr::count()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -226,10 +902,32 @@ Showing first 10 rows:
 1      capture   1120
 2       genome 441137
 
-> all_types_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(pathology == "BL")
+> ### Name: get_cn_states
+> ### Title: Get CN States.
+> ### Aliases: get_cn_states
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   get_cnv_and_ssm_status()
+> ## End(Not run)
+> 
+> 
+> 
 
-> dplyr::group_by(all_types_meta, seq_type) %>% dplyr::summarize(n = dplyr::n())
+> ### Name: get_cnv_and_ssm_status
+> ### Title: Get CNV and coding SSM combined status
+> ### Aliases: get_cnv_and_ssm_status
+> 
+> ### ** Examples
+> 
+> 
+> # Get sample metadata including a mix of seq_type
+> all_types_meta = suppressMessages(get_gambl_metadata()) %>% 
++             dplyr::filter(pathology == "BL")
+
+> dplyr::group_by(all_types_meta, seq_type) %>% 
++      dplyr::summarize(n=dplyr::n())
 # A tibble: 3 × 2
   seq_type     n
   <chr>    <int>
@@ -237,54 +935,69 @@ Showing first 10 rows:
 2 genome     257
 3 mrna       280
 
-> genes_and_cn_threshs = data.frame(gene_id = c("MYC", 
-+     "MIR17HG", "CCND3", "ID3", "DDX3X", "SYNCRIP"), cn_thresh = c(3, 
-+     3, 2, 2, 2, 1))
+> # For MYC and SYNCRIP, return CNV and SSM combined status; for MIR17HG, 
+> # return only CNV status; for CCND3 return only SSM status
+> genes_and_cn_threshs = data.frame(
++   gene_id=c("MYC", "MIR17HG", "CCND3","ID3","DDX3X", "SYNCRIP"),
++   cn_thresh=c(3, 3, 2, 2, 2, 1)
++ )
 
-> genome_cnv_ssm_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
-+     dplyr::filter(all_types_meta, seq_type == "genome"), only_cnv = "MIR17HG"))
+> genome_cnv_ssm_status = suppressMessages(get_cnv_and_ssm_status(
++                            genes_and_cn_threshs,
++                            dplyr::filter(all_types_meta,seq_type=="genome"),
++                            only_cnv = "MIR17HG"))
 
-> print(dim(genome_cnv_ssm_status))
-[1] 257   6
+> print(dim(genome_cnv_ssm_status))    
+[1] 257   1
 
-> head(genome_cnv_ssm_status)
-                          MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
-LyCA0278_DNA                1       0     0   0     1       0
-BLGSP-71-06-00001-01A-11D   0       0     1   1     1       0
-BLGSP-71-06-00002-01C-01D   1       0     0   1     0       0
-BLGSP-71-06-00004-01A-11D   0       0     1   1     1       0
-BLGSP-71-06-00005-01A-21D   0       0     1   1     0       0
-BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
+> head(genome_cnv_ssm_status)   
+                          MYC
+LyCA0278_DNA                1
+BLGSP-71-06-00001-01A-11D   0
+BLGSP-71-06-00002-01C-01D   1
+BLGSP-71-06-00004-01A-11D   0
+BLGSP-71-06-00005-01A-21D   0
+BLGSP-71-06-00007-01A-11D   1
 
 > colSums(genome_cnv_ssm_status)
-    MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    174       0      76     119     122       7 
+MYC 
+174 
 
-> all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
-+     all_types_meta, only_cnv = "MIR17HG"))
+> all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(
++                            genes_and_cn_threshs,
++                            all_types_meta,
++                            only_cnv = "MIR17HG"))
 
-> print(dim(all_seq_type_status))
-[1] 407   6
+> print(dim(all_seq_type_status))   
+[1] 407   1
 
 > head(all_seq_type_status)
-                          MYC MIR17HG CCND3 ID3 DDX3X SYNCRIP
-LyCA0278_DNA                1       0     0   0     1       0
-BLGSP-71-06-00001-01A-11D   0       0     1   1     1       0
-BLGSP-71-06-00002-01C-01D   1       0     0   1     0       0
-BLGSP-71-06-00004-01A-11D   0       0     1   1     1       0
-BLGSP-71-06-00005-01A-21D   0       0     1   1     0       0
-BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
+                          MYC
+LyCA0278_DNA                1
+BLGSP-71-06-00001-01A-11D   0
+BLGSP-71-06-00002-01C-01D   1
+BLGSP-71-06-00004-01A-11D   0
+BLGSP-71-06-00005-01A-21D   0
+BLGSP-71-06-00007-01A-11D   1
 
 > colSums(all_seq_type_status)
-    MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    269       0     118     194     186      10 
+MYC 
+269 
 
-> maf_genome = get_coding_ssm()
+> ### Name: get_coding_ssm
+> ### Title: Get Coding SSM.
+> ### Aliases: get_coding_ssm
+> 
+> ### ** Examples
+> 
+> 
+>   #basic usage (defaults to genome seq_type)
+>   maf_genome = get_coding_ssm()
 
-> nrow(maf_genome)
-[1] 323308
+>   nrow(maf_genome)
+[1] 323660
 
-> dplyr::select(maf_genome, 1, 4, 5, 6, 9, maf_seq_type)
+>   dplyr::select(maf_genome,1,4,5,6,9,maf_seq_type)
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -300,10 +1013,10 @@ Showing first 10 rows:
 9         SAMD11     GRCh37          1         874467      Missense_Mutation       genome
 10        SAMD11     GRCh37          1         874467      Missense_Mutation       genome
 
-> maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture", 
-+     projection = "hg38")
+>   maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture",
++                                   projection="hg38") 
 
-> dplyr::select(maf_exome_hg38, 1, 4, 5, 6, 9, maf_seq_type)
+>   dplyr::select(maf_exome_hg38,1,4,5,6,9,maf_seq_type)
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -319,54 +1032,84 @@ Showing first 10 rows:
 9   FO538757.1     GRCh38       chr1         186440      Missense_Mutation      capture
 10  FO538757.1     GRCh38       chr1         186440      Missense_Mutation      capture
 
-> genes = dplyr::filter(GAMBLR.data::lymphoma_genes, 
-+     FL_Tier == 1) %>% dplyr::pull(Gene)
+> ### Name: get_coding_ssm_status
+> ### Title: Get Coding SSM Status.
+> ### Aliases: get_coding_ssm_status
+> 
+> ### ** Examples
+> 
+> # FL Tier 1 genes
+> genes = dplyr::filter(GAMBLR.data::lymphoma_genes,
++              FL_Tier==1) %>% 
++              dplyr::pull(Gene)
 
+> # Metadata for FL genomes and exomes
 > fl_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(pathology == "FL", cohort != "FL_Crouch", seq_type != 
-+         "mrna")
++     dplyr::filter(pathology=="FL",
++                   cohort != "FL_Crouch",
++                   seq_type != "mrna")
 
 > table(fl_meta$seq_type)
 
 capture  genome 
     390     534 
 
-> coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
-+     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
+> # Here, we let the function load the data for us
+>  coding_tabulated_df = get_coding_ssm_status(
++   gene_symbols=genes,
++   include_hotspots=FALSE,
++   genome_build = "hg38",
++   these_samples_metadata = fl_meta
++  )
 
-> length(genes)
+>  length(genes)
 [1] 54
 
-> dim(coding_tabulated_df)
+>  dim(coding_tabulated_df)
 [1] 924  55
 
-> head(colnames(coding_tabulated_df))
+>  head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
 
-> maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta, 
-+     projection = "grch37")
+> # Alternatively, we can provide the MAF data directly
+> 
+> # Load the MAF data (let's use the other genome build this time)
+> 
+> maf_data = get_all_coding_ssm(these_samples_metadata = fl_meta,
++                               projection = "grch37")
 
-> coding_tabulated2 = get_coding_ssm_status(gene_symbols = genes, 
-+     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
+> coding_tabulated2 = get_coding_ssm_status(gene_symbols=genes,
++                                           these_samples_metadata = fl_meta,
++                                           maf_data = maf_data,
++                                           include_hotspots=FALSE)
 
-> dim(coding_tabulated2)
+>  dim(coding_tabulated2)
 [1] 924  55
 
-> head(colnames(coding_tabulated2))
+>  head(colnames(coding_tabulated2))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
 
-> coding_tabulated3 = get_coding_ssm_status(gene_symbols = c("MYD88", 
-+     "CREBBP", "KMT2D"), these_samples_metadata = fl_meta, maf_data = maf_data, 
-+     include_hotspots = TRUE, genes_of_interest = c("MYD88", "CREBBP")) %>% 
-+     tibble::column_to_rownames("sample_id")
+> coding_tabulated3 = get_coding_ssm_status(gene_symbols=c("MYD88","CREBBP","KMT2D"),
++                                           these_samples_metadata = fl_meta,
++                                           maf_data = maf_data,
++                                           include_hotspots=TRUE,
++                                           genes_of_interest = c("MYD88","CREBBP")) %>%
++                                           tibble::column_to_rownames("sample_id")
 
-> print(colSums(coding_tabulated3))
+>  print(colSums(coding_tabulated3))
         KMT2D        CREBBP         MYD88 CREBBPHOTSPOT  MYD88HOTSPOT 
           545           189             7           344             6 
 
+> ### Name: get_combined_sv
+> ### Title: Get Combined SV.
+> ### Aliases: get_combined_sv
+> 
+> ### ** Examples
+> 
+> # lazily get every SV in the table with default quality filters
 > all_sv <- get_combined_sv()
 
-> dplyr::select(all_sv, 1:14)
+> dplyr::select(all_sv,1:14)
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -382,12 +1125,13 @@ Showing first 10 rows:
 9        1   10455 10456      12     94998     94999    MantaBND:9:480:2022:1:4:0:1    NA        +        + 00-12637_CLC02086          FL1011N      0.064 621
 10       1   10456 10839      12     94872     95291 MantaBND:3:26317:26320:0:0:0:1    NA        +        +      4690-03-01BD   14-11247Normal      0.333  18
 
+> # get all SVs for just one cohort
 > cohort_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(cohort == "DLBCL_cell_lines")
++               dplyr::filter(cohort == "DLBCL_cell_lines")
 
 > some_sv <- get_combined_sv(these_samples_metadata = cohort_meta)
 
-> dplyr::select(some_sv, 1:14)
+> dplyr::select(some_sv,1:14)
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -406,14 +1150,17 @@ Showing first 10 rows:
 > nrow(some_sv)
 [1] 1939
 
+> # get the SVs in a region around MYC
+> # WARNING: This is not the best way to find MYC SVs.
+> # Use annotate_sv on the full SV set instead.
 > myc_region_hg38 = "chr8:127710883-127761821"
 
 > myc_region_grch37 = "8:128723128-128774067"
 
-> hg38_myc_locus_sv <- get_combined_sv(region = myc_region_hg38, 
-+     projection = "hg38")
+> hg38_myc_locus_sv <- get_combined_sv(region = myc_region_hg38,
++                                 projection = "hg38")
 
-> dplyr::select(hg38_myc_locus_sv, 1:14)
+> dplyr::select(hg38_myc_locus_sv,1:14)
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -432,10 +1179,10 @@ Showing first 10 rows:
 > nrow(hg38_myc_locus_sv)
 [1] 703
 
-> incorrect_myc_locus_sv <- get_combined_sv(region = myc_region_grch37, 
-+     projection = "hg38")
+> incorrect_myc_locus_sv <- get_combined_sv(region = myc_region_grch37,
++                                 projection = "hg38")
 
-> dplyr::select(incorrect_myc_locus_sv, 1:14)
+> dplyr::select(incorrect_myc_locus_sv,1:14)
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -454,62 +1201,212 @@ Showing first 10 rows:
 > nrow(incorrect_myc_locus_sv)
 [1] 47
 
-> annotated_myc_hg38 = suppressMessages(GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, 
-+     genome_build = "hg38"))
+> # Despite potentially being incomplete, we can nonetheless
+> # annotate these directly for more details
+> annotated_myc_hg38 = suppressMessages(
++          GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
++ )
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2 name   score strand1 strand2          tumour_sample_id   gene partner    fusion
-1:     18  63123493  63123497      8 127728389 127728393    . 1742.36       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
-2:     18  63195263  63195266      8 127744561 127744564    .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
-3:      2  28983232  28983241      8 127711263 127711272    .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
-4:      3  70834666  70834671      8 127750318 127750323    .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
-5:      3 101756651 101756656      8 127724888 127724893    .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
-6:      3 187747200 187747205      8 127744763 127744768    .      NA       +       -           17-33848_tumorB   BCL6    <NA>   NA-BCL6
+   chrom1    start1      end1 chrom2    start2      end2   name   score strand1 strand2          tumour_sample_id   gene partner    fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char>   <num>  <char>  <char>                    <char> <char>  <char>    <char>
+1:     18  63123493  63123497      8 127728389 127728393      . 1742.36       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
+2:     18  63195263  63195266      8 127744561 127744564      .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
+3:      2  28983232  28983241      8 127711263 127711272      .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
+4:      3  70834666  70834671      8 127750318 127750323      .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
+5:      3 101756651 101756656      8 127724888 127724893      .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
+6:      3 187747200 187747205      8 127744763 127744768      .      NA       +       -           17-33848_tumorB   BCL6    <NA>   NA-BCL6
 
 > table(annotated_myc_hg38$partner)
 
      BCL6     CCNL1       DMD       IGH       IGK       IGL LINC00578      LRMP      PAX5     RFTN1      ZEB2 
         6         1         2       385         5         8         2         3        11         1         1 
 
-> annotated_myc_incorrect = suppressMessages(GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, 
-+     genome_build = "hg38"))
+> # The usual MYC partners are seen here
+> 
+> annotated_myc_incorrect = suppressMessages(
++          GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
++ )
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2          tumour_sample_id gene partner fusion
-1:      8 127313080 127313571      8 128746007 128746587    .    NA       +       -                  PD26401c  MYC    <NA> NA-MYC
-2:      8 128738977 128738983      8 128752583 128752589    .    NA       +       -           04-14093_tumorA  MYC    <NA> NA-MYC
-3:      8 128738977 128738983      8 128752583 128752589    .    NA       +       -           04-14093_tumorB  MYC    <NA> NA-MYC
-4:      8 128738980 128738981      8 128752584 128752585    .    NA       +       - BLGSP-71-17-00357-01B-09E  MYC    <NA> NA-MYC
-5:      8 128738980 128738981      8 128752584 128752585    .    NA       +       - BLGSP-71-27-00424-01A-01E  MYC    <NA> NA-MYC
-6:      8 128738980 128738981      8 128752584 128752585    .    NA       +       -                SMZL-UK-T3  MYC    <NA> NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2          tumour_sample_id   gene partner fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>                    <char> <char>  <char> <char>
+1:      8 127313080 127313571      8 128746007 128746587      .    NA       +       -                  PD26401c    MYC    <NA> NA-MYC
+2:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -           04-14093_tumorA    MYC    <NA> NA-MYC
+3:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -           04-14093_tumorB    MYC    <NA> NA-MYC
+4:      8 128738980 128738981      8 128752584 128752585      .    NA       +       - BLGSP-71-17-00357-01B-09E    MYC    <NA> NA-MYC
+5:      8 128738980 128738981      8 128752584 128752585      .    NA       +       - BLGSP-71-27-00424-01A-01E    MYC    <NA> NA-MYC
+6:      8 128738980 128738981      8 128752584 128752585      .    NA       +       -                SMZL-UK-T3    MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
 
+> # The effect of specifying the wrong coordinate is evident
+> 
+> 
+> 
+> 
+
+> ### Name: get_excluded_samples
+> ### Title: Get Excluded Samples.
+> ### Aliases: get_excluded_samples
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   excluded_samp <- get_excluded_samples()
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: get_gambl_metadata
+> ### Title: Get GAMBL metadata.
+> ### Aliases: get_gambl_metadata
+> 
+> ### ** Examples
+> 
+> #basic usage
 > my_metadata = suppressMessages(get_gambl_metadata())
 
-> dplyr::group_by(my_metadata, pathology, seq_type) %>% 
-+     dplyr::count()
-# A tibble: 101 × 3
-# Groups:   pathology, seq_type [101]
-   pathology     seq_type     n
-   <chr>         <chr>    <int>
- 1 AILT_DLBCEBV  genome       1
- 2 AILT_NS1      genome       1
- 3 AITL          capture      3
- 4 AITL          genome      81
- 5 AITL          mrna        26
- 6 AITL_DLBCEBV  genome       1
- 7 AITL_PTCL     genome       1
- 8 AITL_PTCL_TFH genome       1
- 9 AITL_SLL      genome       1
-10 ALCL          capture    100
-# ℹ 91 more rows
+> dplyr::group_by(my_metadata,pathology,seq_type) %>% dplyr::count()
+# A tibble: 108 × 3
+# Groups:   pathology, seq_type [108]
+   pathology    seq_type     n
+   <chr>        <chr>    <int>
+ 1 AILT_DLBCEBV genome       1
+ 2 AILT_DLBCEBV mrna         1
+ 3 AILT_NS1     genome       1
+ 4 AILT_NS1     mrna         1
+ 5 AITL         capture      3
+ 6 AITL         genome      81
+ 7 AITL         mrna        71
+ 8 AITL_DLBCEBV genome       1
+ 9 AITL_DLBCEBV mrna         1
+10 AITL_PTCL    genome       1
+# ℹ 98 more rows
+# ℹ Use `print(n = ...)` to see more rows
 
+> ## Not run: 
+> ##D   # Rarely needed but can be useful for some applications:
+> ##D   # override default filters and request metadata for samples
+> ##D   # other than tumour genomes,
+> ##D   #e.g. also get the normals
+> ##D   tumour_and_normal_metadata = get_gambl_metadata(also_normals = TRUE))
+> ##D 
+> ##D   # prioritize exome results over genome results
+> ##D   non_redundant_genome_and_capture = get_gambl_metadata(dna_seq_type_priority = "capture")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_gambl_outcomes
+> ### Title: Get GAMBL Outcomes.
+> ### Aliases: get_gambl_outcomes
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   outcome_df = get_gambl_outcomes()
+> ##D   metadata_with_outcomes = dplyr::left_join(
+> ##D                             get_gambl_metadata(),
+> ##D                             outcome_df)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_gene_cn_and_expression
+> ### Title: Get Gene CN and Expression.
+> ### Aliases: get_gene_cn_and_expression
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   MYC_cn_expression = get_gene_cn_and_expression("MYC")
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_gene_expression
+> ### Title: Get Gene Expression.
+> ### Aliases: get_gene_expression
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Get the expression for a single gene for every sample with RNA-seq
+> ##D data in GAMBL
+> ##D # This uses the default (grep) engine, which may be intolerably
+> ##D slow on some systems
+> ##D SOX11_exp_all = get_gene_expression(hugo_symbols = "SOX11")
+> ##D                                        
+> ##D # Get the expression for a few genes for all available samples AND get
+> ##D # all available linkages to genome/capture samples without dropping anything
+> ##D my_fave_gene_exp_long = get_gene_expression(
+> ##D                         hugo_symbols = c("MYC","BCL2","EZH2"),
+> ##D                         lazy_join=TRUE,
+> ##D                         format="long")
+> ##D 
+> ##D # Get the expression values for the Wright gene set from every
+> ##D # sample in the DLBCL_DLC cohort
+> ##D # This is one example where the grep engine is significantly slower
+> ##D than using the readr engine. This example shows the more efficient approach:
+> ##D my_genes = GAMBLR.data::wright_genes_with_weights$Hugo_Symbol
+> ##D my_meta = get_gambl_metadata() %>%
+> ##D   dplyr::filter(cohort=="DLBCL_DLC"),
+> ##D     seq_type %in% c('genome','capture')
+> ##D wright_expr_with_DNA = get_gene_expression(engine="readr",
+> ##D                                            hugo_symbols = my_genes,
+> ##D                                            these_samples_metadata = my_meta)
+> ##D 
+> ##D #Load the full expression values for every FL sample and all genes
+> ##D # When tested on a gphost, this took less than a minute to run
+> ##D my_meta = get_gambl_metadata() %>%
+> ##D   dplyr::filter(pathology=="FL",
+> ##D     seq_type=="mrna")
+> ##D FL_expression_df = get_gene_expression(these_samples_metadata = my_meta,
+> ##D                                        all_genes = TRUE)
+> ##D 
+> ##D # Get the full expression table for every sample available
+> ##D # in GAMBL (in the wide format)
+> ##D all_exp_wide = get_gene_expression(all_genes=T)
+> ##D 
+> ##D # Get the full expression table for every sample available in GAMBL
+> ##D # (in the wide format) AND lazy-join to the minimal metadata
+> ##D # NOTE: This will transpose the matrix, which makes it significantly slower.
+> ##D # Also, due to incomplete Hugo_Symbols, it has to use the ENSG
+> ##D # identifiers for column names. 
+> ##D all_exp_wide = get_gene_expression(all_genes=T,lazy_join=T)
+> ##D 
+> ##D 
+> ##D # If you want hgnc_symbol instead of Ensembl_gene_id you need to force
+> ##D # the function to arbitrarily drop duplicates. *Not ideal*
+> ##D exp_hgnc = get_gene_expression(these_samples_metadata = get_gambl_metadata(),
+> ##D                                    all_genes = T,
+> ##D                                    lazy_join = T,
+> ##D                                    HGNC=TRUE,
+> ##D                                    arbitrarily_pick = T)
+> ##D 
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_gene_fusions
+> ### Title: Get gene fusions
+> ### Aliases: get_gene_fusions
+> 
+> ### ** Examples
+> 
+> 
 > all_fusions = get_gene_fusions()
 
-> onco_fusions = get_gene_fusions(keep_genes = c("BCL2", 
-+     "MYC", "BCL6"))
+> onco_fusions = get_gene_fusions(keep_genes = c("BCL2","MYC","BCL6"))
 
 > print(head(onco_fusions))
 # A tibble: 6 × 13
@@ -522,12 +1419,21 @@ Showing first 10 rows:
 5 01-20260T 18       60891187  60891188 14      106209410 106209411 BCL2  IGH@      0 -        -        known,oncogene,chimer2,cancer,tumor,m78,oncokb,mitelman,ccle,reciprocal     
 6 01-20260T 14      106209408 106209409 18       60833799  60833800 IGH@  BCL2      0 +        -        known,oncogene,chimer2,cancer,tumor,m1,multi,oncokb,mitelman,ccle,reciprocal
 
+> ### Name: get_lymphgen
+> ### Title: Get Lymphgen.
+> ### Aliases: get_lymphgen
+> 
+> ### ** Examples
+> 
 > my_meta = get_gambl_metadata()
 
-> lymphgen_all <- get_lymphgen(flavour = "no_cnvs.no_sv.with_A53", 
-+     these = my_meta, keep_original_columns = TRUE)
+> lymphgen_all <- get_lymphgen(
++            flavour = "no_cnvs.no_sv.with_A53", 
++            these = my_meta,
++             keep_original_columns = TRUE
++         )
 
-> head(lymphgen_all$features[, c(1:14)])
+> head(lymphgen_all$features[,c(1:14)])
 # A tibble: 6 × 14
   sample_id          BCL2  EZH2 TNFRSF14 CREBBP KMT2D SOCS1 EP300  IRF8 MEF2B  BTG2  PIM2 TBL1XR1 KLHL14
   <chr>             <dbl> <dbl>    <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>  <dbl>
@@ -538,7 +1444,7 @@ Showing first 10 rows:
 5 00-14595_tumorD       1     1        0      0     0     0     0     0     0     1     1       0      1
 6 00-15201_tumorA       0     0        0      0     1     0     0     0     0     1     0       0      0
 
-> head(lymphgen_all$lymphgen[, c(1:14)])
+> head(lymphgen_all$lymphgen[,c(1:14)])
 # A tibble: 6 × 14
   sample_id         Copy.Number   BCL2.Translocation BCL6.Translocation Model    Confidence.BN2 Confidence.EZB Confidence.MCD Confidence.N1 Confidence.ST2 BN2.Feature.Count EZB.Feature.Count MCD.Feature.Count N1.Feature.Count
   <chr>             <chr>         <chr>              <chr>              <chr>             <dbl>          <dbl>          <dbl>         <dbl>          <dbl>             <dbl>             <dbl>             <dbl>            <dbl>
@@ -549,13 +1455,20 @@ Showing first 10 rows:
 5 00-14595_tumorD   Not Available Not Available      Not Available      NoFusCGH           0.35           0.94           0.01          0.07           0.02                 2                 2                 3                0
 6 00-15201_tumorA   Not Available Not Available      Not Available      NoFusCGH           0.25           0.05           0.02          0.07           0.15                 2                 1                 3                0
 
+> ### Name: get_manta_sv
+> ### Title: Get Manta SVs
+> ### Aliases: get_manta_sv
+> 
+> ### ** Examples
+> 
+> # lazily get every SV in the table with default quality filters
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
 [1] "No Manta SVs found for 862 samples and 19 cohorts"
  [1] "DLBCL_LSARP_Trios"   "PTCL_AITL"           "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "PMBCL_cell_lines"    "MM_mmsanger"         "SMZL_Strefford"      "Baylor_TXCRB"       
 
-> dplyr::select(all_sv, 1:14) %>% head()
+> dplyr::select(all_sv,1:14) %>% head()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -567,13 +1480,13 @@ Showing first 10 rows:
 5       1   10438 10438       8 146301391 146301391   MantaBND:2:1723:1728:0:0:0    81        +        +    102-0202-1DVT   14-11247Normal      0.630  27
 6       1   10457 10839      12     94873     95291 MantaBND:3:26317:26320:0:0:0    56        +        +     4690-03-01BD   14-11247Normal      0.333  18
 
+> # get all SVs for just one cohort
 > cohort_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(cohort == "DLBCL_cell_lines")
++               dplyr::filter(cohort == "DLBCL_cell_lines")
 
-> some_sv <- get_manta_sv(these_samples_metadata = cohort_meta, 
-+     verbose = FALSE)
+> some_sv <- get_manta_sv(these_samples_metadata = cohort_meta, verbose=FALSE)
 
-> dplyr::select(some_sv, 1:14) %>% head()
+> dplyr::select(some_sv,1:14) %>% head()
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -588,14 +1501,18 @@ Showing first 10 rows:
 > nrow(some_sv)
 [1] 21216
 
+> # get the SVs in a region around MYC
+> # WARNING: This is not the best way to find MYC SVs.
+> # Use annotate_sv on the full SV set instead.
 > myc_region_hg38 = "chr8:127710883-127761821"
 
 > myc_region_grch37 = "8:128723128-128774067"
 
-> hg38_myc_locus_sv <- get_manta_sv(region = myc_region_hg38, 
-+     projection = "hg38", verbose = FALSE)
+> hg38_myc_locus_sv <- get_manta_sv(region = myc_region_hg38,
++                                 projection = "hg38",
++                                 verbose = FALSE)
 
-> dplyr::select(hg38_myc_locus_sv, 1:14) %>% head()
+> dplyr::select(hg38_myc_locus_sv,1:14) %>% head()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -610,10 +1527,11 @@ Showing first 10 rows:
 > nrow(hg38_myc_locus_sv)
 [1] 457
 
-> incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37, 
-+     projection = "hg38", verbose = FALSE)
+> incorrect_myc_locus_sv <- get_manta_sv(region = myc_region_grch37,
++                                 projection = "hg38",
++                                 verbose = FALSE)
 
-> dplyr::select(incorrect_myc_locus_sv, 1:14) %>% head()
+> dplyr::select(incorrect_myc_locus_sv,1:14) %>% head()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -628,60 +1546,244 @@ Showing first 10 rows:
 > nrow(incorrect_myc_locus_sv)
 [1] 28
 
-> annotated_myc_hg38 = suppressMessages(GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, 
-+     genome_build = "hg38"))
+> # Despite potentially being incomplete, we can nonetheless
+> # annotate these directly for more details
+> annotated_myc_hg38 = suppressMessages(
++          GAMBLR.utils::annotate_sv(hg38_myc_locus_sv, genome_build = "hg38")
++ )
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id  gene partner   fusion
-1:      2  28983233  28983240      8 127711264 127711271    .    43       -       -  02-14764_tumorB   ALK    <NA>   NA-ALK
-2:      3 187747202 187747205      8 127744764 127744767    .    79       +       -  17-33848_tumorB  BCL6    <NA>  NA-BCL6
-3:      3 187811601 187811601      8 127745649 127745649    .   106       -       +         FL1008T2  BCL6    <NA>  NA-BCL6
-4:      3 188074182 188074327      8 127749381 127749593    .    92       +       -      140127-PL02  BCL6    <NA>  NA-BCL6
-5:      4   1746419   1746421      8 127723483 127723485    .    77       -       -        09-41114T WHSC1    <NA> NA-WHSC1
-6:      8 127226860 127226862      8 127759782 127759784    .    56       +       +          SP13307   MYC    <NA>   NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner   fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char>   <char>
+1:      2  28983233  28983240      8 127711264 127711271      .    43       -       -  02-14764_tumorB    ALK    <NA>   NA-ALK
+2:      3 187747202 187747205      8 127744764 127744767      .    79       +       -  17-33848_tumorB   BCL6    <NA>  NA-BCL6
+3:      3 187811601 187811601      8 127745649 127745649      .   106       -       +         FL1008T2   BCL6    <NA>  NA-BCL6
+4:      3 188074182 188074327      8 127749381 127749593      .    92       +       -      140127-PL02   BCL6    <NA>  NA-BCL6
+5:      4   1746419   1746421      8 127723483 127723485      .    77       -       -        09-41114T  WHSC1    <NA> NA-WHSC1
+6:      8 127226860 127226862      8 127759782 127759784      .    56       +       +          SP13307    MYC    <NA>   NA-MYC
 
 > table(annotated_myc_hg38$partner)
 
  BCL6 CCNL1   DMD   IGH   IGK   IGL  LRMP  PAX5 RFTN1 
     3     1     2   293     5     6     1     5     1 
 
-> annotated_myc_incorrect = suppressMessages(GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, 
-+     genome_build = "hg38"))
+> # The usual MYC partners are seen here
+> 
+> annotated_myc_incorrect = suppressMessages(
++          GAMBLR.utils::annotate_sv(incorrect_myc_locus_sv, genome_build = "hg38")
++ )
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
-1:      8 128726344 128727379     11  93629113  93629647    .    66       -       +        01-20774T  MYC    <NA> NA-MYC
-2:      8 128726820 128726820      8 128726825 128726825    .    76       +       -         PD26403a  MYC    <NA> NA-MYC
-3:      8 128726820 128726820      8 128726825 128726825    .    84       +       -         PD26403c  MYC    <NA> NA-MYC
-4:      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
-5:      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
-6:      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char> <char>
+1:      8 128726344 128727379     11  93629113  93629647      .    66       -       +        01-20774T    MYC    <NA> NA-MYC
+2:      8 128726820 128726820      8 128726825 128726825      .    76       +       -         PD26403a    MYC    <NA> NA-MYC
+3:      8 128726820 128726820      8 128726825 128726825      .    84       +       -         PD26403c    MYC    <NA> NA-MYC
+4:      8 128738979 128738983      8 128752584 128752588      .   118       +       -  04-14093_tumorA    MYC    <NA> NA-MYC
+5:      8 128738979 128738983      8 128752584 128752588      .   127       +       -  04-14093_tumorB    MYC    <NA> NA-MYC
+6:      8 128738981 128738981      8 128752584 128752584      .   126       +       -        05-24065T    MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
 
-> genomes = get_gambl_metadata() %>% dplyr::filter(seq_type %in% 
-+     "genome")
+> # The effect of specifying the wrong coordinate is evident
+> 
+> 
+> 
+> 
 
-> my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-128774067", 
-+     these_samples_metadata = genomes)
+> ### Name: get_manta_sv_by_sample
+> ### Title: Get Manta SV By Sample.
+> ### Aliases: get_manta_sv_by_sample
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #example 1
+> ##D #get manta calls for a sample that needs to be lifted to "hg38" and let this function
+> ##D #take care of the liftover step for you.
+> ##D my_sv = get_manta_sv_by_sample(this_sample_id = "99-27783_tumorA",
+> ##D                                these_samples_metadata = get_gambl_metadata(),
+> ##D                                projection = "hg38",
+> ##D                                force_lift = TRUE)
+> ##D 
+> ##D #example 2
+> ##D #get manta calls based on an already filtered metadata (with one sample ID)
+> ##D my_metadata = get_gambl_metadata()
+> ##D my_metadata = dplyr::filter(my_metadata, sample_id=="99-27783_tumorA")
+> ##D 
+> ##D my_sv = get_manta_sv_by_sample(these_samples_metadata = my_metadata,
+> ##D                                projection = "hg38",
+> ##D                                force_lift = TRUE)
+> ## End(Not run)
+> 
+> 
+> 
 
-> bcl2_all_details = GAMBLR.results:::get_ssm_by_region(region = "chr18:60796500-60988073", 
-+     these_samples_metadata = genomes, basic_columns = FALSE)
+> ### Name: get_manta_sv_by_samples
+> ### Title: Get Manta SV By Samples.
+> ### Aliases: get_manta_sv_by_samples
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D all_sv = get_manta_sv()
+> ##D metadata = get_gambl_metadata()
+> ##D missing_samples = dplyr::anti_join(metadata,
+> ##D   all_sv,
+> ##D   by = c("sample_id" = "tumour_sample_id"))
+> ##D 
+> ##D missing_from_merge = get_manta_sv_by_samples(these_samples_metadata = missing_samples, verbose = FALSE)
+> ## End(Not run)
+> 
+> 
+> 
 
-> regions_bed = GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_ashm_regions, 
-+     fix_names = "concat", concat_cols = c("gene", "region"), 
-+     sep = "-") %>% head(20)
+> ### Name: get_raw_expression_counts
+> ### Title: Get Raw Expression Counts
+> ### Aliases: get_raw_expression_counts
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D schmitz_meta = get_gambl_metadata() %>% 
+> ##D     filter(seq_type=="mrna",cohort=="dlbcl_schmitz")
+> ##D exp_out = get_raw_expression_counts(these_samples_metadata = schmitz_meta)
+> ##D 
+> ##D # Create DESeq data set directly from the two named objects in the output
+> ##D 
+> ##D dds <- DESeqDataSetFromMatrix(countData = exp_out$counts,
+> ##D     colData = exp_out$metadata,
+> ##D     design = ~ COO_consensus + sex)
+> ##D     
+> ##D # Run a basic DESeq analysis
+> ##D dds <- DESeq(dds)
+> ##D res <- results(dds, 
+> ##D     name="COO_consensus_GCB_vs_ABC",
+> ##D     lfcThreshold=2,alpha=0.1)
+> ##D # Filter outputs using padj, logFC and baseMean (more highly expressed overall)     
+> ##D res_df = as.data.frame(res) %>% 
+> ##D     filter(padj<0.1,baseMean>500)
+> ##D 
+> ##D show_genes = rownames(res_df)
+> ##D vsd <- vst(dds, blind=FALSE)
+> ##D 
+> ##D #Visualize the results with a heatmap
+> ##D column_ha = HeatmapAnnotation(df=select(exp_out$metadata,COO_consensus,sex))
+> ##D Heatmap(assay(vsd)[show_genes,],
+> ##D     row_names_gp = gpar(fontsize=5),
+> ##D     bottom_annotation = column_ha,
+> ##D     show_column_names = FALSE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
 
-> DLBCL_meta = suppressMessages(get_gambl_metadata()) %>% 
-+     dplyr::filter(pathology == "DLBCL", seq_type == "genome")
+> ### Name: get_sample_wildcards
+> ### Title: Get Sample Wildcards
+> ### Aliases: get_sample_wildcards
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D get_sample_wildcards(this_sample_id = "00-15201_tumorA",
+> ##D                      this_seq_type = "genome")
+> ## End(Not run)
+> 
+> 
+> 
 
-> ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed, 
-+     these_samples_metadata = DLBCL_meta, streamlined = FALSE)
+> ### Name: get_ssh_session
+> ### Title: Get SSH Session.
+> ### Aliases: get_ssh_session
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D my_session = get_ssh_session()
+> ## End(Not run)
+> 
+> 
+> 
 
-> ashm_MAF %>% dplyr::arrange(Start_Position, Tumor_Sample_Barcode) %>% 
-+     dplyr::select(Hugo_Symbol, Tumor_Sample_Barcode, Chromosome, 
-+         Start_Position, Reference_Allele, Tumor_Seq_Allele2)
+> ### Name: get_ssm_by_genes
+> ### Title: Get all available SSMs for an arbitrary set of genes
+> ### Aliases: get_ssm_by_genes
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D dlbcl_meta = get_gambl_metadata() %>%
+> ##D  dplyr::filter(pathology=="DLBCL", seq_type!= "mrna")
+> ##D 
+> ##D 
+> ##D genes_maf = get_ssm_by_genes(genes = c("EZH2","KMT2D"),these_samples_metadata = dlbcl_meta)
+> ##D genes_maf %>%
+> ##D  dplyr::group_by(Hugo_Symbol,Tumor_Sample_Barcode) %>%
+> ##D  count()
+> ##D 
+> ##D  dlbcl_genes = lymphoma_genes %>% filter(DLBCL_Tier==1) %>% pull(Gene)
+> ##D  dlbcl_gene_maf = get_ssm_by_genes(dlbcl_genes,
+> ##D     these_samples_metadata = dlbcl_meta,
+> ##D     drop_silent_outside_ashm_regions = T)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_ssm_by_region
+> ### Title: Get SSM By Region.
+> ### Aliases: get_ssm_by_region
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> #basic usage
+> genomes = get_gambl_metadata() %>%
++              dplyr::filter(seq_type %in% "genome")
+
+> my_mutations = GAMBLR.results:::get_ssm_by_region(
++             region = "chr8:128723128-128774067",
++             these_samples_metadata = genomes)
+
+> #keep all 116 columns in the read MAF
+> bcl2_all_details = GAMBLR.results:::get_ssm_by_region(
++             region = "chr18:60796500-60988073",
++             these_samples_metadata = genomes,
++             basic_columns = FALSE)
+
+> ### Name: get_ssm_by_regions
+> ### Title: Get SSM By Regions.
+> ### Aliases: get_ssm_by_regions
+> 
+> ### ** Examples
+> 
+> 
+> # Adds column `name` to the bed-format dataframe
+> # by combining "gene" and "region" values sep by "-"
+> regions_bed = GAMBLR.utils::create_bed_data(
++    GAMBLR.data::grch37_ashm_regions,
++    fix_names = "concat",
++    concat_cols = c("gene","region"),sep="-"
++ ) %>% head(20)
+
+> DLBCL_meta = suppressMessages(get_gambl_metadata()) %>%
++                 dplyr::filter(pathology=="DLBCL", seq_type == "genome")
+
+> ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed,
++                              these_samples_metadata = DLBCL_meta,
++                              streamlined=FALSE)
+
+> ashm_MAF %>% dplyr::arrange(Start_Position,Tumor_Sample_Barcode) %>%
++               dplyr::select(Hugo_Symbol,
++                     Tumor_Sample_Barcode,
++                     Chromosome,Start_Position,
++                     Reference_Allele,Tumor_Seq_Allele2)
 genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
@@ -697,23 +1799,36 @@ Showing first 10 rows:
 9       KLHL21 HTMCP-01-06-00136-01A-01D          1        6661604                G                 C
 10      KLHL21                 15-26538T          1        6661607                G                 A
 
-> maf_samp = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
-+     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = FALSE)
+> ### Name: get_ssm_by_sample
+> ### Title: Get SSM By Sample.
+> ### Aliases: get_ssm_by_sample
+> 
+> ### ** Examples
+> 
+> 
+> maf_samp = GAMBLR.results:::get_ssm_by_sample(
++   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
++   augmented = FALSE
++ )
 
 > nrow(maf_samp)
 [1] 4705
 
-> maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
-+     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = TRUE)
+> maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(
++   get_gambl_metadata() %>% dplyr::filter(sample_id=="13-27975_tumorA"),
++   augmented = TRUE
++ )
 
 > nrow(maf_samp_aug)
 [1] 6118
 
-> some_maf = GAMBLR.results:::get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() %>% 
-+     dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D", seq_type == 
-+         "genome"), projection = "hg38")
+>  some_maf = GAMBLR.results:::get_ssm_by_sample(
++                           these_samples_metadata = get_gambl_metadata() %>%
++                             dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D",
++                                      seq_type == "genome"),
++                          projection = "hg38")
 
-> dplyr::select(some_maf, 1:10)
+>  dplyr::select(some_maf,1:10)
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -729,16 +1844,25 @@ Showing first 10 rows:
 9          PLA2G2A              0      .     GRCh38       chr1       19975558     19975559      +                  3'UTR          DEL
 10         PLA2G2C              0      .     GRCh38       chr1       20172387     20172387      +                 Intron          SNP
 
-> my_meta = get_gambl_metadata() %>% dplyr::filter(sample_id %in% 
-+     c("HTMCP-01-06-00485-01A-01D", "14-35472_tumorA", "14-35472_tumorB"))
+> ### Name: get_ssm_by_samples
+> ### Title: Get SSM By Samples.
+> ### Aliases: get_ssm_by_samples
+> 
+> ### ** Examples
+> 
+> 
+> my_meta = get_gambl_metadata() %>%
++             dplyr::filter(sample_id %in% c("HTMCP-01-06-00485-01A-01D",
++                                                "14-35472_tumorA",
++                                                "14-35472_tumorB"))
 
 > sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
 
-> hg38_ssms = get_ssm_by_samples(projection = "hg38", 
-+     these_samples_metadata = my_meta)
+> hg38_ssms = get_ssm_by_samples(projection="hg38",
++                                these_samples_metadata = my_meta)
 
-> dplyr::group_by(hg38_ssms, Tumor_Sample_Barcode) %>% 
-+     dplyr::count()
+> dplyr::group_by(hg38_ssms,Tumor_Sample_Barcode) %>%
++   dplyr::count()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -747,11 +1871,12 @@ Showing first 10 rows:
 2           14-35472_tumorB 7966
 3 HTMCP-01-06-00485-01A-01D 2160
 
-> hg38_ssms_no_aug = get_ssm_by_samples(projection = "hg38", 
-+     these_samples_metadata = my_meta, augmented = FALSE)
+> hg38_ssms_no_aug = get_ssm_by_samples(projection="hg38",
++                      these_samples_metadata = my_meta,
++                      augmented= FALSE)
 
-> dplyr::group_by(hg38_ssms_no_aug, Tumor_Sample_Barcode) %>% 
-+     dplyr::count()
+> dplyr::group_by(hg38_ssms_no_aug,Tumor_Sample_Barcode) %>%
++   dplyr::count()
 genomic_data Object
 Genome Build: hg38 
 Showing first 10 rows:
@@ -760,8 +1885,84 @@ Showing first 10 rows:
 2           14-35472_tumorB 7470
 3 HTMCP-01-06-00485-01A-01D 2160
 
-> myc_grch37 <- GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_lymphoma_genes_bed) %>% 
-+     dplyr::filter(name == "MYC")
+> ## Not run: 
+> ##D my_metadata = dplyr::filter(my_metadata, pathology == "FL")
+> ##D 
+> ##D sample_ssms = get_ssm_by_samples(these_samples_metadata = my_metadata)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: get_study_info
+> ### Title: Get Study Info.
+> ### Aliases: get_study_info
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #return study identifiers as  list:
+> ##D my_study_info= get_study_info(dir = "path/to/study/")
+> ##D 
+> ##D #return all identifiers to the global environment:
+> ##D get_study_info(dir = "path/to/study/", list_to_global = TRUE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: get_timed_mutations
+> ### Title: Load MutationTimeR Results
+> ### Aliases: get_timed_mutations
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D  my_meta = suppressMessages(get_gambl_metadata()) %>%
+> ##D   dplyr::filter(sample_id=="01-20985T",
+> ##D                seq_type=="genome")
+> ##D  timed = GAMBLR.results::get_timed_mutations(my_meta,"hg38")
+> ##D 
+> ##D  head(timed$CNA)
+> ##D 
+> ##D  head(timed$SSM)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: link_seq_types
+> ### Title: Link seq type IDs
+> ### Aliases: link_seq_types
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D link_seq_types(
+> ##D   these_sample_ids = c("00-14595_tumorA", "04-21622_tumorB", "01-20774T"), 
+> ##D   given_seq_type = "genome",
+> ##D   desired_seq_type = "mrna", 
+> ##D   intermediary = c("patient_id", "biopsy_id")
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: maf_to_custom_track
+> ### Title: Maf To Custom Track.
+> ### Aliases: maf_to_custom_track
+> 
+> ### ** Examples
+> 
+> # using grch37 coordinates
+> myc_grch37 <- GAMBLR.utils::create_bed_data(
++                 GAMBLR.data::grch37_lymphoma_genes_bed
++               ) %>%
++               dplyr::filter(name == "MYC")
 
 > print(myc_grch37)
 genomic_data Object
@@ -770,23 +1971,116 @@ Showing first 10 rows:
   chrom     start       end name
 1     8 128747680 128753674  MYC
 
-> genomes <- get_gambl_metadata() %>% dplyr::filter(seq_type == 
-+     "genome")
+> genomes <- get_gambl_metadata() %>% dplyr::filter(seq_type == "genome")
 
-> genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37, 
-+     these_samples_metadata = genomes, streamlined = FALSE, basic_columns = TRUE)
+> genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37,
++                              these_samples_metadata = genomes,
++                              streamlined = FALSE,
++                              basic_columns = TRUE)
 
+> # myc_hg19.bed will be created in your working directory
 > maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
 
+> #lazy/concise way:
 > my_region = "8:128747680-128753674"
 
-> captures <- get_gambl_metadata() %>% dplyr::filter(seq_type == 
-+     "capture")
+> captures <- get_gambl_metadata() %>% dplyr::filter(seq_type == "capture")
 
-> capture_maf <- get_ssm_by_regions(regions_list = my_region, 
-+     these_samples_metadata = captures, projection = "grch37", 
-+     streamlined = FALSE, basic_columns = TRUE)
+> capture_maf <- get_ssm_by_regions(regions_list = my_region,
++                              these_samples_metadata = captures,
++                              projection = "grch37",
++                              streamlined = FALSE,
++                              basic_columns = TRUE)
 
-> maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
-+     output_file = "myc_capture_hg19.bed")
-[1] "=== COMPLETED AT 2026-06-29 09:58:56 ==="
+> maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", output_file = "myc_capture_hg19.bed")
+
+> ### Name: og_get_gambl_metadata
+> ### Title: Get GAMBL metadata.
+> ### Aliases: og_get_gambl_metadata
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #basic usage
+> ##D my_metadata = suppressMessages(get_gambl_metadata())
+> ##D 
+> ##D #use pre-defined custom sample sets
+> ##D only_blgsp_metadata = get_gambl_metadata(case_set = "BLGSP-study")
+> ##D 
+> ##D #override default filters and request metadata for samples other than tumour genomes,
+> ##D #e.g. also get the normals
+> ##D tumour_and_normal_metadata = get_gambl_metadata(tissue_status_filter = c('tumour','normal'))
+> ##D 
+> ##D non_redundant_genome_and_capture = get_gambl_metadata(seq_type_filter = c('genome', 'capture'),
+> ##D                                                        seq_type_priority = "genome")
+> ##D                                                        
+> ##D absolutely_everything = get_gambl_metadata(seq_type_filter = c('genome', 'capture','mrna'), tissue_status_filter=c('tumour','normal'))
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: populate_each_tool_result
+> ### Title: Populate Each Tool Results.
+> ### Aliases: populate_each_tool_result
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D   tool_results = populate_each_tool_result("smlims_3", "grch37", "gambl", FALSE)
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: populate_tool_results
+> ### Title: Populate Tool Results.
+> ### Aliases: populate_tool_results
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D results = populate_tool_results(tool_name = "slims_3")
+> ## End(Not run)
+> 
+> 
+> 
+> 
+
+> ### Name: pretty_lymphoplot
+> ### Title: LymphGen feature visualization.
+> ### Aliases: pretty_lymphoplot
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D  meta_df = suppressMessages(get_gambl_metadata()) %>% 
+> ##D   dplyr::filter(seq_type %in% c("genome", "capture")) %>%
+> ##D      dplyr::filter(pathology == "DLBCL")
+> ##D pretty_lymphoplot(meta_df, show_side_annotation = TRUE)
+> ##D pretty_lymphoplot(
+> ##D      meta_df,
+> ##D      show_side_annotation = TRUE,
+> ##D      flavour = "with_cnvs.with_sv.no_A53"
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+
+> ### Name: tidy_gene_expression
+> ### Title: Tidy gene Expression.
+> ### Aliases: tidy_gene_expression
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D #return data frame with gene expression to R
+> ##D gene_expression = tidy_gene_expression(return_df = TRUE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+[1] "=== COMPLETED AT 2026-07-16 01:56:13 ==="
