@@ -95,6 +95,31 @@ collate_tatterton = function(
     
     tatterton_patients <- unique(tatterton_calls$patient_id)
 
+    # Join Tatterton information onto sample table
+    # S1a is linked using tatterton_rna_biopsy = biopsy_id
+    # S1b is linked using Donor_Name = patient_id
+    matched <- sample_table %>%
+        dplyr::filter(patient_id %in% tatterton_patients) %>%
+        dplyr::left_join(
+            dplyr::select(tatterton_calls, patient_id, tatterton_rna_biopsy),
+            by = "patient_id", relationship = "many-to-many"
+        ) %>%
+        dplyr::group_by(sample_id, seq_type, biopsy_id, patient_id) %>%
+        dplyr::summarise(
+            on_tatt_biopsy = any(biopsy_id == tatterton_rna_biopsy, na.rm = TRUE),
+            no_anchor = all(is.na(tatterton_rna_biopsy)),
+            .groups = "drop"
+        ) %>%
+        dplyr::mutate(
+            tatterton_link = dplyr::case_when(
+                on_tatt_biopsy ~ "tatterton_biopsy",
+                no_anchor ~ "s1b_patient_link",
+                TRUE ~ NA_character_
+            )
+        ) %>%
+        dplyr::filter(!is.na(tatterton_link)) %>%
+        dplyr::select(sample_id, seq_type, biopsy_id, tatterton_link)
+    
     # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
     sample_table_cols <- colnames(sample_table)
  
