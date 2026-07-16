@@ -2,30 +2,55 @@
 % Please edit documentation in R/collate_tatterton.R
 \name{collate_tatterton}
 \alias{collate_tatterton}
-\title{Collate oligomannose type DLBCL annotations from Tatterton et al 2025.}
+\title{Collate oligomannose-type (Mann-type) DLBCL annotations from Tatterton et al. 2025.}
 \usage{
 collate_tatterton(sample_table)
 }
 \arguments{
-\item{sample_table}{df with sample ids in the first column. The output of
-\link{get_gambl_metadata} is expected. The column patient_id is also required to join the information from Tatterton table S1b.}
+\item{sample_table}{df with \code{sample_id} in the first column, expected to be the
+output of \link{get_gambl_metadata} with NO seq_type filter applied
+(mRNA samples are required to anchor the biopsy link). The columns \code{patient_id},
+\code{biopsy_id}, and \code{seq_type} are required.}
+
+\item{compare_derivations}{logical; if TRUE, print how many \code{manntype} and
+\code{FL_signature} calls differ between the GAMBL-derived and Tatterton-derived
+versions, and list the flipped samples. Default FALSE.}
 }
 \value{
-The sample table with \code{sample_id}, \code{manntype}, \code{FL_signature}, \code{AGS},
-\code{AGS_location_type}, and \code{AGS_Motif} appended, followed by the remaining metadata
-and Tatterton table columns.
+The sample table with Mann-type annotations appended
+(\code{manntype}, \code{FL_signature}, \code{manntype_tatterton}, \code{FL_signature_tatterton}),
+the IgSeqR-derived AGS columns (\code{igseqr_external_AGS_count},
+\code{igseqr_external_AGS_location}, \code{igseqr_external_AGS_motif},
+\code{igseqr_external_AGS_codon}), a \code{tatterton_link} provenance column, followed by
+the remaining metadata and Tatterton columns. Samples outside the Tatterton
+cohorts receive NA for the added columns.
 }
 \description{
-Expand a sample table horizontally with the Mann-type
-(oligomannose-type) DLBCL classifications from Tatterton et al., Blood 2025
-(supplemental Table 1B). These columns are populated for samples that have
-Tatterton data (the dlbcl_schmitz cohort) and NA otherwise.
-A case is Mann-type when it has BOTH an acquired N-glycosylation
-site (AGS) in the CDR AND a follicular-lymphoma (FL) signature (EZB subtype or a BCL2
-translocation). AGS calls are patient-level (RNA-seq derived), so the
-Tatterton table (keyed on Donor_Name) is left-joined onto the sample table
-\code{patient_id}. Samples absent from the Tatterton table (outside dlbcl_schmitz cohort)
-receive NA for the added columns. \code{manntype} and \code{FL_signature} are POS/NEG factors.
+Expand a sample table horizontally with Mann-type (oligomannose-type)
+DLBCL classifications from Tatterton et al., Blood 2025, covering BOTH
+supplemental cohorts: Table S1A (BCCA) and Table S1B (NCI). A case is
+Mann-type when it has BOTH an acquired N-glycosylation site (AGS) in the CDR
+AND a follicular-lymphoma (FL) signature (EZB subtype or a BCL2 translocation).
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ The AGS call (CDR N-glycosylation site) is IgSeqR-derived from mRNA and has no
+ GAMBL equivalent, so it is taken from Tatterton and retained under
+ `igseqr_external_*` column names. Two Mann-type derivations are returned:
+ `manntype` / `FL_signature` derive the FL signature from GAMBL's own `lymphgen`
+ and `bcl2_ba` (GAMBL as source of truth), while `manntype_tatterton` /
+ `FL_signature_tatterton` reproduce the original published derivation using
+ Tatterton's `LymphGen_call` and `BCL2_TR` (retained as `lymphgen_tatterton`
+ and `bcl2_tr_tatterton`). Both share the same Tatterton AGS half.
+
+ Tatterton's AGS is anchored to the specific mRNA biopsy it was derived from.
+ S1A (BCCA) donors are `DLC####` and are linked to that biopsy via an
+ Assay_Sequencing crosswalk (microRNA libraries excluded); a sample is
+ annotated only if it is on that mRNA biopsy (its mRNA plus any DNA sharing it),
+ so a patient's other biopsies are NOT annotated. S1B (NCI) donors equal
+ `patient_id` and are linked patient-level, since their RNA and DNA share
+ biopsies. Samples outside both cohorts receive NA for the added columns.
+ `manntype`, `FL_signature`, `manntype_tatterton`, and `FL_signature_tatterton`
+ are POS/NEG factors.
+}\if{html}{\out{</div>}}
 }
 \details{
 This is an internal function called by
