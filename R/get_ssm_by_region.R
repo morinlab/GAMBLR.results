@@ -163,8 +163,6 @@ get_ssm_by_region = function(chromosome,
       maf_column_types =  "ciccciiccccccclcccclllllllllllllllccccciiiiii"
     }else{
       maf_columns = names(maf_header) #return all MAF columns (104)
-      print(paste("MAF will have",length(maf_columns),"columns"))
-      print(paste(maf_columns,sep=","))
       maf_column_types = "ciccciiccccccclcccclllllllllllllllccccciiiiiiccccccccccccinnccccccccccccccccccclcccccccccnclcncccclnnnnn"
     }
   }
