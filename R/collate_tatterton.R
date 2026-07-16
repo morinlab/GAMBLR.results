@@ -95,7 +95,7 @@ collate_tatterton = function(
     
     tatterton_patients <- unique(tatterton_calls$patient_id)
 
-    # Join Tatterton information onto sample table
+    # Create df with which samples from sample table will be annotated with Tatterton columns
     # S1a is linked using tatterton_rna_biopsy = biopsy_id
     # S1b is linked using Donor_Name = patient_id
     matched <- sample_table %>%
