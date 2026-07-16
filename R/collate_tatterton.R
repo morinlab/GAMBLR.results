@@ -63,27 +63,14 @@ collate_tatterton = function(
         bcl2_tr_tatterton = "BCL2_TR"
     )
 
-    # Read Tatterton s1b and derive the Mann-type calls per patient
-    # FL_signature: POS if LymphGen_call contains "EZB" or BCL2_TR == "POS"
-    # manntype: POS if AGS in CDR (AGS >= 1 and AGS_location_type contains "CDR") AND FL_signature == "POS"
-    # All other Tatterton columns are kept and pushed to the far right using everything()
-    tatterton <- suppressMessages(read_csv(full_path)) %>%
-        dplyr::rename(patient_id = Donor_Name) %>% # Rename Donor_Name in tatterton to patient_id so it's shared with sample_table
-        dplyr::mutate(
-            FL_signature = if_else( # Create FL_signature column. POS if LymphGen_call from tatterton contains "EZB" OR BCL2_TR == "POS"
-                grepl("EZB", toupper(coalesce(LymphGen_call, ""))) |
-                    toupper(coalesce(BCL2_TR, "")) == "POS",
-                "POS", "NEG"
-            ),
-            manntype = if_else( # Create manntype column. POS if AGS >=1 AND AGS is in the CDR AND FL_signature == "POS"
-                grepl("CDR", toupper(coalesce(AGS_location_type, ""))) &
-                    coalesce(suppressWarnings(as.numeric(AGS)), 0) >= 1 &
-                    FL_signature == "POS",
-                "POS", "NEG"
-            ),
-            across(c(FL_signature, manntype), ~ factor(.x, levels = c("NEG", "POS")))
-        ) %>%
-        dplyr::distinct(patient_id, .keep_all = TRUE)
+    # Read Tatterton supplemental tables and keep only columns in keep_rename
+    s1a <- suppressMessages(readr::read_tsv(s1a_path, col_types = cols(.default = "c"))) %>%
+        dplyr::select(dplyr::any_of(unname(keep_rename)))
+    s1b <- suppressMessages(readr::read_tsv(s1b_path, col_types = cols(.default = "c"))) %>%
+        dplyr::select(dplyr::any_of(unname(keep_rename)))
+
+    tatterton <- dplyr::bind_rows(s1a, s1b) %>%
+        dplyr::distinct(Donor_Name, .keep_all = TRUE)
 
     # Preserve the incoming column names so the original and Tatterton columns can be reordered after the join
     sample_table_cols <- colnames(sample_table)
