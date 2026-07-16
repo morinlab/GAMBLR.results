@@ -77,6 +77,7 @@ collate_tatterton = function(
 
     # Create Assay_Sequencing map for linking S1a samples
     map_s1a <- assay_dlc %>%
+        dplyr::filter(!grepl("mi_RNA|miRNA", Sample_ID, ignore.case = TRUE)) %>% # Filter out miRNA libraries
         dplyr::distinct(patient_id, biopsy_id, Donor_Name) %>%
         dplyr::rename(tatterton_rna_biopsy = biopsy_id) %>%
         dplyr::filter(Donor_Name %in% s1a$Donor_Name)
