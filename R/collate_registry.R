@@ -33,9 +33,17 @@
 #'     like `compute_ssm_results_core()`, whose per-sample file reads make
 #'     memory genuinely scale with how many samples are requested at once.
 #'     Set explicitly to `FALSE` for functions whose cost is dominated by
-#'     a small, fixed set of shared file reads independent of scope size
-#'     (e.g. `compute_curated_sv_results_core()`) -- chunking those just
-#'     re-reads the same files once per batch for no benefit.}
+#'     a single, whole-cohort shared read independent of scope size (e.g.
+#'     `compute_curated_sv_results_core()`'s curated `.tsv` files,
+#'     `compute_sv_results_core()`'s `get_combined_sv()`/`annotate_sv()`) --
+#'     chunking those just repeats the same expensive read once per batch
+#'     for no benefit, since the read isn't scoped to the batch at all.}
+#'   \item{batch_size}{Optional override of `collate_results_db()`'s own
+#'     `batch_size` argument, for this function only. Ignored when
+#'     `batchable` is `FALSE`. Use this for a function whose per-sample
+#'     cost is high enough that even the global default is too much
+#'     memory/work per call (e.g. `ssm_results`, via
+#'     `get_ssm_by_samples()`).}
 #' }
 #'
 #' @keywords internal
@@ -44,7 +52,8 @@ collate_registry <- list(
   ssm_results = list(
     core_fn = "compute_ssm_results_core",
     metadata_arg = "sample_table",
-    extra_args = list()
+    extra_args = list(),
+    batch_size = 20
   ),
   lymphgen = list(
     core_fn = "compute_lymphgen_core",
@@ -75,7 +84,8 @@ collate_registry <- list(
   sv_results = list(
     core_fn = "compute_sv_results_core",
     metadata_arg = "sample_table",
-    extra_args = list()
+    extra_args = list(),
+    batchable = FALSE
   ),
   sbs_results = list(
     core_fn = "compute_sbs_results_core",

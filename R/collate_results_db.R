@@ -91,9 +91,18 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
       # independent of how many samples are requested -- chunking those would
       # just re-read the same files once per batch for no benefit. Everything
       # else defaults to batchable, since most core functions' cost does
-      # scale with the number of samples requested at once.
+      # scale with the number of samples requested at once. A registered
+      # entry may also override the batch size itself (entry$batch_size),
+      # for a function whose per-sample cost warrants a smaller (or larger)
+      # chunk than the global default.
       entry_batchable <- if (is.null(entry$batchable)) TRUE else isTRUE(entry$batchable)
-      this_batch_size <- if (entry_batchable) batch_size else length(to_compute)
+      this_batch_size <- if (!entry_batchable) {
+        length(to_compute)
+      } else if (!is.null(entry$batch_size)) {
+        entry$batch_size
+      } else {
+        batch_size
+      }
       batches <- split(to_compute, ceiling(seq_along(to_compute) / this_batch_size))
       for (i in seq_along(batches)) {
         batch_ids <- batches[[i]]
