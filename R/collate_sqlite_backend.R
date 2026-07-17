@@ -126,17 +126,30 @@ write_collate_table <- function(con, table_name, new_data, key_cols = c("sample_
   DBI::dbBegin(con)
   tryCatch({
     key_combos <- unique(new_data[key_cols])
-    where_clauses <- apply(key_combos, 1, function(row) {
-      conditions <- mapply(function(col, val) {
-        paste0(DBI::dbQuoteIdentifier(con, col), " = ", DBI::dbQuoteString(con, as.character(val)))
-      }, key_cols, row)
-      paste0("(", paste(conditions, collapse = " AND "), ")")
-    })
-    delete_sql <- paste0(
-      "DELETE FROM ", DBI::dbQuoteIdentifier(con, table_name),
-      " WHERE ", paste(where_clauses, collapse = " OR ")
-    )
-    DBI::dbExecute(con, delete_sql)
+    # A single DELETE whose WHERE clause OR's together one condition per key
+    # combo hits SQLite's default max expression tree depth (1000) once
+    # new_data covers more than a few hundred keys -- e.g. a registry entry
+    # marked batchable = FALSE (see collate_registry.R) writes its entire
+    # "missing" set in one write_collate_table() call, which can easily be
+    # thousands of rows. Chunk the DELETE well under that limit; each chunk
+    # still runs inside the same transaction, so this stays atomic.
+    delete_chunk_size <- 200
+    chunk_starts <- seq(1, nrow(key_combos), by = delete_chunk_size)
+    for (start in chunk_starts) {
+      end <- min(start + delete_chunk_size - 1, nrow(key_combos))
+      chunk <- key_combos[start:end, , drop = FALSE]
+      where_clauses <- apply(chunk, 1, function(row) {
+        conditions <- mapply(function(col, val) {
+          paste0(DBI::dbQuoteIdentifier(con, col), " = ", DBI::dbQuoteString(con, as.character(val)))
+        }, key_cols, row)
+        paste0("(", paste(conditions, collapse = " AND "), ")")
+      })
+      delete_sql <- paste0(
+        "DELETE FROM ", DBI::dbQuoteIdentifier(con, table_name),
+        " WHERE ", paste(where_clauses, collapse = " OR ")
+      )
+      DBI::dbExecute(con, delete_sql)
+    }
     DBI::dbWriteTable(con, table_name, new_data, append = TRUE)
     DBI::dbCommit(con)
   }, error = function(e) {
