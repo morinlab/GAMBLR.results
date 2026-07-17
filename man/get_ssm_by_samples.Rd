@@ -30,6 +30,12 @@ If provided, it will return SSM calls for the samples in the metadata table.}
 \item{projection}{Obtain variants projected to this reference
 (one of grch37 or hg38).}
 
+\item{flavour}{One of "clustered" (slms-3, default), "sage", or "legacy"
+(not currently supported). \code{subset_from_merge = TRUE} is only available
+for "clustered" -- "sage" only has individual per-sample files (see
+\link{get_ssm_by_sample}), so \code{subset_from_merge} must be left
+FALSE (the default) when using it.}
+
 \item{min_read_support}{Only returns variants with at least this
 many reads in t_alt_count (for cleaning up augmented MAFs).}
 

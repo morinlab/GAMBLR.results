@@ -273,6 +273,17 @@ get_ssm_by_samples = function(these_samples_metadata,
       if(!is.null(maf_cols) && !basic_columns){maf_df_merge = dplyr::select(maf_df_merge, all_of(maf_cols))}
     }
 
+    if(subset_from_merge){
+      # Both merge-reading branches above build maf_df_merge via fread/
+      # fread_maf/read_tsv directly, with no genomic_data/maf_data class --
+      # unlike the !subset_from_merge path below, which gets it via
+      # bind_genomic_data() combining already-classed get_ssm_by_sample()
+      # results. Wrap here once, after either branch has finished building
+      # maf_df_merge, so the return type is consistent regardless of which
+      # path was taken.
+      maf_df_merge <- GAMBLR.utils::create_maf_data(maf_df_merge, projection)
+    }
+
     if(!subset_from_merge){
         maf_df_list = list()
         for(a_seq_type in names(seq_type_sample_ids)){
