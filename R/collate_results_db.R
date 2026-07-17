@@ -20,6 +20,14 @@
 #' `"ssm_results"`), of sample_ids to force-recompute for that function
 #' even if already present in its table. Functions not named here use the
 #' default missing-only behaviour.
+#' @param batch_size Compute at most this many samples per call to a
+#' registered function's core function, writing each batch to its table
+#' before moving to the next. Bounds memory to O(batch_size) rather than
+#' O(samples missing) -- relevant since some core functions (e.g.
+#' `compute_ssm_results_core()`, via `get_ssm_by_samples()`) hold every
+#' batch member's data in memory at once before combining. Also means a
+#' failure partway through a large catch-up run doesn't lose already-
+#' completed batches: a re-run only recomputes what's left. Default 50.
 #' @param db_path Optional explicit path to the SQLite database, passed to
 #' `gambl_collated_db()`.
 #'
@@ -40,7 +48,7 @@
 #'   refresh = list(ssm_results = c("sample1", "sample2"))
 #' )
 #' }
-collate_results_db <- function(these_samples_metadata, refresh = list(), db_path = NULL) {
+collate_results_db <- function(these_samples_metadata, refresh = list(), batch_size = 50, db_path = NULL) {
   if (missing(these_samples_metadata)) {
     these_samples_metadata <- get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome", "capture"))
@@ -74,11 +82,21 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), db_path
       )
       if (length(to_compute) == 0) next
 
-      scope_subset <- dplyr::filter(scope, sample_id %in% to_compute)
-      call_args <- c(setNames(list(scope_subset), entry$metadata_arg), entry$extra_args)
-      new_cols <- do.call(entry$core_fn, call_args)
-      new_cols$seq_type <- seq
-      write_collate_table(con, reg_name, new_cols)
+      batches <- split(to_compute, ceiling(seq_along(to_compute) / batch_size))
+      for (i in seq_along(batches)) {
+        batch_ids <- batches[[i]]
+        if (length(batches) > 1) {
+          message(sprintf(
+            "%s (%s): batch %d/%d (%d samples)",
+            reg_name, seq, i, length(batches), length(batch_ids)
+          ))
+        }
+        scope_subset <- dplyr::filter(scope, sample_id %in% batch_ids)
+        call_args <- c(setNames(list(scope_subset), entry$metadata_arg), entry$extra_args)
+        new_cols <- do.call(entry$core_fn, call_args)
+        new_cols$seq_type <- seq
+        write_collate_table(con, reg_name, new_cols)
+      }
     }
   }
 
