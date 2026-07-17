@@ -28,6 +28,10 @@
 #' batch member's data in memory at once before combining. Also means a
 #' failure partway through a large catch-up run doesn't lose already-
 #' completed batches: a re-run only recomputes what's left. Default 50.
+#' Ignored for any function registered with `batchable = FALSE` in
+#' `collate_registry.R` -- those compute their entire "missing" set in one
+#' call regardless, since their cost comes from a small, fixed set of
+#' shared file reads rather than scaling with sample count.
 #' @param db_path Optional explicit path to the SQLite database, passed to
 #' `gambl_collated_db()`.
 #'
@@ -82,7 +86,15 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
       )
       if (length(to_compute) == 0) next
 
-      batches <- split(to_compute, ceiling(seq_along(to_compute) / batch_size))
+      # Functions explicitly marked batchable = FALSE (see collate_registry.R)
+      # have a cost dominated by a small, fixed set of shared file reads,
+      # independent of how many samples are requested -- chunking those would
+      # just re-read the same files once per batch for no benefit. Everything
+      # else defaults to batchable, since most core functions' cost does
+      # scale with the number of samples requested at once.
+      entry_batchable <- if (is.null(entry$batchable)) TRUE else isTRUE(entry$batchable)
+      this_batch_size <- if (entry_batchable) batch_size else length(to_compute)
+      batches <- split(to_compute, ceiling(seq_along(to_compute) / this_batch_size))
       for (i in seq_along(batches)) {
         batch_ids <- batches[[i]]
         if (length(batches) > 1) {

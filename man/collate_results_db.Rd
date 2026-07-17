@@ -28,7 +28,11 @@ O(samples missing) -- relevant since some core functions (e.g.
 \code{compute_ssm_results_core()}, via \code{get_ssm_by_samples()}) hold every
 batch member's data in memory at once before combining. Also means a
 failure partway through a large catch-up run doesn't lose already-
-completed batches: a re-run only recomputes what's left. Default 50.}
+completed batches: a re-run only recomputes what's left. Default 50.
+Ignored for any function registered with \code{batchable = FALSE} in
+\code{collate_registry.R} -- those compute their entire "missing" set in one
+call regardless, since their cost comes from a small, fixed set of
+shared file reads rather than scaling with sample count.}
 
 \item{db_path}{Optional explicit path to the SQLite database, passed to
 \code{gambl_collated_db()}.}

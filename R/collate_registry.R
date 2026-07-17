@@ -27,6 +27,15 @@
 #'     specific `sbs_manipulation` for `compute_sbs_results_core`). Empty
 #'     for every function currently registered -- each one's own defaults
 #'     already match what `collate_results()` used.}
+#'   \item{batchable}{Whether `collate_results_db()` should split a large
+#'     "missing" set into `batch_size`-sized chunks for this function.
+#'     Defaults to `TRUE` (via \code{isTRUE()} when absent) for functions
+#'     like `compute_ssm_results_core()`, whose per-sample file reads make
+#'     memory genuinely scale with how many samples are requested at once.
+#'     Set explicitly to `FALSE` for functions whose cost is dominated by
+#'     a small, fixed set of shared file reads independent of scope size
+#'     (e.g. `compute_curated_sv_results_core()`) -- chunking those just
+#'     re-reads the same files once per batch for no benefit.}
 #' }
 #'
 #' @keywords internal
@@ -60,7 +69,8 @@ collate_registry <- list(
   curated_sv_results = list(
     core_fn = "compute_curated_sv_results_core",
     metadata_arg = "sample_table",
-    extra_args = list()
+    extra_args = list(),
+    batchable = FALSE
   ),
   sv_results = list(
     core_fn = "compute_sv_results_core",
