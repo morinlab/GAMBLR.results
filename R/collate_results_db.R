@@ -1,0 +1,93 @@
+#' @title Collate GAMBL results via the SQLite-backed cache.
+#'
+#' @description The SQLite-backed counterpart to
+#' [GAMBLR.results::collate_results]. For each function registered in the
+#' internal `collate_registry`, computes results only for samples missing
+#' from that function's table (or explicitly listed in `refresh`), then
+#' returns one wide table joining every registered function's results onto
+#' `these_samples_metadata`.
+#'
+#' @details This is additive, not a replacement: `collate_results()` and
+#' the individual `collate_*_results()` wrapper functions are untouched and
+#' keep working exactly as before, backed by the existing shared-TSV cache.
+#' Only functions listed in the internal `collate_registry` are included
+#' here -- see `R/collate_registry.R` for which ones and why.
+#'
+#' @param these_samples_metadata A metadata table with (at least)
+#' `sample_id` and `seq_type` columns. Defaults to all genome and capture
+#' samples from [GAMBLR.results::get_gambl_metadata] if omitted.
+#' @param refresh Optional named list, keyed by registry name (e.g.
+#' `"ssm_results"`), of sample_ids to force-recompute for that function
+#' even if already present in its table. Functions not named here use the
+#' default missing-only behaviour.
+#' @param db_path Optional explicit path to the SQLite database, passed to
+#' `gambl_collated_db()`.
+#'
+#' @return `these_samples_metadata` joined with every registered
+#' function's result columns.
+#'
+#' @import dplyr DBI
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' my_meta <- get_gambl_metadata() %>% dplyr::filter(pathology == "FL")
+#' collated <- collate_results_db(these_samples_metadata = my_meta)
+#'
+#' # force ssm_results to recompute for two specific samples
+#' collated <- collate_results_db(
+#'   these_samples_metadata = my_meta,
+#'   refresh = list(ssm_results = c("sample1", "sample2"))
+#' )
+#' }
+collate_results_db <- function(these_samples_metadata, refresh = list(), db_path = NULL) {
+  if (missing(these_samples_metadata)) {
+    these_samples_metadata <- get_gambl_metadata() %>%
+      dplyr::filter(seq_type %in% c("genome", "capture"))
+  }
+  if (!all(c("sample_id", "seq_type") %in% names(these_samples_metadata))) {
+    stop("these_samples_metadata must include sample_id and seq_type columns.")
+  }
+
+  con <- gambl_collated_db(db_path = db_path)
+  seq_types <- unique(these_samples_metadata$seq_type)
+
+  for (reg_name in names(collate_registry)) {
+    entry <- collate_registry[[reg_name]]
+    refresh_ids <- refresh[[reg_name]]
+    if (is.null(refresh_ids)) refresh_ids <- character(0)
+
+    for (seq in seq_types) {
+      scope <- dplyr::filter(these_samples_metadata, seq_type == seq)
+      requested_ids <- scope$sample_id
+
+      existing <- get_existing_collate_keys(con, reg_name)
+      existing_ids <- if (nrow(existing) > 0) {
+        existing$sample_id[existing$seq_type == seq]
+      } else {
+        character(0)
+      }
+
+      to_compute <- union(
+        setdiff(requested_ids, existing_ids),
+        intersect(requested_ids, refresh_ids)
+      )
+      if (length(to_compute) == 0) next
+
+      scope_subset <- dplyr::filter(scope, sample_id %in% to_compute)
+      call_args <- c(setNames(list(scope_subset), entry$metadata_arg), entry$extra_args)
+      new_cols <- do.call(entry$core_fn, call_args)
+      new_cols$seq_type <- seq
+      write_collate_table(con, reg_name, new_cols)
+    }
+  }
+
+  result <- these_samples_metadata
+  for (reg_name in names(collate_registry)) {
+    if (!DBI::dbExistsTable(con, reg_name)) next
+    table_data <- DBI::dbReadTable(con, reg_name)
+    if (nrow(table_data) == 0) next
+    result <- dplyr::left_join(result, table_data, by = c("sample_id", "seq_type"))
+  }
+  result
+}
