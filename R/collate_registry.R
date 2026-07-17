@@ -55,6 +55,12 @@ collate_registry <- list(
     extra_args = list(),
     batch_size = 20
   ),
+  sage_results = list(
+    core_fn = "compute_sage_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list(),
+    batch_size = 20
+  ),
   lymphgen = list(
     core_fn = "compute_lymphgen_core",
     metadata_arg = "these_samples_metadata",
