@@ -55,6 +55,13 @@ the individual \verb{collate_*_results()} wrapper functions are untouched and
 keep working exactly as before, backed by the existing shared-TSV cache.
 Only functions listed in the internal \code{collate_registry} are included
 here -- see \code{R/collate_registry.R} for which ones and why.
+
+\code{these_samples_metadata} is deduplicated to one row per
+\verb{(sample_id, seq_type)} (keeping the first occurrence) before anything
+else happens, with a message if it actually drops anything -- every
+registered core function's output grain follows the metadata scope it's
+given, so a duplicate row there would otherwise produce duplicate rows
+in every table it touches, and in the final result.
 }
 \examples{
 \dontrun{

@@ -13,6 +13,13 @@
 #' Only functions listed in the internal `collate_registry` are included
 #' here -- see `R/collate_registry.R` for which ones and why.
 #'
+#' `these_samples_metadata` is deduplicated to one row per
+#' `(sample_id, seq_type)` (keeping the first occurrence) before anything
+#' else happens, with a message if it actually drops anything -- every
+#' registered core function's output grain follows the metadata scope it's
+#' given, so a duplicate row there would otherwise produce duplicate rows
+#' in every table it touches, and in the final result.
+#'
 #' @param these_samples_metadata A metadata table with (at least)
 #' `sample_id` and `seq_type` columns. Defaults to all genome and capture
 #' samples from [GAMBLR.results::get_gambl_metadata] if omitted.
@@ -59,6 +66,26 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
   }
   if (!all(c("sample_id", "seq_type") %in% names(these_samples_metadata))) {
     stop("these_samples_metadata must include sample_id and seq_type columns.")
+  }
+
+  # Every core function keys its output on (sample_id, seq_type) via
+  # dplyr::select(sample_table, sample_id) %>% left_join(...) -- if the
+  # caller's own metadata has more than one row for the same
+  # (sample_id, seq_type) (e.g. from an upstream join that fanned out),
+  # that duplication flows straight through into what gets written to
+  # each table, and then into the final joined result. Collapsing here,
+  # once, keeps every downstream table and the final join clean
+  # regardless of the cause. Not silent, since a duplicate row usually
+  # means something upstream in the caller's metadata construction is
+  # worth checking.
+  n_before <- nrow(these_samples_metadata)
+  these_samples_metadata <- dplyr::distinct(these_samples_metadata, sample_id, seq_type, .keep_all = TRUE)
+  n_dropped <- n_before - nrow(these_samples_metadata)
+  if (n_dropped > 0) {
+    message(sprintf(
+      "collate_results_db(): these_samples_metadata had %d duplicate (sample_id, seq_type) row(s); keeping the first occurrence of each. If unexpected, check how this metadata table was built.",
+      n_dropped
+    ))
   }
 
   con <- gambl_collated_db(db_path = db_path)
