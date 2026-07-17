@@ -68,7 +68,15 @@ compute_lymphgen_core <- function(these_samples_metadata,
   }
 
   if(!missing(these_samples_metadata)){
-    result = dplyr::filter(result, sample_id %in% these_samples_metadata$sample_id)
+    # every requested sample_id gets a row back, even one absent from every
+    # loaded flavour file (NA in the derived columns), not just those that
+    # happened to have a classification. Without this, collate_results_db()
+    # would never see such a sample as "already computed" -- its cache table
+    # would never gain a row for it -- so every future run would reload and
+    # re-scan all flavour files for it again, forever, instead of caching
+    # the "no classification available" result the way a real NA does.
+    result = dplyr::select(these_samples_metadata, sample_id) %>%
+      dplyr::left_join(result, by = "sample_id")
   }
 
   return(result)

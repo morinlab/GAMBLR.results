@@ -23,9 +23,10 @@
 #'     `these_samples_metadata` -- so this is recorded explicitly per
 #'     function rather than assumed.}
 #'   \item{extra_args}{Named list of additional fixed arguments to pass to
-#'     `core_fn` on every call (e.g. `collate_sbs_results`'s
-#'     `sbs_manipulation`). Empty for functions that need nothing beyond
-#'     the sample scope.}
+#'     `core_fn` on every call, overriding its defaults (e.g. forcing a
+#'     specific `sbs_manipulation` for `compute_sbs_results_core`). Empty
+#'     for every function currently registered -- each one's own defaults
+#'     already match what `collate_results()` used.}
 #' }
 #'
 #' @keywords internal
@@ -40,11 +41,39 @@ collate_registry <- list(
     core_fn = "compute_lymphgen_core",
     metadata_arg = "these_samples_metadata",
     extra_args = list()
+  ),
+  dlbclass = list(
+    core_fn = "compute_dlbclass_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
+  ),
+  qc_results = list(
+    core_fn = "compute_qc_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
+  ),
+  ashm_results = list(
+    core_fn = "compute_ashm_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
+  ),
+  curated_sv_results = list(
+    core_fn = "compute_curated_sv_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
+  ),
+  sv_results = list(
+    core_fn = "compute_sv_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
+  ),
+  sbs_results = list(
+    core_fn = "compute_sbs_results_core",
+    metadata_arg = "sample_table",
+    extra_args = list()
   )
-  # Remaining registered-but-not-yet-migrated functions (see
-  # docker/RELEASING.md-style planning notes / the CONTRIBUTING.md "Future
-  # direction" section): sv_results, curated_sv_results, ashm_results,
-  # sbs_results, qc_results, dlbclass, battenberg_purity, csr_results.
-  # Each needs the same core/wrapper extraction as ssm_results and
-  # lymphgen before being added here.
+  # battenberg_purity and csr_results are deliberately not yet registered --
+  # pending the user's own independent verification that these
+  # revived-from-dormant functions still work correctly against current
+  # data (see collate_battenberg_purity.R / collate_csr_results.R).
 )

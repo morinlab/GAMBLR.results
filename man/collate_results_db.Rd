@@ -4,7 +4,12 @@
 \alias{collate_results_db}
 \title{Collate GAMBL results via the SQLite-backed cache.}
 \usage{
-collate_results_db(these_samples_metadata, refresh = list(), db_path = NULL)
+collate_results_db(
+  these_samples_metadata,
+  refresh = list(),
+  batch_size = 50,
+  db_path = NULL
+)
 }
 \arguments{
 \item{these_samples_metadata}{A metadata table with (at least)
@@ -15,6 +20,15 @@ samples from \link{get_gambl_metadata} if omitted.}
 \code{"ssm_results"}), of sample_ids to force-recompute for that function
 even if already present in its table. Functions not named here use the
 default missing-only behaviour.}
+
+\item{batch_size}{Compute at most this many samples per call to a
+registered function's core function, writing each batch to its table
+before moving to the next. Bounds memory to O(batch_size) rather than
+O(samples missing) -- relevant since some core functions (e.g.
+\code{compute_ssm_results_core()}, via \code{get_ssm_by_samples()}) hold every
+batch member's data in memory at once before combining. Also means a
+failure partway through a large catch-up run doesn't lose already-
+completed batches: a re-run only recomputes what's left. Default 50.}
 
 \item{db_path}{Optional explicit path to the SQLite database, passed to
 \code{gambl_collated_db()}.}
