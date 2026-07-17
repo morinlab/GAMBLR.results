@@ -153,6 +153,26 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
     if (!DBI::dbExistsTable(con, reg_name)) next
     table_data <- DBI::dbReadTable(con, reg_name)
     if (nrow(table_data) == 0) next
+
+    # Skip any non-key column this table would produce that the caller's
+    # own these_samples_metadata already has -- e.g. get_gambl_metadata()
+    # already bakes QC columns into its output via its own internal
+    # collate_qc_results() call (used for its min_corrected_cov filter),
+    # so re-joining qc_results here would otherwise collide on identical
+    # column names and get silently .x/.y suffixed by dplyr rather than
+    # erroring. Whatever the caller's metadata already carries wins.
+    value_cols <- setdiff(names(table_data), c("sample_id", "seq_type"))
+    conflicting <- intersect(value_cols, names(result))
+    if (length(conflicting) > 0) {
+      message(sprintf(
+        "collate_results_db(): %s column(s) already present in these_samples_metadata, skipping from the %s table: %s",
+        length(conflicting), reg_name, paste(conflicting, collapse = ", ")
+      ))
+      table_data <- dplyr::select(table_data, -all_of(conflicting))
+      value_cols <- setdiff(value_cols, conflicting)
+    }
+    if (length(value_cols) == 0) next
+
     result <- dplyr::left_join(result, table_data, by = c("sample_id", "seq_type"))
   }
   result
