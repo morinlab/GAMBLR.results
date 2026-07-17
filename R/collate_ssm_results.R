@@ -7,21 +7,25 @@
 #' `coding_ssm`), keyed by `sample_id` -- every `sample_id` present in
 #' `sample_table` gets a row back, even if it had zero mutations (`NA`
 #' counts), matching the join behaviour `collate_ssm_results()` always
-#' had.
+#' had. Reads per-sample files via `get_ssm_by_samples()` rather than the
+#' whole 200+MB merged MAF, since this is typically called for a small
+#' "missing from the cache" scope, not the full cohort at once.
 #'
 #' @param sample_table A data frame with sample_id as a column, scoping
 #' which samples to compute for.
 #' @param seq_type_filter Filtering criteria, default is genomes.
 #' @param projection Specifies the projection, default is "grch37".
-#' @param from_flatfile Optional argument whether to use database or flat
-#' file to retrieve mutations, default is TRUE.
+#' @param from_flatfile Accepted for signature compatibility with the
+#' original implementation, but no longer branches on anything --
+#' `from_flatfile = FALSE` never actually worked in the original (no
+#' `muts` was ever defined for that case).
 #' @param include_silent Logical parameter indicating whether to include
 #' silent mutations into coding mutations. Default is FALSE.
 #'
 #' @return A data frame with `sample_id`, `total_ssm`, `mean_vaf`,
 #' `coding_ssm`.
 #'
-#' @import dplyr glue GAMBLR.helpers
+#' @import dplyr
 #'
 #' @keywords internal
 #' @noRd
@@ -34,27 +38,26 @@ compute_ssm_results_core <- function(sample_table,
   if(!include_silent){
     coding_class = coding_class[coding_class != "Silent"]
   }
-  seq_type = seq_type_filter
-  #iterate over every sample and compute some summary stats from its MAF
-  if(from_flatfile){
-    base_path = GAMBLR.helpers::check_config_value(config::get("project_base"))
-    #test if we have permissions for the full gambl + icgc merge
-    maf_partial_path = GAMBLR.helpers::check_config_value(config::get("results_flatfiles")$ssm$template$merged$deblacklisted)
 
-    maf_path = paste0(base_path, maf_partial_path)
-    maf_path = glue::glue(maf_path)
-    message(paste("Checking permissions on:",maf_path))
-    maf_permissions = file.access(maf_path, 4)
-    if(maf_permissions == -1){
-      message("fail. You do not have permissions to access all the results. Use the cached results instead.")
-      return(dplyr::select(sample_table, sample_id))
-    }
-    print(paste("loading",maf_path))
-    muts = vroom::vroom(maf_path) %>%
-      dplyr::select(Hugo_Symbol,Tumor_Sample_Barcode,Variant_Classification,t_alt_count,t_ref_count)
-    mutated_samples = length(unique(muts$Tumor_Sample_Barcode))
-    message(paste("mutations from", mutated_samples, "samples"))
-  }
+  # Read per-sample files for just the requested scope (get_ssm_by_samples()
+  # with its default subset_from_merge = FALSE), instead of loading the
+  # entire merged MAF -- that file is 200+MB across the whole cohort, and
+  # this function is now typically called for a handful of samples missing
+  # from the cache, not the whole cohort at once (see collate_results_db()).
+  # from_flatfile is accepted but no longer branches on anything: the
+  # FALSE case never actually worked (no `muts` was ever defined for it).
+  # min_read_support = 0 preserves this function's original behaviour of
+  # not filtering by read support at all -- get_ssm_by_sample()'s own
+  # filter is skipped when its threshold is 0/falsy.
+  muts = get_ssm_by_samples(
+    these_samples_metadata = sample_table,
+    projection = projection,
+    augmented = FALSE,
+    min_read_support = 0,
+    basic_columns = TRUE
+  ) %>%
+    dplyr::select(Hugo_Symbol,Tumor_Sample_Barcode,Variant_Classification,t_alt_count,t_ref_count)
+
   #get tally of total per sample
   muts = muts %>%
     dplyr::rename("sample_id" = "Tumor_Sample_Barcode") %>%
