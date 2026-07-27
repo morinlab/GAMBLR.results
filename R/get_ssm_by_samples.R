@@ -14,6 +14,11 @@
 #' @param these_samples_metadata Optional metadata table.
 #' If provided, it will return SSM calls for the samples in the metadata table.
 #' @param tool_name Only supports slms_3 currently.
+#' @param flavour One of "clustered" (slms-3, default), "sage", or "legacy"
+#' (not currently supported). `subset_from_merge = TRUE` is only available
+#' for "clustered" -- "sage" only has individual per-sample files (see
+#' [GAMBLR.results::get_ssm_by_sample]), so `subset_from_merge` must be left
+#' FALSE (the default) when using it.
 #' @param augmented default: TRUE. Set to FALSE if you instead want
 #' the original MAF from each sample for multi-sample patients instead.
 #' @param projection Obtain variants projected to this reference
@@ -26,6 +31,16 @@
 #' specify which columns to be returned within the MAF.
 #' This parameter can either be a vector of indexes (integer)
 #' or a vector of characters.
+#' @param variant_classification_filter Optional character vector of
+#' Variant_Classification values to keep (e.g. GAMBLR.helpers::vc_nonSynonymous).
+#' When `subset_from_merge = FALSE` (the default), this is passed through to
+#' [GAMBLR.results::get_ssm_by_sample] for each sample, where it is used to
+#' grep-filter each per-sample MAF before it is parsed (see that function's
+#' documentation for details) -- avoiding the cost of materializing every
+#' variant for every sample when only a subset of classifications is needed.
+#' When `subset_from_merge = TRUE`, an ordinary `dplyr::filter()` is applied
+#' after reading the merge (no per-sample grep is possible there). Default
+#' NULL returns all variant classifications (original behaviour).
 #' @param subset_from_merge Instead of merging individual MAFs,
 #' the data will be subset from a pre-merged MAF of samples with
 #' the specified this_seq_type.
@@ -73,6 +88,7 @@ get_ssm_by_samples = function(these_samples_metadata,
                               min_read_support = 3,
                               basic_columns = TRUE,
                               maf_cols = NULL,
+                              variant_classification_filter = NULL,
                               subset_from_merge = FALSE,
                               augmented = TRUE,
                               engine = 'fread_maf',
@@ -113,12 +129,38 @@ get_ssm_by_samples = function(these_samples_metadata,
   these_sample_ids <- these_samples_metadata$sample_id
 
   maf_column_types = "ccccciiccccccccccccccccccccccnccccccccciiiiii" #for the first 45 standard columns
+
+  # When variant_classification_filter is set, build a grep command that
+  # cheaply drops lines that can't match before a merge is ever parsed by R
+  # (grep matches whole words anywhere on the line, so this is a fast
+  # superset; an exact dplyr::filter is always applied afterwards to
+  # guarantee correctness). These merges are typically ~99% non-coding
+  # variants, so for the subset_from_merge path below this avoids
+  # materializing rows that would just be discarded -- saving both time and
+  # memory. Mirrors the same approach already used in get_ssm_by_sample().
+  grep_classification_cmd = function(path, classifications){
+    terms = paste(shQuote(classifications, type = "sh"), collapse = " -e ")
+    paste("grep -h -w -F -e Hugo_Symbol -e", terms, shQuote(path, type = "sh"))
+  }
+
   if(flavour=="legacy"){
     warning("I lied. Access to the old variant calls is not currently supported in this function")
     # TODO: implement loading of the old merged MAF under icgc_dart... vcf2maf-1.2 ..level_3 as per the other from_flatfile functions
     return()
 
-  }else if(flavour=="clustered"){
+  }else if(flavour %in% c("clustered", "sage")){
+    if(subset_from_merge && flavour != "clustered"){
+      # Only "clustered" (slms-3) has a config$results_flatfiles$ssm$template$merged
+      # entry -- "sage" only has per-sample clustered$sage$deblacklisted/augmented
+      # paths (see get_ssm_by_sample(), which already handles flavour = "sage"
+      # correctly). Failing loudly here avoids silently reading the wrong
+      # (clustered) merge file under a "sage" label.
+      stop(glue::glue(
+        "subset_from_merge = TRUE is only supported for flavour = \"clustered\" ",
+        "currently; flavour = \"{flavour}\" only has individual per-sample files ",
+        "available. Use subset_from_merge = FALSE instead."
+      ))
+    }
     if(subset_from_merge && !augmented){
       if(length(unique(these_samples_metadata$seq_type))>1){
         print("more than one seq_type provided")
@@ -142,7 +184,18 @@ get_ssm_by_samples = function(these_samples_metadata,
       }
 
 
-      if(engine=="fread_maf"){
+      if(!is.null(variant_classification_filter)){
+        # grep the merge before it's parsed, regardless of `engine` -- this
+        # bypasses the readr/fread_maf colClasses path entirely, same as
+        # get_ssm_by_sample's grep-filtered path.
+        maf_df_merge = fread(cmd = grep_classification_cmd(full_maf_path, variant_classification_filter)) %>%
+          dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
+          dplyr::filter(t_alt_count >= min_read_support) %>%
+          dplyr::filter(Variant_Classification %in% variant_classification_filter)
+        if(basic_columns){
+          maf_df_merge = dplyr::select(maf_df_merge, 1:45)
+        }
+      }else if(engine=="fread_maf"){
         if(basic_columns){
           maf_df_merge = suppressMessages(fread_maf(full_maf_path,select_cols = c(1:45))) %>%
             dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
@@ -198,7 +251,14 @@ get_ssm_by_samples = function(these_samples_metadata,
       #maf_df_merge = read_tsv(full_maf_path) %>%
       #  dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
       #  dplyr::filter(t_alt_count >= min_read_support)
-      if(basic_columns){
+      if(!is.null(variant_classification_filter)){
+        # grep the merge before it's parsed -- see comment near
+        # grep_classification_cmd's definition above.
+        maf_df_merge = fread(cmd = grep_classification_cmd(full_maf_path, variant_classification_filter)) %>%
+          dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
+          dplyr::filter(t_alt_count >= min_read_support) %>%
+          dplyr::filter(Variant_Classification %in% variant_classification_filter)
+      }else if(basic_columns){
         maf_df_merge = suppressMessages(fread_maf(full_maf_path,select_cols = c(1:45))) %>%
           dplyr::filter(Tumor_Sample_Barcode %in% these_sample_ids) %>%
           dplyr::filter(t_alt_count >= min_read_support)
@@ -213,10 +273,21 @@ get_ssm_by_samples = function(these_samples_metadata,
       if(!is.null(maf_cols) && !basic_columns){maf_df_merge = dplyr::select(maf_df_merge, all_of(maf_cols))}
     }
 
+    if(subset_from_merge){
+      # Both merge-reading branches above build maf_df_merge via fread/
+      # fread_maf/read_tsv directly, with no genomic_data/maf_data class --
+      # unlike the !subset_from_merge path below, which gets it via
+      # bind_genomic_data() combining already-classed get_ssm_by_sample()
+      # results. Wrap here once, after either branch has finished building
+      # maf_df_merge, so the return type is consistent regardless of which
+      # path was taken.
+      maf_df_merge <- GAMBLR.utils::create_maf_data(maf_df_merge, projection)
+    }
+
     if(!subset_from_merge){
         maf_df_list = list()
         for(a_seq_type in names(seq_type_sample_ids)){
-          maf_df_list[[a_seq_type]] <- parallel::mclapply(seq_type_sample_ids[[a_seq_type]],function(this_sample){
+          maf_df_list[[a_seq_type]] <- lapply(seq_type_sample_ids[[a_seq_type]],function(this_sample){
             get_ssm_by_sample(
               these_samples_metadata = dplyr::filter(these_samples_metadata,
                 sample_id==this_sample,
@@ -228,9 +299,9 @@ get_ssm_by_samples = function(these_samples_metadata,
               min_read_support = min_read_support,
               basic_columns = basic_columns,
               maf_cols = maf_cols,
+              variant_classification_filter = variant_classification_filter,
               verbose = FALSE
-            )},
-            mc.cores = 12)
+            )})
             broken_mafs <- maf_df_list[[a_seq_type]][sapply(maf_df_list[[a_seq_type]], Negate(is.data.frame))]
             if(length(broken_mafs) > 0){
               broken_mafs <- broken_mafs[sapply(broken_mafs, Negate(is.null))]
@@ -246,6 +317,11 @@ get_ssm_by_samples = function(these_samples_metadata,
         # Merge all the maf data frames from different seq_types
         maf_df_merge <- do.call(bind_genomic_data, maf_df_list)
     }
+  }else{
+    # Previously, an unrecognized flavour silently fell through the whole
+    # if/else if chain without assigning maf_df_merge at all, only failing
+    # later at return() with a confusing "object not found" error.
+    stop(glue::glue("flavour must be one of \"clustered\", \"sage\", or \"legacy\"; got \"{flavour}\"."))
   }
 
     return(maf_df_merge)

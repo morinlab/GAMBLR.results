@@ -163,8 +163,6 @@ get_ssm_by_region = function(chromosome,
       maf_column_types =  "ciccciiccccccclcccclllllllllllllllccccciiiiii"
     }else{
       maf_columns = names(maf_header) #return all MAF columns (104)
-      print(paste("MAF will have",length(maf_columns),"columns"))
-      print(paste(maf_columns,sep=","))
       maf_column_types = "ciccciiccccccclcccclllllllllllllllccccciiiiiiccccccccccccinnccccccccccccccccccclcccccccccnclcncccclnnnnn"
     }
   }
@@ -382,6 +380,11 @@ get_ssm_by_region = function(chromosome,
   if(streamlined){
     muts_region = muts_region %>%
       dplyr::select(Start_Position, Tumor_Sample_Barcode)
+  }else{
+    # Matches get_ssm_by_regions()'s own convention (same package): the
+    # full MAF-shaped result gets wrapped as maf_data; the minimal
+    # streamlined summary above does not.
+    muts_region = GAMBLR.utils::create_maf_data(muts_region, projection)
   }
 
   return(muts_region)

@@ -1,6 +1,6 @@
-[1] "=== STARTED AT 2026-06-29 09:43:02 ==="
+[1] "=== STARTED AT 2026-07-27 10:56:01 ==="
 [1] "=== RUNNING devtools::run_examples() ==="
-── Running 74 example files ─────────────────────────────────────── GAMBLR.results ──
+── Running 75 example files ──────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -145,7 +145,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 975658  241719 
+ 978167  241982 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -153,16 +153,16 @@ genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1     IGHV2-70      Missense_Mutation 3423
-2      IGLV3-1      Missense_Mutation 3404
-3        IGLL5      Missense_Mutation 2868
-4         BCL2      Missense_Mutation 2813
-5          TTN      Missense_Mutation 2699
-6     IGHV1-69      Missense_Mutation 1835
+1     IGHV2-70      Missense_Mutation 3481
+2      IGLV3-1      Missense_Mutation 3431
+3        IGLL5      Missense_Mutation 2873
+4         BCL2      Missense_Mutation 2815
+5          TTN      Missense_Mutation 2706
+6     IGHV1-69      Missense_Mutation 1841
 7         PIM1      Missense_Mutation 1830
 8          MYC      Missense_Mutation 1395
-9        MUC16      Missense_Mutation 1366
-10      CREBBP      Missense_Mutation 1184
+9        MUC16      Missense_Mutation 1367
+10      CREBBP      Missense_Mutation 1188
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -185,7 +185,7 @@ FL1015T2                               1                      0                 
 
 > colMeans(pax5_matrix)
 PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3          PAX5-intron-1             PAX5-TSS-1 
-             0.6367347              0.7115646              1.3374150              2.0408163              0.4761905 
+             0.6367347              0.7115646              1.3401361              2.0503401              0.4775510 
 
 > capture_metadata <- suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(seq_type == "capture") %>% head()
@@ -258,7 +258,7 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
 
 > colSums(genome_cnv_ssm_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    174       0      76     119     122       7 
+    184      47      76     119     122      13 
 
 > all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     all_types_meta, only_cnv = "MIR17HG"))
@@ -277,12 +277,12 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
 
 > colSums(all_seq_type_status)
     MYC MIR17HG   CCND3     ID3   DDX3X SYNCRIP 
-    269       0     118     194     186      10 
+    283      63     118     194     186      21 
 
 > maf_genome = get_coding_ssm()
 
 > nrow(maf_genome)
-[1] 323308
+[1] 323660
 
 > dplyr::select(maf_genome, 1, 4, 5, 6, 9, maf_seq_type)
 genomic_data Object
@@ -329,7 +329,7 @@ Showing first 10 rows:
 > table(fl_meta$seq_type)
 
 capture  genome 
-    390     534 
+    391     533 
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
@@ -490,21 +490,21 @@ Showing first 10 rows:
 
 > dplyr::group_by(my_metadata, pathology, seq_type) %>% 
 +     dplyr::count()
-# A tibble: 101 × 3
-# Groups:   pathology, seq_type [101]
-   pathology     seq_type     n
-   <chr>         <chr>    <int>
- 1 AILT_DLBCEBV  genome       1
- 2 AILT_NS1      genome       1
- 3 AITL          capture      3
- 4 AITL          genome      81
- 5 AITL          mrna        26
- 6 AITL_DLBCEBV  genome       1
- 7 AITL_PTCL     genome       1
- 8 AITL_PTCL_TFH genome       1
- 9 AITL_SLL      genome       1
-10 ALCL          capture    100
-# ℹ 91 more rows
+# A tibble: 106 × 3
+# Groups:   pathology, seq_type [106]
+   pathology    seq_type     n
+   <chr>        <chr>    <int>
+ 1 AILT_DLBCEBV capture      1
+ 2 AILT_DLBCEBV mrna         1
+ 3 AILT_NS1     capture      1
+ 4 AILT_NS1     mrna         1
+ 5 AITL         capture     73
+ 6 AITL         genome       7
+ 7 AITL         mrna        50
+ 8 AITL_DLBCEBV capture      1
+ 9 AITL_DLBCEBV mrna         1
+10 AITL_PTCL    capture      1
+# ℹ 96 more rows
 
 > all_fusions = get_gene_fusions()
 
@@ -552,8 +552,8 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
-[1] "No Manta SVs found for 862 samples and 19 cohorts"
- [1] "DLBCL_LSARP_Trios"   "PTCL_AITL"           "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "PMBCL_cell_lines"    "MM_mmsanger"         "SMZL_Strefford"      "Baylor_TXCRB"       
+[1] "No Manta SVs found for 711 samples and 18 cohorts"
+ [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "PMBCL_cell_lines"    "MM_mmsanger"         "SMZL_Strefford"      "Baylor_TXCRB"       
 
 > dplyr::select(all_sv, 1:14) %>% head()
 genomic_data Object
@@ -660,6 +660,35 @@ Showing first 10 rows:
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
 
+> test_meta = suppressMessages(get_gambl_metadata()) %>% 
++     dplyr::filter(cohort %in% c("DLBCL_GenomeCanada", "DLBCL_cell_lines"), 
++         seq_type != "mrna")
+
+> test_genes = c("EZH2", "KMT2D", "MYD88", "ID3", "FOXO1")
+
+> test_maf = get_ssm_by_genes(genes = test_genes, these_samples_metadata = test_meta)
+
+> dplyr::count(test_maf, Hugo_Symbol, sort = TRUE)
+genomic_data Object
+Genome Build: grch37 
+Showing first 10 rows:
+  Hugo_Symbol  n
+1       FOXO1 94
+2        EZH2 62
+3       KMT2D 50
+4       MYD88 22
+5         ID3 16
+
+> hist_maf = get_ssm_by_genes(genes = "HIST1H1C", these_samples_metadata = test_meta, 
++     projection = "hg38")
+
+> dplyr::count(hist_maf, Hugo_Symbol, sort = TRUE)
+genomic_data Object
+Genome Build: hg38 
+Showing first 10 rows:
+  Hugo_Symbol  n
+1    HIST1H1C 28
+
 > genomes = get_gambl_metadata() %>% dplyr::filter(seq_type %in% 
 +     "genome")
 
@@ -729,6 +758,9 @@ Showing first 10 rows:
 9          PLA2G2A              0      .     GRCh38       chr1       19975558     19975559      +                  3'UTR          DEL
 10         PLA2G2C              0      .     GRCh38       chr1       20172387     20172387      +                 Intron          SNP
 
+> nonsyn_maf = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
++     dplyr::filter(sample_id == "13-27975_tumorA"), variant_classification_filter = GAMBLR.helpers::vc_nonSynonymous)
+
 > my_meta = get_gambl_metadata() %>% dplyr::filter(sample_id %in% 
 +     c("HTMCP-01-06-00485-01A-01D", "14-35472_tumorA", "14-35472_tumorB"))
 
@@ -789,4 +821,4 @@ Showing first 10 rows:
 
 > maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
 +     output_file = "myc_capture_hg19.bed")
-[1] "=== COMPLETED AT 2026-06-29 09:58:56 ==="
+[1] "=== COMPLETED AT 2026-07-27 11:10:53 ==="

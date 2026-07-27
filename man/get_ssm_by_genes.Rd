@@ -10,7 +10,7 @@ get_ssm_by_genes(
   projection = "grch37",
   ashm_regions,
   drop_silent_outside_ashm_regions = FALSE,
-  expand_by = 0,
+  expand_by = 10000,
   verbose = FALSE
 )
 }
@@ -25,7 +25,14 @@ get_ssm_by_genes(
 
 \item{drop_silent_outside_ashm_regions}{Default FALSE. Convenience feature to restrict non-coding variants to aSHM space.}
 
-\item{expand_by}{Optional padding to expand region around genes (default 0)}
+\item{expand_by}{Padding (bp) to expand the tabix pull region around each
+gene's coordinates before filtering to the gene itself. Default 10000 (a
+2x margin over VEP's default 5kb upstream/downstream annotation window),
+matching GAMBLR.data::assemble_bundled_data.R's GENE_PAD_BP -- without
+this, real gene-attributed mutations just outside gene_to_region()'s exact
+span (promoter/UTR/annotation-source discrepancies, e.g. a long first
+intron) are never fetched in the first place, and the Hugo_Symbol filter
+below can't recover rows that were never pulled.}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
@@ -55,4 +62,27 @@ genes_maf \%>\%
     these_samples_metadata = dlbcl_meta,
     drop_silent_outside_ashm_regions = T)
 }
+
+# Not wrapped in \dontrun, so tools/logExampleOutputs_test.R
+# (devtools::run_examples()) captures and diffs this on every run.
+# Covers established drivers (EZH2, KMT2D, MYD88) alongside genes whose
+# real mutations sit outside gene_to_region()'s unpadded span (ID3, FOXO1
+# -- see expand_by) -- an unexpected drop in these counts flags a
+# padding/alias regression. Restricted to two frozen cohorts (not all of
+# get_gambl_metadata()) so counts stay stable as new, unrelated cohorts
+# are added to GAMBL over time.
+test_meta = suppressMessages(get_gambl_metadata()) \%>\%
+  dplyr::filter(cohort \%in\% c("DLBCL_GenomeCanada", "DLBCL_cell_lines"),
+                seq_type != "mrna")
+test_genes = c("EZH2", "KMT2D", "MYD88", "ID3", "FOXO1")
+test_maf = get_ssm_by_genes(genes = test_genes, these_samples_metadata = test_meta)
+dplyr::count(test_maf, Hugo_Symbol, sort = TRUE)
+
+# HIST1H1C was renamed to H1-2 on hg38 (grch37 still uses the old name
+# natively, so this specifically exercises the hg38 alias-fallback path in
+# gene_to_region() / GAMBLR.utils::expand_gene_aliases() -- a broken alias
+# table or fallback would silently return 0 rows here).
+hist_maf = get_ssm_by_genes(genes = "HIST1H1C", these_samples_metadata = test_meta,
+                            projection = "hg38")
+dplyr::count(hist_maf, Hugo_Symbol, sort = TRUE)
 }
