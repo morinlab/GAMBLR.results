@@ -40,7 +40,11 @@
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata.
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata.
 #'
-#' @return Returns a data frame of variants in 3 column format or in MAF-like format (one row per mutation).
+#' @return Returns a data frame of variants in 3 column format or in MAF-like
+#'  format (one row per mutation). The MAF-like format also carries a
+#'  maf_seq_type column recording which seq_type (genome/capture) each
+#'  variant came from, so genome- and capture-derived rows for the same
+#'  sample_id can still be separated after the two are merged together.
 #'
 #' @import tibble dplyr tidyr GAMBLR.utils parallel
 #' @export
@@ -265,6 +269,15 @@ get_ssm_by_regions = function(regions_list,
       sample_ids = seq_type_sample_ids[[a_seq_type]]
       seq_type_muts_region[[a_seq_type]] = dplyr::filter(seq_type_muts_region[[a_seq_type]],
                                                          Tumor_Sample_Barcode %in% sample_ids)
+      # Stamp seq_type onto the rows before the rbind below merges genome and
+      # capture pulls together -- same maf_seq_type convention already used
+      # by get_ssm_by_sample(), get_ssm_by_genes(), and get_coding_ssm(), so a
+      # caller (or a downstream consumer like GAMBLR.data's bundled-data
+      # build) can still separate genome-derived from capture-derived rows
+      # for a sample_id that has both, instead of the two becoming
+      # indistinguishable once merged.
+      seq_type_muts_region[[a_seq_type]] = dplyr::mutate(seq_type_muts_region[[a_seq_type]],
+                                                         maf_seq_type = a_seq_type)
     }
     muts_all = do.call("rbind", seq_type_muts_region)
 

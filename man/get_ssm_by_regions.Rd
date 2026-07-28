@@ -68,7 +68,11 @@ Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are
 \item{this_seq_type}{Deprecated. Inferred from these_samples_metadata.}
 }
 \value{
-Returns a data frame of variants in 3 column format or in MAF-like format (one row per mutation).
+Returns a data frame of variants in 3 column format or in MAF-like
+format (one row per mutation). The MAF-like format also carries a
+maf_seq_type column recording which seq_type (genome/capture) each
+variant came from, so genome- and capture-derived rows for the same
+sample_id can still be separated after the two are merged together.
 }
 \description{
 Efficiently retrieve all mutations across a range of genomic regions.
