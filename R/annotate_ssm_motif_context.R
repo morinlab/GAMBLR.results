@@ -17,7 +17,7 @@
 #'
 #' @rawNamespace import(IRanges, except = c("start", "end", "merge", "shift", "collapse", "union", "slice", "intersect", "setdiff", "desc", "reduce", "trim"))
 #' @rawNamespace import(GenomicRanges, except = c("start", "end", "merge", "shift", "union", "intersect", "setdiff", "reduce", "trim"))
-#' @import Rsamtools readr dplyr BSgenome BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg38
+#' @import Rsamtools readr dplyr BSgenome
 #' @export
 #'
 #' @examples

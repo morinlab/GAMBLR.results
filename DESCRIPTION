@@ -26,8 +26,6 @@ Depends:
     R (>= 4.1)
 Imports:
     BSgenome,
-    BSgenome.Hsapiens.UCSC.hg19,
-    BSgenome.Hsapiens.UCSC.hg38,
     circlize,
     ComplexHeatmap,
     config,
@@ -47,19 +45,21 @@ Imports:
     IRanges,
     lubridate,
     magrittr,
-    msigdbr,
     org.Hs.eg.db,
     purrr,
     readr,
-    RMariaDB,
     Rsamtools,
     RSQLite,
-    ssh,
     stringi,
     stringr,
     tibble,
     tidyr,
     vroom
+Suggests:
+    BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Hsapiens.UCSC.hg38,
+    RMariaDB,
+    ssh
 Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,

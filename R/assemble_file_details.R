@@ -17,7 +17,7 @@
 #'
 #' @return Updates the database by appending to the gambl_files table. Use with caution!
 #'
-#' @import tibble RMariaDB DBI tidyr
+#' @import tibble DBI tidyr
 #' @export
 #'
 #' @examples
@@ -49,6 +49,9 @@ assemble_file_details = function(file_details_df,
   }
 
   #date_info = file.mtime(file_path)
+  if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+    stop("The RMariaDB package must be installed to use this functionality")
+  }
   con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
   dbWriteTable(con, "gambl_files", file_details_df, append = TRUE)
 }

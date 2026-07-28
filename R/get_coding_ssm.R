@@ -56,7 +56,7 @@
 #' @return A data frame containing all the MAF data columns
 #' (one row per mutation).
 #'
-#' @import dplyr tidyr RMariaDB DBI glue GAMBLR.helpers GAMBLR.utils
+#' @import dplyr tidyr DBI glue GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples

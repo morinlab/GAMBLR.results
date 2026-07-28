@@ -10,7 +10,7 @@
 #'
 #' @return A table.
 #'
-#' @import DBI RMariaDB readr
+#' @import DBI readr
 #'
 #' @noRd
 #'
