@@ -13,6 +13,7 @@ This package is part of the Genomic Analysis of Mature B-cell Lymphomas (GAMBL) 
 
 Authors:
 \itemize{
+  \item Kostiantyn Dreval \email{kdreval@sfu.ca} (\href{https://orcid.org/0000-0002-6214-2843}{ORCID})
   \item Ryan Morin \email{rdmorin@sfu.ca} (\href{https://orcid.org/0000-0003-2932-7800}{ORCID})
   \item Vladimir Souza \email{vsouza@bcgsc.ca}
 }
