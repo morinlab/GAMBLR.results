@@ -21,6 +21,7 @@
 #' span (promoter/UTR/annotation-source discrepancies, e.g. a long first
 #' intron) are never fetched in the first place, and the Hugo_Symbol filter
 #' below can't recover rows that were never pulled.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #'
 #' @return A data frame containing all the MAF data columns (one row per mutation).
@@ -73,6 +74,7 @@ get_ssm_by_genes = function(genes,
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
                            expand_by = 10000,
+                           apply_curated_blacklist = TRUE,
                            verbose = FALSE) {
 
     all_ssms = list()
@@ -138,6 +140,17 @@ get_ssm_by_genes = function(genes,
         columns2=c("chrom","ashm_region_start","ashm_region_end"))
         all_ssm_maf = bind_rows(silent_ssm_maf,coding_ssm_maf)
     }
+  # Apply curated blacklist if requested (default)
+  if(apply_curated_blacklist){
+    all_ssm_maf = annotate_ssm_blacklist(
+        mutations_df = all_ssm_maf, 
+        this_seq_type = unique(these_samples_metadata$seq_type), 
+        genome_build = projection, 
+        use_curated_blacklist = TRUE, 
+        verbose = TRUE
+      ) %>% 
+      select(-blacklist_count)
+  }
   all_ssm_maf = create_maf_data(all_ssm_maf, genome_build = projection)
   return(all_ssm_maf)
 }

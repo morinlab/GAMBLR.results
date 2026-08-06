@@ -36,6 +36,7 @@
 #' @param projection Obtain variants projected to this reference, one of grch37 (default) or hg38.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count
 #'  (for cleaning up augmented MAFs). Default: 3.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #' @param verbose Boolean parameter set to FALSE per default.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata.
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata.
@@ -78,6 +79,7 @@ get_ssm_by_regions = function(regions_list,
                               augmented = TRUE,
                               projection = "grch37",
                               min_read_support = 3,
+                              apply_curated_blacklist = TRUE, 
                               verbose = FALSE,
                               these_sample_ids,
                               this_seq_type){
@@ -268,6 +270,17 @@ get_ssm_by_regions = function(regions_list,
     }
     muts_all = do.call("rbind", seq_type_muts_region)
 
+    if(apply_curated_blacklist){
+      muts_all = annotate_ssm_blacklist(
+        mutations_df = muts_all, 
+        this_seq_type = unique(these_samples_metadata$seq_type), 
+        genome_build = projection, 
+        use_curated_blacklist = TRUE, 
+        verbose = TRUE
+      ) %>% 
+      select(-blacklist_count)
+    }
+
     if(streamlined){
       # Need a per-row region label; cheap now since muts_all only contains
       # rows tabix already matched to the requested regions. Reuses the
@@ -323,6 +336,17 @@ get_ssm_by_regions = function(regions_list,
     }
 
     region_mafs <- list_rbind(region_mafs, names_to = "region_name")
+    # Apply curated blacklist if requested (default)
+    if(apply_curated_blacklist){
+      region_mafs = annotate_ssm_blacklist(
+        mutations_df = region_mafs, 
+        this_seq_type = unique(these_samples_metadata$seq_type), 
+        genome_build = projection, 
+        use_curated_blacklist = TRUE, 
+        verbose = TRUE
+      ) %>% 
+      select(-blacklist_count)
+    }
     if(streamlined){
       region_mafs = mutate(region_mafs, start = Start_Position, sample_id =Tumor_Sample_Barcode) %>%
         dplyr::select(start, sample_id, region_name)
