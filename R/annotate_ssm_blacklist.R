@@ -130,20 +130,28 @@ annotate_ssm_blacklist = function(mutations_df,
     readr::read_tsv()
 
     additional_blacklist = additional_blacklist %>%
+      dplyr::select(chrpos, blacklist_count_bespoke = blacklist_count) %>% 
       separate(chrpos, into = c("Chromosome", "Start_Position"), sep = ":") %>% 
       mutate(Start_Position = as.numeric(Start_Position))
 
-    mutations_df = left_join(mutations_df, additional_blacklist, by = c("Chromosome", "Start_Position")) %>%
-      mutate(blacklist_count = tidyr::replace_na(blacklist_count, 0))
+    # mutations_df might not already have a blacklist_count column - if not, add an empty one
+    if(!"blacklist_count" %in% colnames(mutations_df)){
+      mutations_df$blacklist_count = rep.int(0, length(mutations_df$Tumor_Sample_Barcode))
+    }
+
+    mutations_df = left_join(mutations_df, additional_blacklist, by = c("Chromosome", "Start_Position")) %>% 
+      mutate(blacklist_count = ifelse(!is.na(blacklist_count_bespoke), blacklist_count_bespoke, blacklist_count)) %>% 
+      mutate(blacklist_count = replace_na(blacklist_count, 0)) %>% 
+      select(-blacklist_count_bespoke)
 
     dropped = dplyr::filter(mutations_df, blacklist_count > drop_threshold)
 
     if(verbose){
       if(nrow(dropped) > 0 ){
         ndrop = length(dropped$Tumor_Sample_Barcode)
-        message(paste(ndrop, "variants were dropped"))
+        message(paste(ndrop, "variants were dropped with the curated blacklist"))
       } else {
-        message("0 variants were dropped")
+        message("0 variants were dropped with the curated blacklist")
       }
     }
   }

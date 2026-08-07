@@ -16,6 +16,7 @@ get_ssm_by_samples(
   variant_classification_filter = NULL,
   subset_from_merge = FALSE,
   augmented = TRUE,
+  apply_curated_blacklist = TRUE,
   engine = "fread_maf",
   these_sample_ids,
   this_seq_type
@@ -64,6 +65,8 @@ the specified this_seq_type.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want
 the original MAF from each sample for multi-sample patients instead.}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{engine}{Specify one of readr or fread_maf (default) to
 change how the large files are loaded prior to subsetting.

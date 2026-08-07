@@ -35,6 +35,7 @@
 #'   ignoring SSM status. Set this argument to "all" or "none" (default) to apply this behavior to all or none 
 #'   of the genes, respectively.
 #' @param genome_build Reference genome build. Possible values are "grch37" (default) or "hg38".
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 
 #' @param include_hotspots Logical parameter indicating whether
 #' hotspots object should also be tabulated. Default is TRUE.
@@ -105,6 +106,7 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
                                   adjust_for_ploidy=TRUE,
                                   include_silent=FALSE,
                                   binary = TRUE,
+                                  apply_curated_blacklist = TRUE,
                                   this_seq_type){
   
   # check parameters
@@ -276,7 +278,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     my_maf = get_all_coding_ssm(
       these_samples_metadata = these_samples_metadata,
       projection = genome_build,
-      include_silent = include_silent
+      include_silent = include_silent, 
+      apply_curated_blacklist = apply_curated_blacklist
     ) %>%
       dplyr::filter(Hugo_Symbol %in% genes_to_check_ssm)
   }else{
@@ -292,7 +295,8 @@ get_cnv_and_ssm_status = function(genes_and_cn_threshs,
     genome_build = genome_build,
     min_read_support = min_read_support_ssm,
     include_hotspots = include_hotspots,
-    include_silent = FALSE,
+    include_silent = FALSE, 
+    apply_curated_blacklist = apply_curated_blacklist,
     augmented = augmented
   ) 
  

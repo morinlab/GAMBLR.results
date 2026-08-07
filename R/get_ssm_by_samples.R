@@ -44,6 +44,7 @@
 #' @param subset_from_merge Instead of merging individual MAFs,
 #' the data will be subset from a pre-merged MAF of samples with
 #' the specified this_seq_type.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #' @param engine Specify one of readr or fread_maf (default) to
 #' change how the large files are loaded prior to subsetting.
 #' You may have better performance with one or the other.
@@ -91,6 +92,7 @@ get_ssm_by_samples = function(these_samples_metadata,
                               variant_classification_filter = NULL,
                               subset_from_merge = FALSE,
                               augmented = TRUE,
+                              apply_curated_blacklist = TRUE,
                               engine = 'fread_maf',
                               these_sample_ids,
                               this_seq_type){
@@ -322,6 +324,18 @@ get_ssm_by_samples = function(these_samples_metadata,
     # if/else if chain without assigning maf_df_merge at all, only failing
     # later at return() with a confusing "object not found" error.
     stop(glue::glue("flavour must be one of \"clustered\", \"sage\", or \"legacy\"; got \"{flavour}\"."))
+  }
+
+  # Apply curated blacklist if requested (default)
+  if(apply_curated_blacklist){
+    maf_df_merge = annotate_ssm_blacklist(
+      mutations_df = maf_df_merge, 
+      this_seq_type = unique(these_samples_metadata$seq_type), 
+      genome_build = projection, 
+      use_curated_blacklist = TRUE, 
+      verbose = TRUE
+    ) %>% 
+      select(-blacklist_count)
   }
 
     return(maf_df_merge)

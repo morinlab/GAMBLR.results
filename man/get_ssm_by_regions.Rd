@@ -16,6 +16,7 @@ get_ssm_by_regions(
   augmented = TRUE,
   projection = "grch37",
   min_read_support = 3,
+  apply_curated_blacklist = TRUE,
   verbose = FALSE,
   these_sample_ids,
   this_seq_type
@@ -60,6 +61,8 @@ Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are
 
 \item{min_read_support}{Only returns variants with at least this many reads in t_alt_count
 (for cleaning up augmented MAFs). Default: 3.}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{verbose}{Boolean parameter set to FALSE per default.}
 

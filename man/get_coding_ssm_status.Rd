@@ -20,6 +20,7 @@ get_coding_ssm_status(
   genome_build,
   include_silent = FALSE,
   include_silent_genes,
+  apply_curated_blacklist = TRUE,
   suffix,
   this_seq_type
 )
@@ -78,6 +79,8 @@ mutations into coding mutations. Default is FALSE.}
 \item{include_silent_genes}{Optionally, provide a list of genes for which the
 Silent variants to be considered. If provided, the Silent variants for
 these genes will be included regardless of the include_silent argument.}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{suffix}{Optionally provide a character that will be appended to the end of each name}
 

@@ -52,6 +52,7 @@
 #' @param exclude_cohort  Deprecated. Use these_samples_metadata instead.
 #' @param limit_pathology Deprecated. Use these_samples_metadata instead.
 #' @param limit_samples Deprecated. Use these_samples_metadata instead.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #'
 #' @return A data frame containing all the MAF data columns
 #' (one row per mutation).
@@ -90,6 +91,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
                           limit_pathology,
                           limit_samples,
                           from_flatfile,
+                          apply_curated_blacklist = TRUE, 
                           these_sample_ids){
   
 
@@ -187,5 +189,15 @@ get_coding_ssm = function(these_samples_metadata = NULL,
   
   muts = mutate(muts,maf_seq_type = this_seq_type)
   muts = GAMBLR.utils::create_maf_data(muts,projection)
+  if(apply_curated_blacklist){
+      muts = annotate_ssm_blacklist(
+        mutations_df = muts, 
+        this_seq_type = unique(muts$maf_seq_type), 
+        genome_build = projection, 
+        use_curated_blacklist = TRUE, 
+        verbose = TRUE
+      ) %>% 
+      select(-blacklist_count)
+    }
   return(muts)
 }

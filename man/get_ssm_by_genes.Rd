@@ -11,6 +11,7 @@ get_ssm_by_genes(
   ashm_regions,
   drop_silent_outside_ashm_regions = FALSE,
   expand_by = 10000,
+  apply_curated_blacklist = TRUE,
   verbose = FALSE
 )
 }
@@ -33,6 +34,8 @@ this, real gene-attributed mutations just outside gene_to_region()'s exact
 span (promoter/UTR/annotation-source discrepancies, e.g. a long first
 intron) are never fetched in the first place, and the Hugo_Symbol filter
 below can't recover rows that were never pulled.}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
