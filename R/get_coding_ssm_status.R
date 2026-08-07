@@ -59,6 +59,7 @@
 #' @param include_silent_genes Optionally, provide a list of genes for which the
 #'      Silent variants to be considered. If provided, the Silent variants for
 #'      these genes will be included regardless of the include_silent argument.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #' @param suffix Optionally provide a character that will be appended to the end of each name
 #' @param this_seq_type Deprecated. This is now determined from the metadata provided.
 #'
@@ -129,6 +130,7 @@ get_coding_ssm_status = function(
     genome_build,
     include_silent = FALSE,
     include_silent_genes,
+    apply_curated_blacklist=TRUE,
     suffix,
     this_seq_type
 ){
@@ -188,6 +190,7 @@ get_coding_ssm_status = function(
                                       these_samples_metadata = these_samples_metadata,
                                       augmented = augmented,
                                       basic_columns = FALSE,
+                                      apply_curated_blacklist = apply_curated_blacklist,
                                       include_silent = include_silent)
 
   }

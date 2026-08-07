@@ -10,6 +10,7 @@
 #' sample/seq_type combinations you want. 
 #' @param include_silent If set to TRUE, silent/synonymous mutations in the
 #' coding regions will also be returned. Default is FALSE.
+#' @param apply_curated_blacklist Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE. 
 #' @param ... Additional arguments passed to get_coding_ssm
 #'
 #' @return A data frame containing all the MAF data columns (one row per
@@ -30,6 +31,7 @@
 #'   dplyr::arrange(desc(n))
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
+                              apply_curated_blacklist=TRUE, 
                               ...){
   if(missing(these_samples_metadata)){
     stop("these_samples_metadata is required")
@@ -42,7 +44,8 @@ get_all_coding_ssm = function(these_samples_metadata = NULL,
                                  dplyr::filter(these_samples_metadata,
                                                seq_type=="capture"),
                                this_seq_type = "capture",
-                               include_silent = include_silent,
+                               include_silent = include_silent, 
+                               apply_curated_blacklist=apply_curated_blacklist,
                                ...))) 
   }
   if("genome" %in% seq_types_in_metadata){
@@ -50,7 +53,8 @@ get_all_coding_ssm = function(these_samples_metadata = NULL,
                                 dplyr::filter(these_samples_metadata,
                                               seq_type=="genome"),
                               this_seq_type = "genome", 
-                              include_silent = include_silent,
+                              include_silent = include_silent, 
+                               apply_curated_blacklist=apply_curated_blacklist,
                               ...)))
      
   }
