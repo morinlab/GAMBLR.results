@@ -4,7 +4,12 @@
 \alias{get_all_coding_ssm}
 \title{Get all Coding SSMs}
 \usage{
-get_all_coding_ssm(these_samples_metadata = NULL, include_silent = FALSE, ...)
+get_all_coding_ssm(
+  these_samples_metadata = NULL,
+  include_silent = FALSE,
+  apply_curated_blacklist = TRUE,
+  ...
+)
 }
 \arguments{
 \item{these_samples_metadata}{Supply a metadata table containing the
@@ -12,6 +17,8 @@ sample/seq_type combinations you want.}
 
 \item{include_silent}{If set to TRUE, silent/synonymous mutations in the
 coding regions will also be returned. Default is FALSE.}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{...}{Additional arguments passed to get_coding_ssm}
 }
