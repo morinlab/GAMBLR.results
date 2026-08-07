@@ -1,12 +1,38 @@
-[1] "=== STARTED AT 2026-07-27 10:56:01 ==="
-[1] "=== RUNNING devtools::run_examples() ==="
-── Running 75 example files ──────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2026-08-07 10:21:48.141673 ==="
+ℹ Updating GAMBLR.results documentation 
+Warning: replacing previous import ‘S4Arrays::makeNindexFromArrayViewport’ by ‘DelayedArray::makeNindexFromArrayViewport’ when loading ‘SummarizedExperiment’ 
+ℹ Loading GAMBLR.results 
+Warning: replacing previous import ‘IRanges::desc’ by ‘dplyr::desc’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::slice’ by ‘dplyr::slice’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::setdiff’ by ‘dplyr::setdiff’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::intersect’ by ‘dplyr::intersect’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::collapse’ by ‘dplyr::collapse’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::union’ by ‘dplyr::union’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘cowplot::get_legend’ by ‘ggpubr::get_legend’ when loading ‘GAMBLR.viz’ 
+Warning: replacing previous import ‘IRanges::reduce’ by ‘purrr::reduce’ when loading ‘GAMBLR.viz’ 
+
+ 
+Warning: replacing previous import ‘BSgenome.Hsapiens.UCSC.hg19::Hsapiens’ by ‘BSgenome.Hsapiens.UCSC.hg38::Hsapiens’ when loading ‘GAMBLR.results’ 
+── Running 75 example files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+ℹ Loading GAMBLR.results 
+Warning: replacing previous import ‘BSgenome.Hsapiens.UCSC.hg19::Hsapiens’ by ‘BSgenome.Hsapiens.UCSC.hg38::Hsapiens’ when loading ‘GAMBLR.results’ 
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
 > some_coding_ssm = get_coding_ssm(these_samples_metadata = my_metadata, 
 +     projection = "grch37", this_seq_type = "genome") %>% dplyr::filter(Hugo_Symbol %in% 
 +     c("EZH2", "MEF2B", "MYD88", "KMT2D")) %>% dplyr::arrange(Hugo_Symbol)
+Warning: The following named parsers don't match the column names: GENE_PHENO, FILTER, flanking_bps, vcf_id, vcf_qual, gnomAD_AF, gnomAD_AFR_AF, gnomAD_AMR_AF, gnomAD_SAS_AF, vcf_pos, gnomADg_AF, blacklist_count 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+217 variants were dropped with the curated blacklist
+ 
 
 > dplyr::select(some_coding_ssm, 1:10, 37) %>% head()
 genomic_data Object
@@ -21,6 +47,8 @@ Showing first 10 rows:
 6        EZH2              0      .     GRCh37          7      148506437    148506437      +      Missense_Mutation          SNP     p.A692V
 
 > hot_ssms = annotate_hotspots(some_coding_ssm)
+Adding missing grouping variables: `SYMBOL` 
+Adding missing grouping variables: `SYMBOL` 
 
 > hot_ssms %>% dplyr::filter(!is.na(hot_spot)) %>% dplyr::select(1:10, 
 +     37, hot_spot)
@@ -40,6 +68,17 @@ Showing first 10 rows:
 10        EZH2              0      .     GRCh37          7      148508727    148508727      +      Missense_Mutation          SNP     p.Y646F     TRUE
 
 > maf <- get_coding_ssm(projection = "grch37") %>% head(n = 500)
+Warning: The following named parsers don't match the column names: GENE_PHENO, FILTER, flanking_bps, vcf_id, vcf_qual, gnomAD_AF, gnomAD_AFR_AF, gnomAD_AMR_AF, gnomAD_SAS_AF, vcf_pos, gnomADg_AF, blacklist_count 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+218 variants were dropped with the curated blacklist
+ 
 
 > dplyr::select(maf, 1:12) %>% head()
 genomic_data Object
@@ -70,6 +109,17 @@ Showing first 10 rows:
 > my_maf <- get_coding_ssm() %>% dplyr::filter(Hugo_Symbol == 
 +     "BCL2") %>% dplyr::arrange(Chromosome, Start_Position, Tumor_Sample_Barcode) %>% 
 +     head()
+Warning: The following named parsers don't match the column names: GENE_PHENO, FILTER, flanking_bps, vcf_id, vcf_qual, gnomAD_AF, gnomAD_AFR_AF, gnomAD_AMR_AF, gnomAD_SAS_AF, vcf_pos, gnomADg_AF, blacklist_count 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+218 variants were dropped with the curated blacklist
+ 
 
 > annotated = annotate_ssm_motif_context(maf = my_maf, 
 +     motif = "WRCY")
@@ -92,6 +142,12 @@ Showing first 10 rows:
 
 > mut_freq = calc_mutation_frequency_bin_region(these_samples_metadata = meta, 
 +     region = "11:69455000-69459900", slide_by = 10, window_size = 10000)
+processing bins of size 10000 across 4900 bp region
+ 
+Using GAMBLR.results::get_ssm_by_region...
+ 
+Joining with `by = join_by(sample_id)` 
+Joining with `by = join_by(window_start)` 
 
 > head(mut_freq)
 # A tibble: 6 × 3
@@ -106,15 +162,49 @@ Showing first 10 rows:
 
 > capture_metadata = get_gambl_metadata(dna_seq_type_priority = "capture") %>% 
 +     dplyr::filter(seq_type == "capture")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > capture_collated_everything = collate_results(these_samples_metadata = capture_metadata, 
 +     from_cache = TRUE, write_to_file = FALSE)
 [[1]]
 /projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_capture_results.tsv
 
+Rows: 3110 Columns: 46 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr  (7): sample_id, patient_id, biopsy_id, BL_subgroup_validation_HTMCP, BL_subgroup_validation, genetic_subgroup, NFKBIZ_UTR
+dbl (23): total_ssm, mean_vaf, coding_ssm, ichorCNA_purity, ichorCNA_ploidy, ashm_BCL2, ashm_MYC, ashm_CCND1, AverageBaseQuality, AverageInsertSize, AverageReadLength, PairsOnDiffCHR, TotalReads, TotalUniquelyMapped, TotalUnmappedreads, TotalDuplicatedreads, ProportionReadsDuplicated, ProportionReadsMapped, MeanCorrectedCoverage, ProportionTargetsNoCoverage, ProportionCoverage10x, ProportionCoverage30x, PGA
+lgl (16): BL_subgroup_HTMCP, BL_subgroup, sample, total_reads, total_EBV, fraction_EBV, EBV_stats, manual_BCL2_sv, manual_BCL2_sv_notes, manual_contamination, manual_contamination_comments, manual_myc_sv, manual_myc_sv_comments, QC_flag, QC_comments, the_11q_event 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+Joining with `by = join_by(sample_id, patient_id, biopsy_id, seq_type)` 
 
 > my_metadata = get_gambl_metadata() %>% dplyr::filter(seq_type != 
 +     "mrna")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > fl_metadata = dplyr::filter(my_metadata, pathology == 
 +     "FL")
@@ -127,6 +217,25 @@ Showing first 10 rows:
 [[2]]
 /projects/nhl_meta_analysis_scratch/gambl/results_local/shared/gambl_capture_results.tsv
 
+Rows: 1744 Columns: 94 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (31): sample_id, patient_id, biopsy_id, manta_MYC_sv, manta_MYC_partner, manta_BCL2_sv, manta_BCL2_partner, manta_BCL6_sv, manta_BCL6_partner, manta_CCND1_sv, manta_CCND1_partner, manta_IRF4_sv, manta_IRF4_partner, BL_subgroup_HTMCP, BL_subgroup, genetic_subgroup, sample, EBV_stats, manual_BCL2_sv, manual_BCL2_sv_notes, manual_myc_sv, manual_myc_sv_comments, QC_flag, QC_comments, NFKBIZ_UTR, Dominant_Ig_clone, mixcr_CSR, genome_CSR, CSR, predicted_ancestry, TargetSpace
+dbl (56): total_ssm, mean_vaf, coding_ssm, ichorCNA_purity, ichorCNA_ploidy, total_reads, total_EBV, fraction_EBV, ashm_BCL2, ashm_MYC, ashm_CCND1, proportion, PC1, PC2, PC3, PC4, PC5, SBS1, SBS2, SBS3, SBS5, SBS8, SBS13, SBS14, SBS15, SBS17a, SBS17b, SBS18, SBS26, SBS28, SBS29, SBS30, SBS41, SBS44, SBS53, SBS56, SBS85, SBS96J, SBS96K, SBS96L, SBS96N, AverageBaseQuality, AverageInsertSize, AverageReadLength, PairsOnDiffCHR, TotalReads, TotalUniquelyMapped, TotalUnmappedreads, TotalDuplicatedreads, ProportionReadsDuplicated, ProportionReadsMapped, Target_Territory, MeanCorrectedCoverage, ProportionCoverage10x, ProportionCoverage30x, PGA
+lgl  (7): BL_subgroup_validation_HTMCP, BL_subgroup_validation, manual_contamination, manual_contamination_comments, the_11q_event, ProportionTargetsNoCoverage, FoldEnrichment 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+Rows: 3110 Columns: 46 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr  (7): sample_id, patient_id, biopsy_id, BL_subgroup_validation_HTMCP, BL_subgroup_validation, genetic_subgroup, NFKBIZ_UTR
+dbl (23): total_ssm, mean_vaf, coding_ssm, ichorCNA_purity, ichorCNA_ploidy, ashm_BCL2, ashm_MYC, ashm_CCND1, AverageBaseQuality, AverageInsertSize, AverageReadLength, PairsOnDiffCHR, TotalReads, TotalUniquelyMapped, TotalUnmappedreads, TotalDuplicatedreads, ProportionReadsDuplicated, ProportionReadsMapped, MeanCorrectedCoverage, ProportionTargetsNoCoverage, ProportionCoverage10x, ProportionCoverage30x, PGA
+lgl (16): BL_subgroup_HTMCP, BL_subgroup, sample, total_reads, total_EBV, fraction_EBV, EBV_stats, manual_BCL2_sv, manual_BCL2_sv_notes, manual_contamination, manual_contamination_comments, manual_myc_sv, manual_myc_sv_comments, QC_flag, QC_comments, the_11q_event 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+Joining with `by = join_by(sample_id, patient_id, biopsy_id, seq_type)` 
 
 > my_meta = suppressMessages(get_gambl_metadata()) %>% 
 +     dplyr::filter(sample_id == "HTMCP-01-06-00422-01A-01D", seq_type == 
@@ -134,6 +243,11 @@ Showing first 10 rows:
 
 > outputs = estimate_purity(these = my_meta, show_plots = TRUE, 
 +     projection = "grch37")
+Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat <- vroom(...)
+  problems(dat) 
+Running in default mode of any...
+ 
 
 > outputs$sample_purity_estimation
 [1] 1
@@ -145,7 +259,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 978167  241982 
+ 975346  241765 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -166,6 +280,18 @@ Showing first 10 rows:
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > some_regions = GAMBLR.utils::create_bed_data(GAMBLR.data::grch37_ashm_regions, 
 +     fix_names = "concat", concat_cols = c("gene", "region"), 
@@ -173,6 +299,23 @@ Showing first 10 rows:
 
 > pax5_matrix <- get_ashm_count_matrix(regions_bed = some_regions, 
 +     this_seq_type = "genome", these_samples_metadata = DLBCL_genome_meta)
+Streamlined is set to TRUE, this function will disregard anything specified with basic_columns
+ 
+To return a MAF with standard 45 columns, set streamlined = FALSE and basic_columns = TRUE
+ 
+To return a maf with all (116) columns, set streamlined = FALSE and basic_columns = FALSE
+ 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
+Joining with `by = join_by(sample_id, region_name)` 
 
 > head(pax5_matrix)
                   PAX5-distal-enhancer-1 PAX5-distal-enhancer-2 PAX5-distal-enhancer-3 PAX5-intron-1 PAX5-TSS-1
@@ -216,6 +359,9 @@ Showing first 10 rows:
 +     genome_metadata)
 
 > all_seq_type_segs <- get_cn_segments(these_samples_metadata = mixed_seq_type_meta)
+Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat <- vroom(...)
+  problems(dat) 
 
 > dplyr::group_by(all_seq_type_segs, seg_seq_type) %>% 
 +     dplyr::count()
@@ -243,6 +389,9 @@ Showing first 10 rows:
 
 > genome_cnv_ssm_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     dplyr::filter(all_types_meta, seq_type == "genome"), only_cnv = "MIR17HG"))
+Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat <- vroom(...)
+  problems(dat) 
 
 > print(dim(genome_cnv_ssm_status))
 [1] 257   6
@@ -262,6 +411,13 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
 
 > all_seq_type_status = suppressMessages(get_cnv_and_ssm_status(genes_and_cn_threshs, 
 +     all_types_meta, only_cnv = "MIR17HG"))
+Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat <- vroom(...)
+  problems(dat) 
+Warning: There was 1 warning in `mutate()`.
+ℹ In argument: `log.ratio = log(CN/2, 2)`.
+Caused by warning:
+! NaNs produced 
 
 > print(dim(all_seq_type_status))
 [1] 407   6
@@ -280,9 +436,20 @@ BLGSP-71-06-00007-01A-11D   1       0     1   1     0       0
     283      63     118     194     186      21 
 
 > maf_genome = get_coding_ssm()
+Warning: The following named parsers don't match the column names: GENE_PHENO, FILTER, flanking_bps, vcf_id, vcf_qual, gnomAD_AF, gnomAD_AFR_AF, gnomAD_AMR_AF, gnomAD_SAS_AF, vcf_pos, gnomADg_AF, blacklist_count 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+218 variants were dropped with the curated blacklist
+ 
 
 > nrow(maf_genome)
-[1] 323660
+[1] 323442
 
 > dplyr::select(maf_genome, 1, 4, 5, 6, 9, maf_seq_type)
 genomic_data Object
@@ -302,6 +469,20 @@ Showing first 10 rows:
 
 > maf_exome_hg38 = get_coding_ssm(this_seq_type = "capture", 
 +     projection = "hg38")
+Warning: The following named parsers don't match the column names: GENE_PHENO, FILTER, flanking_bps, vcf_id, vcf_qual, gnomAD_AF, gnomAD_AFR_AF, gnomAD_AMR_AF, gnomAD_SAS_AF, vcf_pos, gnomADg_AF, blacklist_count 
+Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat <- vroom(...)
+  problems(dat) 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+2840 variants were dropped with the curated blacklist
+ 
 
 > dplyr::select(maf_exome_hg38, 1, 4, 5, 6, 9, maf_seq_type)
 genomic_data Object
@@ -333,6 +514,7 @@ capture  genome
 
 > coding_tabulated_df = get_coding_ssm_status(gene_symbols = genes, 
 +     include_hotspots = FALSE, genome_build = "hg38", these_samples_metadata = fl_meta)
+Joining with `by = join_by(sample_id)` 
 
 > length(genes)
 [1] 54
@@ -348,6 +530,7 @@ capture  genome
 
 > coding_tabulated2 = get_coding_ssm_status(gene_symbols = genes, 
 +     these_samples_metadata = fl_meta, maf_data = maf_data, include_hotspots = FALSE)
+Joining with `by = join_by(sample_id)` 
 
 > dim(coding_tabulated2)
 [1] 924  55
@@ -359,6 +542,22 @@ capture  genome
 +     "CREBBP", "KMT2D"), these_samples_metadata = fl_meta, maf_data = maf_data, 
 +     include_hotspots = TRUE, genes_of_interest = c("MYD88", "CREBBP")) %>% 
 +     tibble::column_to_rownames("sample_id")
+Joining with `by = join_by(sample_id)` 
+Adding missing grouping variables: `SYMBOL` 
+Adding missing grouping variables: `SYMBOL` 
+reviewing hotspots
+ 
+annotating hotspots
+ 
+Joining with `by = join_by(sample_id)` 
+CREBBPHOTSPOT
+ 
+OK
+ 
+MYD88HOTSPOT
+ 
+OK
+ 
 
 > print(colSums(coding_tabulated3))
         KMT2D        CREBBP         MYD88 CREBBPHOTSPOT  MYD88HOTSPOT 
@@ -458,13 +657,14 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2 name   score strand1 strand2          tumour_sample_id   gene partner    fusion
-1:     18  63123493  63123497      8 127728389 127728393    . 1742.36       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
-2:     18  63195263  63195266      8 127744561 127744564    .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
-3:      2  28983232  28983241      8 127711263 127711272    .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
-4:      3  70834666  70834671      8 127750318 127750323    .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
-5:      3 101756651 101756656      8 127724888 127724893    .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
-6:      3 187747200 187747205      8 127744763 127744768    .      NA       +       -           17-33848_tumorB   BCL6    <NA>   NA-BCL6
+   chrom1    start1      end1 chrom2    start2      end2   name   score strand1 strand2          tumour_sample_id   gene partner    fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char>   <num>  <char>  <char>                    <char> <char>  <char>    <char>
+1:     18  63123493  63123497      8 127728389 127728393      . 1742.36       +       -                 SU-DHL-10   BCL2    <NA>   NA-BCL2
+2:     18  63195263  63195266      8 127744561 127744564      .      NA       -       -                  SP194216   BCL2    <NA>   NA-BCL2
+3:      2  28983232  28983241      8 127711263 127711272      .      NA       -       -           02-14764_tumorB    ALK    <NA>    NA-ALK
+4:      3  70834666  70834671      8 127750318 127750323      .  249.44       -       + BLGSP-71-30-00661-01A-01E  FOXP1    <NA>  NA-FOXP1
+5:      3 101756651 101756656      8 127724888 127724893      .  261.80       +       - BLGSP-71-30-00676-01A-01E NFKBIZ    <NA> NA-NFKBIZ
+6:      3 187747200 187747205      8 127744763 127744768      .      NA       +       -           17-33848_tumorB   BCL6    <NA>   NA-BCL6
 
 > table(annotated_myc_hg38$partner)
 
@@ -475,13 +675,14 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2          tumour_sample_id gene partner fusion
-1:      8 127313080 127313571      8 128746007 128746587    .    NA       +       -                  PD26401c  MYC    <NA> NA-MYC
-2:      8 128738977 128738983      8 128752583 128752589    .    NA       +       -           04-14093_tumorA  MYC    <NA> NA-MYC
-3:      8 128738977 128738983      8 128752583 128752589    .    NA       +       -           04-14093_tumorB  MYC    <NA> NA-MYC
-4:      8 128738980 128738981      8 128752584 128752585    .    NA       +       - BLGSP-71-17-00357-01B-09E  MYC    <NA> NA-MYC
-5:      8 128738980 128738981      8 128752584 128752585    .    NA       +       - BLGSP-71-27-00424-01A-01E  MYC    <NA> NA-MYC
-6:      8 128738980 128738981      8 128752584 128752585    .    NA       +       -                SMZL-UK-T3  MYC    <NA> NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2          tumour_sample_id   gene partner fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>                    <char> <char>  <char> <char>
+1:      8 127313080 127313571      8 128746007 128746587      .    NA       +       -                  PD26401c    MYC    <NA> NA-MYC
+2:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -           04-14093_tumorA    MYC    <NA> NA-MYC
+3:      8 128738977 128738983      8 128752583 128752589      .    NA       +       -           04-14093_tumorB    MYC    <NA> NA-MYC
+4:      8 128738980 128738981      8 128752584 128752585      .    NA       +       - BLGSP-71-17-00357-01B-09E    MYC    <NA> NA-MYC
+5:      8 128738980 128738981      8 128752584 128752585      .    NA       +       - BLGSP-71-27-00424-01A-01E    MYC    <NA> NA-MYC
+6:      8 128738980 128738981      8 128752584 128752585      .    NA       +       -                SMZL-UK-T3    MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -523,9 +724,27 @@ Showing first 10 rows:
 6 01-20260T 14      106209408 106209409 18       60833799  60833800 IGH@  BCL2      0 +        -        known,oncogene,chimer2,cancer,tumor,m1,multi,oncokb,mitelman,ccle,reciprocal
 
 > my_meta = get_gambl_metadata()
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > lymphgen_all <- get_lymphgen(flavour = "no_cnvs.no_sv.with_A53", 
 +     these = my_meta, keep_original_columns = TRUE)
+NO A53
+ 
+Joining with `by = join_by(Sample.Name)` 
+Joining with `by = join_by(Sample.Name, BTG2)` 
+Joining with `by = join_by(Sample.Name)` 
+Joining with `by = join_by(Sample.Name, SOCS1)` 
 
 > head(lymphgen_all$features[, c(1:14)])
 # A tibble: 6 × 14
@@ -552,8 +771,30 @@ Showing first 10 rows:
 > all_sv <- get_manta_sv()
 [1] "no metadata provided, fetching all samples..."
 [1] "dropping capture samples because manta results\n      are only available for genome seq_type"
+
+The cached results were last updated: 2023-06-19 16:19:20.897737
+ 
+
+Reading cached results...
+
+ 
 [1] "No Manta SVs found for 711 samples and 18 cohorts"
  [1] "DLBCL_LSARP_Trios"   "tFL_LSARP_Trios"     "pFL_LSARP_Trios"     "MOHCCN"              "FL_FOLL_BR"          "DLBCL_TFRI_DarkZone" "PMBCL_Rai"           "DLBCL_Pasqualucci"   "DLBCL_montreal"      "DLBCL_Jain"          "DLBCL_cell_lines"    "PMBCL_Schleussner"   "MCL_CellLines"       "cHL_Maura"           "PMBCL_cell_lines"    "MM_mmsanger"         "SMZL_Strefford"      "Baylor_TXCRB"       
+
+The following VCF filters are applied;
+ 
+  Minimum VAF: 0.1
+ 
+  Minimum Score: 40
+ 
+  Only keep variants passing the quality filter: TRUE
+ 
+
+Returning 779327 variants from 1646 sample(s)
+ 
+
+Done!
+ 
 
 > dplyr::select(all_sv, 1:14) %>% head()
 genomic_data Object
@@ -632,13 +873,14 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_hg38)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id  gene partner   fusion
-1:      2  28983233  28983240      8 127711264 127711271    .    43       -       -  02-14764_tumorB   ALK    <NA>   NA-ALK
-2:      3 187747202 187747205      8 127744764 127744767    .    79       +       -  17-33848_tumorB  BCL6    <NA>  NA-BCL6
-3:      3 187811601 187811601      8 127745649 127745649    .   106       -       +         FL1008T2  BCL6    <NA>  NA-BCL6
-4:      3 188074182 188074327      8 127749381 127749593    .    92       +       -      140127-PL02  BCL6    <NA>  NA-BCL6
-5:      4   1746419   1746421      8 127723483 127723485    .    77       -       -        09-41114T WHSC1    <NA> NA-WHSC1
-6:      8 127226860 127226862      8 127759782 127759784    .    56       +       +          SP13307   MYC    <NA>   NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner   fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char>   <char>
+1:      2  28983233  28983240      8 127711264 127711271      .    43       -       -  02-14764_tumorB    ALK    <NA>   NA-ALK
+2:      3 187747202 187747205      8 127744764 127744767      .    79       +       -  17-33848_tumorB   BCL6    <NA>  NA-BCL6
+3:      3 187811601 187811601      8 127745649 127745649      .   106       -       +         FL1008T2   BCL6    <NA>  NA-BCL6
+4:      3 188074182 188074327      8 127749381 127749593      .    92       +       -      140127-PL02   BCL6    <NA>  NA-BCL6
+5:      4   1746419   1746421      8 127723483 127723485      .    77       -       -        09-41114T  WHSC1    <NA> NA-WHSC1
+6:      8 127226860 127226862      8 127759782 127759784      .    56       +       +          SP13307    MYC    <NA>   NA-MYC
 
 > table(annotated_myc_hg38$partner)
 
@@ -649,13 +891,14 @@ Showing first 10 rows:
 +     genome_build = "hg38"))
 
 > head(annotated_myc_incorrect)
-   chrom1    start1      end1 chrom2    start2      end2 name score strand1 strand2 tumour_sample_id gene partner fusion
-1:      8 128726344 128727379     11  93629113  93629647    .    66       -       +        01-20774T  MYC    <NA> NA-MYC
-2:      8 128726820 128726820      8 128726825 128726825    .    76       +       -         PD26403a  MYC    <NA> NA-MYC
-3:      8 128726820 128726820      8 128726825 128726825    .    84       +       -         PD26403c  MYC    <NA> NA-MYC
-4:      8 128738979 128738983      8 128752584 128752588    .   118       +       -  04-14093_tumorA  MYC    <NA> NA-MYC
-5:      8 128738979 128738983      8 128752584 128752588    .   127       +       -  04-14093_tumorB  MYC    <NA> NA-MYC
-6:      8 128738981 128738981      8 128752584 128752584    .   126       +       -        05-24065T  MYC    <NA> NA-MYC
+   chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2 tumour_sample_id   gene partner fusion
+   <char>     <num>     <num> <char>     <num>     <num> <char> <num>  <char>  <char>           <char> <char>  <char> <char>
+1:      8 128726344 128727379     11  93629113  93629647      .    66       -       +        01-20774T    MYC    <NA> NA-MYC
+2:      8 128726820 128726820      8 128726825 128726825      .    76       +       -         PD26403a    MYC    <NA> NA-MYC
+3:      8 128726820 128726820      8 128726825 128726825      .    84       +       -         PD26403c    MYC    <NA> NA-MYC
+4:      8 128738979 128738983      8 128752584 128752588      .   118       +       -  04-14093_tumorA    MYC    <NA> NA-MYC
+5:      8 128738979 128738983      8 128752584 128752588      .   127       +       -  04-14093_tumorB    MYC    <NA> NA-MYC
+6:      8 128738981 128738981      8 128752584 128752584      .   126       +       -        05-24065T    MYC    <NA> NA-MYC
 
 > table(annotated_myc_incorrect$partner)
 < table of extent 0 >
@@ -667,6 +910,16 @@ Showing first 10 rows:
 > test_genes = c("EZH2", "KMT2D", "MYD88", "ID3", "FOXO1")
 
 > test_maf = get_ssm_by_genes(genes = test_genes, these_samples_metadata = test_meta)
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > dplyr::count(test_maf, Hugo_Symbol, sort = TRUE)
 genomic_data Object
@@ -681,6 +934,16 @@ Showing first 10 rows:
 
 > hist_maf = get_ssm_by_genes(genes = "HIST1H1C", these_samples_metadata = test_meta, 
 +     projection = "hg38")
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > dplyr::count(hist_maf, Hugo_Symbol, sort = TRUE)
 genomic_data Object
@@ -691,6 +954,18 @@ Showing first 10 rows:
 
 > genomes = get_gambl_metadata() %>% dplyr::filter(seq_type %in% 
 +     "genome")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > my_mutations = GAMBLR.results:::get_ssm_by_region(region = "chr8:128723128-128774067", 
 +     these_samples_metadata = genomes)
@@ -707,6 +982,16 @@ Showing first 10 rows:
 
 > ashm_MAF = get_ssm_by_regions(regions_bed = regions_bed, 
 +     these_samples_metadata = DLBCL_meta, streamlined = FALSE)
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > ashm_MAF %>% dplyr::arrange(Start_Position, Tumor_Sample_Barcode) %>% 
 +     dplyr::select(Hugo_Symbol, Tumor_Sample_Barcode, Chromosome, 
@@ -728,12 +1013,36 @@ Showing first 10 rows:
 
 > maf_samp = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
 +     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = FALSE)
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > nrow(maf_samp)
 [1] 4705
 
 > maf_samp_aug = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
 +     dplyr::filter(sample_id == "13-27975_tumorA"), augmented = TRUE)
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > nrow(maf_samp_aug)
 [1] 6118
@@ -741,6 +1050,18 @@ Showing first 10 rows:
 > some_maf = GAMBLR.results:::get_ssm_by_sample(these_samples_metadata = get_gambl_metadata() %>% 
 +     dplyr::filter(sample_id == "HTMCP-01-06-00485-01A-01D", seq_type == 
 +         "genome"), projection = "hg38")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > dplyr::select(some_maf, 1:10)
 genomic_data Object
@@ -760,14 +1081,62 @@ Showing first 10 rows:
 
 > nonsyn_maf = GAMBLR.results:::get_ssm_by_sample(get_gambl_metadata() %>% 
 +     dplyr::filter(sample_id == "13-27975_tumorA"), variant_classification_filter = GAMBLR.helpers::vc_nonSynonymous)
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > my_meta = get_gambl_metadata() %>% dplyr::filter(sample_id %in% 
 +     c("HTMCP-01-06-00485-01A-01D", "14-35472_tumorA", "14-35472_tumorB"))
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > sample_ssms = get_ssm_by_samples(these_samples_metadata = my_meta)
+Merged 3 samples for seq_type genome
+ 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > hg38_ssms = get_ssm_by_samples(projection = "hg38", 
 +     these_samples_metadata = my_meta)
+Merged 3 samples for seq_type genome
+ 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > dplyr::group_by(hg38_ssms, Tumor_Sample_Barcode) %>% 
 +     dplyr::count()
@@ -781,6 +1150,18 @@ Showing first 10 rows:
 
 > hg38_ssms_no_aug = get_ssm_by_samples(projection = "hg38", 
 +     these_samples_metadata = my_meta, augmented = FALSE)
+Merged 3 samples for seq_type genome
+ 
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > dplyr::group_by(hg38_ssms_no_aug, Tumor_Sample_Barcode) %>% 
 +     dplyr::count()
@@ -804,21 +1185,93 @@ Showing first 10 rows:
 
 > genomes <- get_gambl_metadata() %>% dplyr::filter(seq_type == 
 +     "genome")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > genome_maf <- get_ssm_by_regions(regions_bed = myc_grch37, 
 +     these_samples_metadata = genomes, streamlined = FALSE, basic_columns = TRUE)
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > maf_to_custom_track(maf_data = genome_maf, output_file = "myc_genome_hg19.bed")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
+Joining with `by = join_by(group)` 
 
 > my_region = "8:128747680-128753674"
 
 > captures <- get_gambl_metadata() %>% dplyr::filter(seq_type == 
 +     "capture")
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
 
 > capture_maf <- get_ssm_by_regions(regions_list = my_region, 
 +     these_samples_metadata = captures, projection = "grch37", 
 +     streamlined = FALSE, basic_columns = TRUE)
+Rows: 22 Columns: 4 
+── Column specification ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (3): chrpos, Hugo_Symbol, Variant_Classification
+dbl (1): blacklist_count 
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message. 
+0 variants were dropped with the curated blacklist
+ 
 
 > maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
 +     output_file = "myc_capture_hg19.bed")
-[1] "=== COMPLETED AT 2026-07-27 11:10:53 ==="
+3835 capture samples are missing a value for protocol. Assuming Exome.
+ 
+415 biopsies are missing from the biopsy metadata. This should be fixed!
+ 
+affected cohorts:  DLBCL_MER
+ 
+74 biopsies with discrepancies in the pathology field. This should be fixed!
+ 
+6 biopsies with discrepancies in the time_point field. This should be fixed!
+ 
+QC metrics for 6880 samples retrieved.
+ 
+Joining with `by = join_by(group)` 
+ℹ Loading GAMBLR.results 
+Warning: replacing previous import ‘BSgenome.Hsapiens.UCSC.hg19::Hsapiens’ by ‘BSgenome.Hsapiens.UCSC.hg38::Hsapiens’ when loading ‘GAMBLR.results’ 
+[1] "=== COMPLETED AT 2026-08-07 10:38:19.856845 ==="
