@@ -145,13 +145,28 @@ get_gene_expression = function(these_samples_metadata,
     message(paste("will attach these columns:",paste(colnames(sample_details),collapse=",")))
   }
   
-  # this contains all available non-redundant RNA-seq sample_ids. 
+  # this contains all available non-redundant RNA-seq sample_ids.
   # if necessary, subset it to samples in these_samples_metadata
   # The subsetting must consider the seq_type of each row in the metadata because there are as many as 3 sample IDs
   
+  requested_mrna_ids = NULL
   if(!missing(these_samples_metadata)){
+    if("sample_id" %in% colnames(these_samples_metadata)){
+      if("seq_type" %in% colnames(these_samples_metadata)){
+        requested_mrna_ids = these_samples_metadata %>%
+          filter(seq_type == "mrna") %>%
+          pull(sample_id) %>%
+          unique()
+      }else{
+        requested_mrna_ids = unique(these_samples_metadata$sample_id)
+      }
+    }
     original_row_num = nrow(sample_details)
-    sample_details = inner_join(select(these_samples_metadata,biopsy_id,patient_id) %>% unique(),sample_details) 
+    if(!is.null(requested_mrna_ids) && length(requested_mrna_ids) > 0){
+      sample_details = filter(sample_details, mrna_sample_id %in% requested_mrna_ids)
+    }else{
+      sample_details = inner_join(select(these_samples_metadata,biopsy_id,patient_id) %>% unique(),sample_details)
+    }
     new_row_num = nrow(sample_details)
     if(verbose){
       print(paste("originally",original_row_num, "rows.", "After subsetting with the provided metadata,",new_row_num,"rows remain"))
@@ -267,8 +282,24 @@ get_gene_expression = function(these_samples_metadata,
     #format(object.size(all_exp),units="Gb")
     #[1] "1.2 Gb"
     nc = ncol(expression_wide) - 3
-    message(paste("full matrix has",nc,"columns. Subsetting based on the prioritized results."))
-    keep_ids = sample_details$mrna_sample_id
+    message(paste("full matrix has",nc,"columns. Subsetting based on the requested results."))
+    expr_sample_ids = setdiff(colnames(expression_wide), c("gene_id","ensembl_gene_id","hgnc_symbol"))
+    if(!is.null(requested_mrna_ids) && length(requested_mrna_ids) > 0){
+      keep_ids = requested_mrna_ids
+      if(verbose){
+        missing_ids = setdiff(keep_ids, expr_sample_ids)
+        present_ids = intersect(keep_ids, expr_sample_ids)
+        message(paste("requested",length(keep_ids),"sample_id values;",
+                      length(present_ids),"present in expression matrix;",
+                      length(missing_ids),"missing"))
+        if(length(missing_ids) > 0){
+          message(paste("first missing sample_id values:",
+                        paste(head(missing_ids, 10), collapse=",")))
+        }
+      }
+    }else{
+      keep_ids = sample_details$mrna_sample_id
+    }
     expression_wide = expression_wide[,c(1,2,3,which(colnames(expression_wide) %in% keep_ids))]
     nc = ncol(expression_wide) - 3
     message(paste("kept",nc,"columns"))
