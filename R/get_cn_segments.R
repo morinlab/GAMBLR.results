@@ -27,7 +27,11 @@
 #' @param verbose Set to TRUE for a chattier experience
 #' @param this_seq_type Deprecated.
 #'
-#' @return A data frame with CN segments for the specified region.
+#' @return A data frame with CN segments for the specified region. Includes
+#' a `dummy_segment` column (0/1) flagging real segments that land on
+#' coordinates commonly used as a dummy/filler region elsewhere in the
+#' cohort (shared by more than one sample); the dummy/filler rows
+#' themselves are dropped.
 #'
 #' @import dplyr readr glue GAMBLR.utils
 #' @export
@@ -178,16 +182,86 @@ get_cn_segments <- function(these_samples_metadata,
   if(max_CN > 0){
     all_segs = dplyr::mutate(all_segs, CN = ifelse(CN > max_CN, max_CN, CN))
   }
-  # If dummy segments are present, drop them.
-  # This is to avoid confusion and to simplify downstream processing.
-  # This change could impact the GISTIC functionality in GAMBLR so this may need to be revisited in the future.
-  # If you want to keep them, you can always load the raw seg files yourself and specify fill_missing_with or adjust_for_ploidy as needed.
+  # If dummy segments are present, drop the placeholder rows themselves, but
+  # keep a dummy_segment flag on the real rows that land on coordinates
+  # commonly used as a dummy/filler region elsewhere in the cohort (shared
+  # by >1 sample) -- a QC signal for low-confidence/boundary-artifact
+  # regions, re-attached by coordinate rather than carried through on the
+  # original (now-dropped) rows. This change could impact the GISTIC
+  # functionality in GAMBLR so this may need to be revisited in the future.
+  # If you want the raw dummy rows instead, load the raw seg files yourself
+  # and specify fill_missing_with or adjust_for_ploidy as needed.
   if("dummy_segment" %in% colnames(all_segs)){
     if(verbose){
       message("dropping all rows where dummy_segment == 1")
     }
+    dummy_segs = dplyr::filter(all_segs, dummy_segment==1)
+    if(verbose){
+      message(sprintf(
+        "found %d dummy segment row(s) across %d sample(s)",
+        nrow(dummy_segs), n_distinct(dummy_segs$ID)
+      ))
+    }
+    # identify common dummy segment coordinates across samples and seq_types
+    common_dummy_coords = dplyr::group_by(dummy_segs, chrom, start, end) %>%
+      dplyr::summarise(n_samples = n_distinct(ID), .groups = "drop") %>%
+      dplyr::filter(n_samples > 1) %>%
+      dplyr::mutate(match_type = "exact")
+    if(verbose){
+      message(sprintf(
+        "%d distinct dummy coordinate(s) shared by >1 sample (candidates for flagging)",
+        nrow(common_dummy_coords)
+      ))
+    }
+    # tolerate two boundary conventions a real segment's coordinates can
+    # differ from the dummy coordinate by: the end alone off by 1bp
+    # (end_shifted), or both the start and the end off by 1bp together
+    # (start_shifted) -- confirmed against real data to be the more common
+    # of the two non-exact cases by a wide margin (hundreds of rows vs.
+    # effectively none for a start-only shift), so this isn't a symmetric
+    # "either boundary independently" tolerance.
+    right_shifted_dummy_coords = dplyr::mutate(common_dummy_coords,
+      end = end + 1, match_type = "end_shifted")
+    left_shifted_dummy_coords = dplyr::mutate(common_dummy_coords,
+      start = start - 1, end = end + 1, match_type = "start_shifted")
+
+    common_dummy_coords = bind_rows(common_dummy_coords, right_shifted_dummy_coords, left_shifted_dummy_coords) %>%
+      # dedupe on coordinate alone, not the whole row: two different common-
+      # dummy regions that are only ~1bp apart can produce the same shifted
+      # (chrom, start, end) with different n_samples: left as-is, that
+      # leaves duplicate join keys below, which fans out (duplicates) any
+      # real segment landing on the colliding coordinate. Binding "exact"
+      # first means a coordinate reachable both ways keeps the "exact"
+      # label (distinct() keeps the first occurrence of each key).
+      dplyr::distinct(chrom, start, end, .keep_all = TRUE)
+
     all_segs = dplyr::filter(all_segs, dummy_segment!=1 | is.na(dummy_segment)) %>%
       dplyr::select(-dummy_segment)
+    # annotate rows that match coordinates of known dummy segments exactly
+    if(nrow(common_dummy_coords) > 0){
+      all_segs = dplyr::left_join(all_segs, common_dummy_coords, by = c("chrom", "start", "end")) %>%
+        dplyr::mutate(dummy_segment = ifelse(!is.na(n_samples), 1, 0))
+      if(verbose){
+        flagged_counts = dplyr::filter(all_segs, dummy_segment == 1) %>%
+          dplyr::count(match_type, name = "n_rows")
+        total_flagged = sum(flagged_counts$n_rows)
+        message(sprintf(
+          "flagged %d real segment row(s) as dummy_segment == 1, by matching coordinate set:",
+          total_flagged
+        ))
+        for(mt in c("exact", "end_shifted", "start_shifted")){
+          n = flagged_counts$n_rows[flagged_counts$match_type == mt]
+          if(length(n) == 0) n = 0
+          message(sprintf("  %s: %d row(s)", mt, n))
+        }
+      }
+      all_segs = dplyr::select(all_segs, -n_samples, -match_type)
+    } else {
+      all_segs = dplyr::mutate(all_segs, dummy_segment = 0)
+      if(verbose){
+        message("no common dummy coordinates found; dummy_segment set to 0 for all rows")
+      }
+    }
   }
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)
