@@ -29,9 +29,13 @@
 #' Cannot be used in conjunction with hugo_symbols. 
 #' @param all_genes Set to TRUE for the full expression data without
 #' any subsetting (*see warnings below*).
-#' @param engine Either readr or grep. The grep engine usually will increase
-#' the speed of loading but doesn't work if you want all genes or a very
-#' long list.
+#' @param engine One of "grep" (default), "fread" or "readr". The grep and
+#' fread engines only work when you request specific genes. "fread" reads the
+#' tidy expression file in chunks with `data.table::fread()`, keeping only the
+#' requested genes from each chunk, so memory use stays low; it is usually
+#' several times faster than "grep" (e.g. on macOS, whose built-in grep is
+#' slow on very large files) and its speed doesn't depend on how many genes
+#' you request.
 #' @param format Either `wide` or `long`. Wide format returns one column
 #' of expression values per gene. Long format returns one column of expression
 #' values with the gene stored in a separate column. 
@@ -211,6 +215,16 @@ get_gene_expression = function(these_samples_metadata,
           all_rows = fread(cmd = grep_cmd,verbose = F) 
           
         }
+      }else if(engine=="fread"){
+        if(all_genes){
+          stop("the fread engine is only compatible with gene subsetting")
+        }
+        all_rows = read_tidy_expression_chunked(
+          tidy_expression_file,
+          genes = genes,
+          id_column = if(id_type == "hugo") "Hugo_Symbol" else "ensembl_gene_id",
+          verbose = verbose
+        )
       }else{
         
         all_rows = read_tsv(tidy_expression_file,
@@ -339,4 +353,60 @@ get_gene_expression = function(these_samples_metadata,
   }else{
     return(expression_wide)
   }
+}
+
+# Read rows for the requested genes from the tidy expression file in
+# byte-range chunks, so the whole file never has to be held in memory. Each
+# chunk ends at its last complete line; the next chunk starts right after it.
+read_tidy_expression_chunked = function(path,
+                                        genes,
+                                        id_column = "Hugo_Symbol",
+                                        chunk_bytes = 2.5e8,
+                                        verbose = FALSE){
+  header = readLines(path, n = 1)
+  columns = strsplit(header, "\t", fixed = TRUE)[[1]]
+  if(!id_column %in% columns){
+    stop(paste("column", id_column, "not found in", path))
+  }
+  column_classes = ifelse(columns == "expression", "numeric", "character")
+  file_size = file.size(path)
+  con = file(path, "rb")
+  on.exit(close(con))
+  position = nchar(header, type = "bytes") + 1
+  kept = list()
+  n_chunks = 0
+  while(position < file_size){
+    chunk_length = min(chunk_bytes, file_size - position)
+    if(position + chunk_length < file_size){
+      # end this chunk at its last line break, found with a small read near
+      # its end (lines are far shorter than the 1 MB window)
+      window = min(1e6, chunk_length)
+      seek(con, position + chunk_length - window)
+      tail_bytes = readBin(con, "raw", window)
+      line_breaks = which(tail_bytes == as.raw(10L))
+      if(length(line_breaks) == 0){
+        stop("no line break found near the end of a chunk; is this a tidy expression file?")
+      }
+      chunk_length = chunk_length - window + max(line_breaks)
+    }
+    # read the chunk straight into a string (avoids copying a raw buffer)
+    seek(con, position)
+    text = readChar(con, chunk_length, useBytes = TRUE)
+    position = position + chunk_length
+    chunk = data.table::fread(text = text,
+                              sep = "\t",
+                              header = FALSE,
+                              col.names = columns,
+                              colClasses = column_classes,
+                              showProgress = FALSE)
+    kept[[length(kept) + 1]] = chunk[chunk[[id_column]] %chin% genes]
+    n_chunks = n_chunks + 1
+    if(verbose){
+      message(sprintf("read %.1f of %.1f GB", position / 1e9, file_size / 1e9))
+    }
+  }
+  if(verbose){
+    message(paste("read", n_chunks, "chunks"))
+  }
+  data.table::rbindlist(kept)
 }
