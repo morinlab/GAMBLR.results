@@ -10,7 +10,8 @@ get_cn_segments(
   flavour = "combined",
   this_seq_type,
   max_CN = 20,
-  verbose = FALSE
+  verbose = FALSE,
+  overlap_action = "warn"
 )
 }
 \arguments{
@@ -32,6 +33,12 @@ matched or capture samples).}
 
 \item{verbose}{Set to TRUE for a chattier experience}
 
+\item{overlap_action}{What to do if a sample (profile, i.e. sample_id and
+seq_type) has overlapping segments, which should never happen and would
+cause double counting downstream: "warn" (default, naming the samples),
+"error", "resolve" (clean up with
+\link[GAMBLR.utils:resolve_segment_overlaps]{GAMBLR.utils::resolve_segment_overlaps}) or "none".}
+
 \item{fill_missing_with}{Deprecated.
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
 For simplicity, dummy segments (if detected) are now dropped.}
@@ -40,7 +47,11 @@ For simplicity, dummy segments (if detected) are now dropped.}
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.}
 }
 \value{
-A data frame with CN segments for the specified region.
+A data frame with CN segments for the specified region. Includes
+a \code{dummy_segment} column (0/1) flagging real segments that land on
+coordinates commonly used as a dummy/filler region elsewhere in the
+cohort (shared by more than one sample); the dummy/filler rows
+themselves are dropped.
 }
 \description{
 Retrieve all copy number segments from the GAMBL outputs

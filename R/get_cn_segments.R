@@ -25,6 +25,11 @@
 #' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
 #'
 #' @param verbose Set to TRUE for a chattier experience
+#' @param overlap_action What to do if a sample (profile, i.e. sample_id and
+#' seq_type) has overlapping segments, which should never happen and would
+#' cause double counting downstream: "warn" (default, naming the samples),
+#' "error", "resolve" (clean up with
+#' [GAMBLR.utils::resolve_segment_overlaps]) or "none".
 #' @param this_seq_type Deprecated.
 #'
 #' @return A data frame with CN segments for the specified region. Includes
@@ -73,7 +78,8 @@ get_cn_segments <- function(these_samples_metadata,
                             flavour = "combined",
                             this_seq_type,
                             max_CN = 20,
-                            verbose = FALSE) {
+                            verbose = FALSE,
+                            overlap_action = "warn") {
   if (!missing(this_seq_type)) {
     stop("this_seq_type is deprecated. Subset your metadata instead.")
   }
@@ -263,6 +269,8 @@ get_cn_segments <- function(these_samples_metadata,
       }
     }
   }
+  # segments of a sample (profile) should never overlap
+  all_segs <- GAMBLR.utils::handle_segment_overlaps(all_segs, action = overlap_action)
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)
   return(all_segs)
