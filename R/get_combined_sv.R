@@ -24,6 +24,11 @@
 #' NOTE: If you are looking for SV affecting oncogenes you are more likely
 #' going to want to pass the full output to [GAMBLR.utils::annotate_sv]
 #' @param region Optional, region formatted like chrX:1234-5678 (chromosome can be prefixed or not prefixed) instead of specifying chromosome, start and end separately.
+#' @param with_metadata Set to TRUE to return a list with the SVs
+#' (`sv_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `sv_available` column (and `all_available`) saying which samples
+#' have SV data, so samples without SVs can be told from samples without
+#' data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
 #' @import config dplyr readr stringr GAMBLR.helpers
@@ -79,7 +84,15 @@ get_combined_sv <- function(these_samples_metadata,
                             oncogenes,
                             region,
                             min_vaf = 0,
-                            these_sample_ids) {
+                            these_sample_ids,
+                            with_metadata = FALSE) {
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "sv_data", function()
+      annotate_sv_availability(these_samples_metadata, projection = projection, sv_source = "combined")))
+  }
   # Handle deprecated parameters
   if (!missing(these_sample_ids)) {
     stop("Parameter `these_sample_ids` is deprecated and will be ignored.
@@ -90,8 +103,9 @@ get_combined_sv <- function(these_samples_metadata,
     split_chunks <- unlist(strsplit(region, ":"))
     chromosome <- split_chunks[1]
     startend <- unlist(strsplit(split_chunks[2], "-"))
-    qstart <- startend[1]
-    qend <- startend[2]
+    # numeric, so positions aren't compared as text (e.g. 1000000 < "500000")
+    qstart <- as.numeric(startend[1])
+    qend <- as.numeric(startend[2])
   }
 
   base_path <- GAMBLR.helpers::check_config_and_value("project_base")
@@ -115,11 +129,20 @@ get_combined_sv <- function(these_samples_metadata,
     message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
   }
 
+  # read lazily and keep only rows of these samples (and region) straight
+  # away, so only the filter columns and the kept rows are loaded, not the
+  # whole cohort file
+  keep_rows = .sv_row_filter(
+    sample_ids = if (!missing(these_samples_metadata)) these_samples_metadata$sample_id else NULL,
+    chromosome = if (!missing(region)) chromosome else NULL,
+    qstart = if (!missing(region)) qstart else NULL,
+    qend = if (!missing(region)) qend else NULL)
   all_sv <- suppressMessages(read_tsv(sv_file,
                                       col_types = "cnncnncnccccnnccncn",
-                                      progress = FALSE)) %>%
-    dplyr::rename(c("VAF_tumour" = "VAF")) %>%
-    dplyr::filter(VAF_tumour >= min_vaf)
+                                      progress = FALSE, lazy = TRUE))
+  all_sv <- keep_rows(all_sv)
+  all_sv <- all_sv[!is.na(all_sv$VAF) & all_sv$VAF >= min_vaf, , drop = FALSE] %>%
+    dplyr::rename(c("VAF_tumour" = "VAF"))
 
   if (!missing(these_sample_ids)) {
     all_sv <- all_sv %>%

@@ -50,6 +50,11 @@
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame in MAF format.
 #'
 #' @import dplyr readr tidyr glue parallel GAMBLR.helpers
@@ -93,7 +98,16 @@ get_ssm_by_samples = function(these_samples_metadata,
                               augmented = TRUE,
                               engine = 'fread_maf',
                               these_sample_ids,
-                              this_seq_type){
+                              this_seq_type,
+                              with_metadata = FALSE){
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    if(tool_name != "slms_3") stop("with_metadata = TRUE needs tool_name = \"slms_3\"")
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection, augmented = augmented)))
+  }
 
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")

@@ -45,6 +45,11 @@
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
 #'
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame of variants in 3 column format or in MAF-like format (one row per mutation).
 #'
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
@@ -79,7 +84,18 @@ get_ssm_by_region = function(chromosome,
                              min_read_support = 3,
                              verbose = FALSE,
                              these_sample_ids,
-                             this_seq_type){
+                             this_seq_type,
+                             with_metadata = FALSE){
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    if(!missing(maf_data) || tool_name != "slms_3"){
+      stop("with_metadata = TRUE needs slms_3 calls read from the results files (not maf_data)")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection, augmented = augmented)))
+  }
 
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")

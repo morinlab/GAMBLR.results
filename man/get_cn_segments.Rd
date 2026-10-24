@@ -11,7 +11,10 @@ get_cn_segments(
   this_seq_type,
   max_CN = 20,
   verbose = FALSE,
-  overlap_action = "warn"
+  overlap_action = "warn",
+  region = NULL,
+  baseline_method = "mode",
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -39,6 +42,33 @@ cause double counting downstream: "warn" (default, naming the samples),
 "error", "resolve" (clean up with
 \link[GAMBLR.utils:resolve_segment_overlaps]{GAMBLR.utils::resolve_segment_overlaps}) or "none".}
 
+\item{region}{Optional region ("chrom:start-end"): only segments
+overlapping it are read in (saving memory). Note that whole-genome
+segments are needed for anything that estimates a sample's baseline
+(modal) copy number, such as GAMBLR.viz::plot_cohort_CN_region; with
+\code{region}, the segments get a genome-wide \code{baseline_cn} (see
+\code{baseline_method}).}
+
+\item{baseline_method}{Add each sample's genome-wide baseline copy number
+as \code{baseline_cn} (and \code{baseline_method}): "mode" (default; continuous),
+"mode_rounded" (a whole number) or "mean" (see
+\link[GAMBLR.utils:add_segment_baseline]{GAMBLR.utils::add_segment_baseline}); NULL adds none. These are what
+e.g. \link[GAMBLR.utils:center_segments]{GAMBLR.utils::center_segments} and
+GAMBLR.viz::plot_cohort_CN_region use. Baselines come from a cache built
+once per seg file (see \link{get_cn_baselines}; the first call takes a little
+while). Samples that can't get a reliable one (segments covering less
+than half of the autosomal genome or fewer than 20 autosomes,
+coordinates past the chromosome ends, or no CN) get NA, with a message;
+functions that need a baseline stop on them, so remove them first, e.g.
+with \link{annotate_cn_availability} and \code{cn_available}. Only for flavour
+"combined" by default.}
+
+\item{with_metadata}{Set to TRUE to return a list with the segments
+(\code{seg_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with a \code{cn_available} column (and \code{all_available}) saying which samples
+have usable copy number data. See \link{annotate_data_availability}. Default
+FALSE.}
+
 \item{fill_missing_with}{Deprecated.
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
 For simplicity, dummy segments (if detected) are now dropped.}
@@ -47,11 +77,14 @@ For simplicity, dummy segments (if detected) are now dropped.}
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.}
 }
 \value{
-A data frame with CN segments for the specified region. Includes
-a \code{dummy_segment} column (0/1) flagging real segments that land on
-coordinates commonly used as a dummy/filler region elsewhere in the
-cohort (shared by more than one sample); the dummy/filler rows
-themselves are dropped.
+A data frame with CN segments for the specified region. Dummy
+(placeholder) segments are dropped, and the \code{dummy_segment} column with
+them. Includes \code{module} (the pipeline each segment came from, e.g.
+battenberg, cnvkit, sequenza) when the seg file has it. \code{CN} and
+\code{log.ratio} are as in the file (CN is NA where the file has none);
+\code{CN_inferred} is the copy number implied by the log ratio alone
+(\code{2 * 2^log.ratio}, capped at \code{max_CN}), which ignores purity and ploidy
+and so is not equivalent to \code{CN}.
 }
 \description{
 Retrieve all copy number segments from the GAMBL outputs

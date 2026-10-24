@@ -25,6 +25,25 @@
 #' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
 #'
 #' @param verbose Set to TRUE for a chattier experience
+#' @param region Optional region ("chrom:start-end"): only segments
+#' overlapping it are read in (saving memory). Note that whole-genome
+#' segments are needed for anything that estimates a sample's baseline
+#' (modal) copy number, such as GAMBLR.viz::plot_cohort_CN_region; with
+#' `region`, the segments get a genome-wide `baseline_cn` (see
+#' `baseline_method`).
+#' @param baseline_method Add each sample's genome-wide baseline copy number
+#' as `baseline_cn` (and `baseline_method`): "mode" (default; continuous),
+#' "mode_rounded" (a whole number) or "mean" (see
+#' [GAMBLR.utils::add_segment_baseline]); NULL adds none. These are what
+#' e.g. [GAMBLR.utils::center_segments] and
+#' GAMBLR.viz::plot_cohort_CN_region use. Baselines come from a cache built
+#' once per seg file (see [get_cn_baselines]; the first call takes a little
+#' while). Samples that can't get a reliable one (segments covering less
+#' than half of the autosomal genome or fewer than 20 autosomes,
+#' coordinates past the chromosome ends, or no CN) get NA, with a message;
+#' functions that need a baseline stop on them, so remove them first, e.g.
+#' with [annotate_cn_availability] and `cn_available`. Only for flavour
+#' "combined" by default.
 #' @param overlap_action What to do if a sample (profile, i.e. sample_id and
 #' seq_type) has overlapping segments, which should never happen and would
 #' cause double counting downstream: "warn" (default, naming the samples),
@@ -32,11 +51,19 @@
 #' [GAMBLR.utils::resolve_segment_overlaps]) or "none".
 #' @param this_seq_type Deprecated.
 #'
-#' @return A data frame with CN segments for the specified region. Includes
-#' a `dummy_segment` column (0/1) flagging real segments that land on
-#' coordinates commonly used as a dummy/filler region elsewhere in the
-#' cohort (shared by more than one sample); the dummy/filler rows
-#' themselves are dropped.
+#' @param with_metadata Set to TRUE to return a list with the segments
+#' (`seg_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with a `cn_available` column (and `all_available`) saying which samples
+#' have usable copy number data. See [annotate_data_availability]. Default
+#' FALSE.
+#' @return A data frame with CN segments for the specified region. Dummy
+#' (placeholder) segments are dropped, and the `dummy_segment` column with
+#' them. Includes `module` (the pipeline each segment came from, e.g.
+#' battenberg, cnvkit, sequenza) when the seg file has it. `CN` and
+#' `log.ratio` are as in the file (CN is NA where the file has none);
+#' `CN_inferred` is the copy number implied by the log ratio alone
+#' (`2 * 2^log.ratio`, capped at `max_CN`), which ignores purity and ploidy
+#' and so is not equivalent to `CN`.
 #'
 #' @import dplyr readr glue GAMBLR.utils
 #' @export
@@ -79,9 +106,65 @@ get_cn_segments <- function(these_samples_metadata,
                             this_seq_type,
                             max_CN = 20,
                             verbose = FALSE,
-                            overlap_action = "warn") {
+                            overlap_action = "warn",
+                            region = NULL,
+                            baseline_method = "mode",
+                            with_metadata = FALSE) {
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    if(flavour != "combined") stop("with_metadata = TRUE is available for flavour = \"combined\"")
+    return(.with_metadata(match.call(), parent.frame(), "seg_data", function()
+      annotate_cn_availability(these_samples_metadata, projection = projection)))
+  }
   if (!missing(this_seq_type)) {
     stop("this_seq_type is deprecated. Subset your metadata instead.")
+  }
+  # optional baselines: each sample's genome-wide baseline copy number, from
+  # the cached per-file table (see get_cn_baselines)
+  add_baselines = function(x, path) x
+  # baselines come from the combined seg files' cache; other flavours get
+  # them only when asked for
+  if (missing(baseline_method) && flavour != "combined") baseline_method <- NULL
+  if (!is.null(baseline_method)) {
+    baseline_method <- match.arg(baseline_method, GAMBLR.utils::baseline_methods())
+    add_baselines = function(x, path) {
+      b <- .cn_baselines_for_file(path, projection = projection, verbose = verbose)
+      # samples that can't get a reliable baseline (as in get_cn_baselines:
+      # too sparse, coordinates past the chromosome ends, or no CN) get NA
+      # rather than stopping the call; functions that need a baseline stop
+      # on them, naming them
+      b <- b[b$ID %in% unique(x$ID), , drop = FALSE]
+      bad <- (!b$fixed_baseline %in% TRUE & (b$coverage < 0.5 | b$n_autosomes < 20)) |
+        b$n_beyond_chrom_end > 0 | is.na(b$baseline_mode)
+      b[bad, paste0("baseline_", GAMBLR.utils::baseline_methods())] <- NA
+      if (any(bad)) {
+        listed <- if (sum(bad) <= 30) b$ID[bad] else c(utils::head(b$ID[bad], 30), "...")
+        message(sum(bad), " sample(s) have no baseline_cn (segments too sparse, past the ",
+                "chromosome ends, or without CN): ", paste(listed, collapse = ", "),
+                ". Functions that need a baseline (e.g. GAMBLR.utils::center_segments) will ",
+                "stop on them; remove them with annotate_cn_availability() and cn_available.")
+      }
+      missing_ids <- setdiff(unique(x$ID), b$ID)
+      if (length(missing_ids) > 0) {
+        message(length(missing_ids), " sample(s) are missing from the baseline cache and have ",
+                "no baseline_cn")
+      }
+      x$baseline_cn <- b[[paste0("baseline_", baseline_method)]][match(x$ID, b$ID)]
+      x$baseline_method <- baseline_method
+      x
+    }
+  }
+  # optional region: only segments overlapping it are read in
+  in_region = function(x) x
+  if (!is.null(region)) {
+    clean <- gsub(",", "", region)
+    parts <- regmatches(clean, regexec("^(chr)?([0-9XY]+):([0-9.e+]+)-([0-9.e+]+)$", clean))[[1]]
+    if (length(parts) == 0) stop("region must look like \"chr3:187425881-187500524\"")
+    r_chrom <- parts[3]; r_start <- as.numeric(parts[4]); r_end <- as.numeric(parts[5])
+    in_region = function(x) x[gsub("^chr", "", x$chrom) == r_chrom & x$end > r_start &
+                                x$start < r_end, , drop = FALSE]
   }
   if (missing(these_samples_metadata)) {
     message("no metadata provided")
@@ -105,7 +188,8 @@ get_cn_segments <- function(these_samples_metadata,
     cnv_flatfile_template <- check_config_and_value(
       "results_flatfiles$cnv_combined$icgc_dart"
     )
-    coltypes = "cciiid"
+    # set per file from its header (see .combined_seg_col_types)
+    coltypes = NULL
   } else if (flavour == "battenberg") {
     seq_types = "genome"
     cnv_flatfile_template <- check_config_and_value(
@@ -141,16 +225,21 @@ get_cn_segments <- function(these_samples_metadata,
       message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
     }
 
+    if (flavour == "combined") {
+      coltypes <- .combined_seg_col_types(full_cnv_path)
+    }
     if (seq_type == "capture") {
       if(verbose){
         print(full_cnv_path)
       }
 
+      # read lazily and keep only these samples' segments straight away
       seg <- suppressMessages(read_tsv(full_cnv_path,
-                                      col_types = coltypes,
-                                      na = c("NA", "NaN"),
-                                      progress = FALSE)) %>%
-        dplyr::filter(ID %in% capture_ids)
+                                       col_types = coltypes,
+                                       na = c("NA", "NaN"),
+                                       progress = FALSE, lazy = TRUE))
+      seg <- in_region(seg[seg$ID %in% capture_ids, , drop = FALSE])
+      seg <- add_baselines(seg, full_cnv_path)
     } else {
       if(verbose){
         print(full_cnv_path)
@@ -159,15 +248,16 @@ get_cn_segments <- function(these_samples_metadata,
       seg <- suppressMessages(read_tsv(full_cnv_path,
                                        col_types = coltypes,
                                        na = c("NA", "NaN"),
-                                       progress = FALSE)) %>%
-        dplyr::filter(ID %in% genome_ids)
+                                       progress = FALSE, lazy = TRUE))
+      seg <- in_region(seg[seg$ID %in% genome_ids, , drop = FALSE])
+      seg <- add_baselines(seg, full_cnv_path)
     }
     seg <- mutate(seg, seg_seq_type = seq_type)
     if(verbose){
       print(seq_type)
       print(head(seg))
     }
-    
+
     df_list[[seq_type]] <- seg
   }
   if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
@@ -182,96 +272,49 @@ get_cn_segments <- function(these_samples_metadata,
     all_segs = rename(all_segs,
       c("log.ratio"="seg.mean"))
   }
-  if(!"CN" %in% colnames(all_segs) || any(is.na(all_segs[["CN"]]))){
-    all_segs = dplyr::mutate(all_segs, CN = 2 * 2^log.ratio)
-  }
+  # CN and log.ratio are kept as they are in the file (CN is NA where it
+  # has none). CN_inferred is the copy number implied by the log ratio
+  # alone (2 * 2^log.ratio), kept separately: it ignores purity and ploidy,
+  # so it isn't a substitute for CN from the callers in use (battenberg,
+  # cnvkit, sequenza), but may be useful for a module without CN
+  if(!"CN" %in% colnames(all_segs)) all_segs$CN = NA_real_
+  all_segs$CN_inferred = 2 * 2^all_segs$log.ratio
   if(max_CN > 0){
-    all_segs = dplyr::mutate(all_segs, CN = ifelse(CN > max_CN, max_CN, CN))
+    all_segs = dplyr::mutate(all_segs, CN = ifelse(CN > max_CN, max_CN, CN),
+                             CN_inferred = ifelse(CN_inferred > max_CN, max_CN, CN_inferred))
   }
-  # If dummy segments are present, drop the placeholder rows themselves, but
-  # keep a dummy_segment flag on the real rows that land on coordinates
-  # commonly used as a dummy/filler region elsewhere in the cohort (shared
-  # by >1 sample) -- a QC signal for low-confidence/boundary-artifact
-  # regions, re-attached by coordinate rather than carried through on the
-  # original (now-dropped) rows. This change could impact the GISTIC
-  # functionality in GAMBLR so this may need to be revisited in the future.
-  # If you want the raw dummy rows instead, load the raw seg files yourself
-  # and specify fill_missing_with or adjust_for_ploidy as needed.
+  # dummy (placeholder) segments are dropped, along with the column, so
+  # callers never see them
   if("dummy_segment" %in% colnames(all_segs)){
     if(verbose){
-      message("dropping all rows where dummy_segment == 1")
+      message(sprintf("dropping %d dummy segment row(s)",
+                      sum(all_segs$dummy_segment %in% 1)))
     }
-    dummy_segs = dplyr::filter(all_segs, dummy_segment==1)
-    if(verbose){
-      message(sprintf(
-        "found %d dummy segment row(s) across %d sample(s)",
-        nrow(dummy_segs), n_distinct(dummy_segs$ID)
-      ))
-    }
-    # identify common dummy segment coordinates across samples and seq_types
-    common_dummy_coords = dplyr::group_by(dummy_segs, chrom, start, end) %>%
-      dplyr::summarise(n_samples = n_distinct(ID), .groups = "drop") %>%
-      dplyr::filter(n_samples > 1) %>%
-      dplyr::mutate(match_type = "exact")
-    if(verbose){
-      message(sprintf(
-        "%d distinct dummy coordinate(s) shared by >1 sample (candidates for flagging)",
-        nrow(common_dummy_coords)
-      ))
-    }
-    # tolerate two boundary conventions a real segment's coordinates can
-    # differ from the dummy coordinate by: the end alone off by 1bp
-    # (end_shifted), or both the start and the end off by 1bp together
-    # (start_shifted) -- confirmed against real data to be the more common
-    # of the two non-exact cases by a wide margin (hundreds of rows vs.
-    # effectively none for a start-only shift), so this isn't a symmetric
-    # "either boundary independently" tolerance.
-    right_shifted_dummy_coords = dplyr::mutate(common_dummy_coords,
-      end = end + 1, match_type = "end_shifted")
-    left_shifted_dummy_coords = dplyr::mutate(common_dummy_coords,
-      start = start - 1, end = end + 1, match_type = "start_shifted")
-
-    common_dummy_coords = bind_rows(common_dummy_coords, right_shifted_dummy_coords, left_shifted_dummy_coords) %>%
-      # dedupe on coordinate alone, not the whole row: two different common-
-      # dummy regions that are only ~1bp apart can produce the same shifted
-      # (chrom, start, end) with different n_samples: left as-is, that
-      # leaves duplicate join keys below, which fans out (duplicates) any
-      # real segment landing on the colliding coordinate. Binding "exact"
-      # first means a coordinate reachable both ways keeps the "exact"
-      # label (distinct() keeps the first occurrence of each key).
-      dplyr::distinct(chrom, start, end, .keep_all = TRUE)
-
-    all_segs = dplyr::filter(all_segs, dummy_segment!=1 | is.na(dummy_segment)) %>%
+    all_segs = dplyr::filter(all_segs, !dummy_segment %in% 1) %>%
       dplyr::select(-dummy_segment)
-    # annotate rows that match coordinates of known dummy segments exactly
-    if(nrow(common_dummy_coords) > 0){
-      all_segs = dplyr::left_join(all_segs, common_dummy_coords, by = c("chrom", "start", "end")) %>%
-        dplyr::mutate(dummy_segment = ifelse(!is.na(n_samples), 1, 0))
-      if(verbose){
-        flagged_counts = dplyr::filter(all_segs, dummy_segment == 1) %>%
-          dplyr::count(match_type, name = "n_rows")
-        total_flagged = sum(flagged_counts$n_rows)
-        message(sprintf(
-          "flagged %d real segment row(s) as dummy_segment == 1, by matching coordinate set:",
-          total_flagged
-        ))
-        for(mt in c("exact", "end_shifted", "start_shifted")){
-          n = flagged_counts$n_rows[flagged_counts$match_type == mt]
-          if(length(n) == 0) n = 0
-          message(sprintf("  %s: %d row(s)", mt, n))
-        }
-      }
-      all_segs = dplyr::select(all_segs, -n_samples, -match_type)
-    } else {
-      all_segs = dplyr::mutate(all_segs, dummy_segment = 0)
-      if(verbose){
-        message("no common dummy coordinates found; dummy_segment set to 0 for all rows")
-      }
-    }
+  }
+  no_cn = is.na(all_segs$CN)
+  if(any(no_cn)){
+    by_module = if("module" %in% colnames(all_segs)){
+      counts = table(all_segs$module[no_cn], useNA = "ifany")
+      paste0(" (module: ", paste(names(counts), counts, sep = " ", collapse = ", "), ")")
+    }else ""
+    message(sprintf("%d segment(s) in %d sample(s) have no CN%s; CN_inferred has 2 * 2^log.ratio for them",
+                    sum(no_cn), dplyr::n_distinct(all_segs$ID[no_cn]), by_module))
   }
   # segments of a sample (profile) should never overlap
   all_segs <- GAMBLR.utils::handle_segment_overlaps(all_segs, action = overlap_action)
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)
   return(all_segs)
+}
+
+# Column types for a combined seg file, by name, so they're right whatever
+# the column order (module, the pipeline each segment came from, is text)
+.combined_seg_col_types = function(path){
+  header = colnames(suppressMessages(readr::read_tsv(path, n_max = 0, progress = FALSE)))
+  types = c(ID = "c", chrom = "c", start = "i", end = "i", module = "c", LOH_flag = "i",
+            CN = "d", log.ratio = "d", seg.mean = "d", dummy_segment = "i")
+  types = types[names(types) %in% header]
+  do.call(readr::cols, c(as.list(types), list(.default = readr::col_guess())))
 }
