@@ -35,7 +35,7 @@ Imports:
     dplyr,
     GAMBLR.data,
     GAMBLR.helpers,
-    GAMBLR.utils (>= 1.4),
+    GAMBLR.utils (>= 1.5),
     GAMBLR.viz,
     GenomicRanges,
     ggplot2,
