@@ -8,6 +8,8 @@ get_cn_baselines(
   these_samples_metadata = NULL,
   projection = "grch37",
   seg_file = NULL,
+  pipeline = NULL,
+  priority = NULL,
   min_genome_coverage = 0.5,
   min_autosomes = 20,
   refresh = FALSE,
@@ -17,11 +19,17 @@ get_cn_baselines(
 \arguments{
 \item{these_samples_metadata}{Metadata (sample_id, seq_type): each sample
 is looked up in the combined seg file for its seq_type (genome or
-capture). Give this or \code{seg_file}.}
+capture), or in the per-pipeline seg files with \code{pipeline}. Give this or
+\code{seg_file}.}
 
 \item{projection}{Genome build ("grch37" or "hg38").}
 
 \item{seg_file}{Alternatively, the path to a seg file: all its samples.}
+
+\item{pipeline, priority}{Optional: look samples up in the per-pipeline seg
+files instead of the combined one, as in \link{get_cn_segments}. Each sample is
+taken from the first pipeline (in \code{priority}, then \code{pipeline} order) whose
+file has it, and the result has a \code{pipeline} column naming it.}
 
 \item{min_genome_coverage, min_autosomes}{Thresholds for \code{ok}, as used by
 \link{get_cn_segments}. Defaults 0.5 and 20.}
@@ -40,7 +48,8 @@ need to cover the genome; see \link[GAMBLR.utils:add_segment_baseline]{GAMBLR.ut
 baseline_mode,
 baseline_mode_rounded, baseline_mean, coverage_ok, build_ok, cn_ok (the
 segments have CN, so there is a baseline) and ok (all three; NA for
-samples without segments).
+samples without segments). With \code{pipeline}, also pipeline (NA for samples
+in none of the files).
 }
 \description{
 For the samples in \code{these_samples_metadata} (or every sample

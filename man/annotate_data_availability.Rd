@@ -37,6 +37,8 @@ annotate_sv_availability(
 annotate_cn_availability(
   these_samples_metadata,
   projection = "grch37",
+  pipeline = NULL,
+  priority = NULL,
   min_genome_coverage = 0.5,
   min_autosomes = 20,
   drop_unavailable = FALSE,
@@ -65,6 +67,11 @@ the indexed MAF used by the region getters) or "cds" (the coding MAF).}
 
 \item{seq_types}{For SSMs, the seq_types the data come from; rows of
 other seq_types are FALSE. Default genome and capture.}
+
+\item{pipeline, priority}{For copy number, optionally the per-pipeline seg
+files to use instead of the combined one, as in \link{get_cn_segments}. The
+metadata then also gets \code{cn_pipeline}, the pipeline each sample's copy
+number would come from.}
 
 \item{min_genome_coverage, min_autosomes}{For copy number, as in
 \link{get_cn_baselines}. Defaults 0.5 and 20.}

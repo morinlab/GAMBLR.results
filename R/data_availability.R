@@ -45,6 +45,10 @@
 #' @param seq_types For SSMs, the seq_types the data come from; rows of
 #' other seq_types are FALSE. Default genome and capture.
 #' @param sv_source For SVs, "combined" (default) or "manta".
+#' @param pipeline,priority For copy number, optionally the per-pipeline seg
+#' files to use instead of the combined one, as in [get_cn_segments]. The
+#' metadata then also gets `cn_pipeline`, the pipeline each sample's copy
+#' number would come from.
 #' @param min_genome_coverage,min_autosomes For copy number, as in
 #' [get_cn_baselines]. Defaults 0.5 and 20.
 #' @param drop_unavailable Set to TRUE to also drop the rows that lack the
@@ -133,15 +137,18 @@ annotate_sv_availability = function(these_samples_metadata,
 #' @export
 annotate_cn_availability = function(these_samples_metadata,
                                     projection = "grch37",
+                                    pipeline = NULL,
+                                    priority = NULL,
                                     min_genome_coverage = 0.5,
                                     min_autosomes = 20,
                                     drop_unavailable = FALSE,
                                     verbose = TRUE){
   meta = these_samples_metadata
-  b = get_cn_baselines(meta, projection = projection, min_genome_coverage = min_genome_coverage,
-                       min_autosomes = min_autosomes)
-  available = b$ok[match(paste(meta$sample_id, meta$seq_type),
-                          paste(b$sample_id, b$seq_type))] %in% TRUE
+  b = get_cn_baselines(meta, projection = projection, pipeline = pipeline, priority = priority,
+                       min_genome_coverage = min_genome_coverage, min_autosomes = min_autosomes)
+  at = match(paste(meta$sample_id, meta$seq_type), paste(b$sample_id, b$seq_type))
+  available = b$ok[at] %in% TRUE
+  if(!is.null(pipeline)) meta$cn_pipeline = b$pipeline[at]
   .set_available(meta, "cn_available", available, "copy number data", drop_unavailable, verbose)
 }
 

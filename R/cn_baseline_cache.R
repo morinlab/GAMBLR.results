@@ -25,9 +25,14 @@
 #'
 #' @param these_samples_metadata Metadata (sample_id, seq_type): each sample
 #' is looked up in the combined seg file for its seq_type (genome or
-#' capture). Give this or `seg_file`.
+#' capture), or in the per-pipeline seg files with `pipeline`. Give this or
+#' `seg_file`.
 #' @param projection Genome build ("grch37" or "hg38").
 #' @param seg_file Alternatively, the path to a seg file: all its samples.
+#' @param pipeline,priority Optional: look samples up in the per-pipeline seg
+#' files instead of the combined one, as in [get_cn_segments]. Each sample is
+#' taken from the first pipeline (in `priority`, then `pipeline` order) whose
+#' file has it, and the result has a `pipeline` column naming it.
 #' @param min_genome_coverage,min_autosomes Thresholds for `ok`, as used by
 #' [get_cn_segments]. Defaults 0.5 and 20.
 #' @param refresh Set to TRUE to rebuild the cache(s).
@@ -42,7 +47,8 @@
 #' baseline_mode,
 #' baseline_mode_rounded, baseline_mean, coverage_ok, build_ok, cn_ok (the
 #' segments have CN, so there is a baseline) and ok (all three; NA for
-#' samples without segments).
+#' samples without segments). With `pipeline`, also pipeline (NA for samples
+#' in none of the files).
 #'
 #' @export
 #'
@@ -53,7 +59,8 @@
 #' meta_ok = dplyr::filter(meta, !sample_id %in% too_sparse)
 #' }
 get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37",
-                            seg_file = NULL, min_genome_coverage = 0.5, min_autosomes = 20,
+                            seg_file = NULL, pipeline = NULL, priority = NULL,
+                            min_genome_coverage = 0.5, min_autosomes = 20,
                             refresh = FALSE, verbose = FALSE){
   flag = function(b){
     # NA for samples without segments (nothing to judge)
@@ -74,21 +81,60 @@ get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37"
   if(is.null(these_samples_metadata)) stop("give these_samples_metadata or seg_file")
   meta = as.data.frame(these_samples_metadata)
   meta = meta[meta$seq_type %in% c("genome", "capture"), c("sample_id", "seq_type"), drop = FALSE]
+  order = if(is.null(pipeline)) NULL else .pipeline_order(pipeline, priority)
   out = do.call(rbind, lapply(unique(meta$seq_type), function(st){
-    b = .cn_baselines_for_file(.cnv_combined_path(st, projection), projection,
-                               refresh, verbose)
     m = meta[meta$seq_type == st, , drop = FALSE]
+    if(is.null(order)){
+      b = .cn_baselines_for_file(.cnv_combined_path(st, projection), projection,
+                                 refresh, verbose)
+      from = NULL
+    }else{
+      # each sample from the first pipeline whose file has it
+      b = NULL
+      from = rep(NA_character_, nrow(m))
+      for(p in order){
+        path = .cnv_pipeline_path(p, st, projection)
+        if(!file.exists(path)) next
+        bp = .cn_baselines_for_file(path, projection, refresh, verbose)
+        take = is.na(from) & m$sample_id %in% bp$ID
+        from[take] = p
+        b = rbind(b, bp[bp$ID %in% m$sample_id[take], , drop = FALSE])
+      }
+      if(is.null(b)) b = data.frame(ID = character(0))
+    }
     at = match(m$sample_id, b$ID)
-    data.frame(sample_id = m$sample_id, seq_type = st, has_segments = !is.na(at),
+    out_st = data.frame(sample_id = m$sample_id, seq_type = st, has_segments = !is.na(at),
                coverage = b$coverage[at], n_autosomes = b$n_autosomes[at],
                n_beyond_chrom_end = b$n_beyond_chrom_end[at], n_no_cn = b$n_no_cn[at],
                fixed_baseline = b$fixed_baseline[at],
                baseline_mode = b$baseline_mode[at], baseline_mode_rounded = b$baseline_mode_rounded[at],
                baseline_mean = b$baseline_mean[at],
                stringsAsFactors = FALSE)
+    if(!is.null(from)) out_st$pipeline = from
+    out_st
   }))
   rownames(out) = NULL
   flag(out)
+}
+
+# Path of a per-pipeline seg file (written by the GAMBL per-pipeline merge
+# script): the per_pipeline directory next to the combined merge in
+# results_merged$cnv
+.cnv_pipeline_path = function(pipeline, seq_type, projection){
+  merges = dirname(check_config_and_value("results_merged$cnv"))
+  paste0(check_config_and_value("project_base"), merges, "/per_pipeline/",
+         pipeline, "--", seq_type, "--", projection, ".seg")
+}
+
+# Pipelines in the order they are used: those in priority first (in that
+# order), then the rest of pipeline
+.pipeline_order = function(pipeline, priority = NULL){
+  if(length(pipeline) == 0) stop("pipeline must name at least one pipeline")
+  bad = setdiff(priority, pipeline)
+  if(length(bad) > 0){
+    stop("priority names pipelines not in pipeline: ", paste(bad, collapse = ", "))
+  }
+  unique(c(priority, pipeline))
 }
 
 # Path of the combined seg file for a seq_type and build (icgc_dart merge,

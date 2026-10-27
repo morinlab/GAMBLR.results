@@ -11,12 +11,26 @@
 #' @param these_samples_metadata User must provide a metadata table to restrict the data to the samples in your table.
 #' The metadata also ensures the proper handling of duplicate sample_id across seq_types and ensures the
 #' seq_type in the metadata faithfully represents the seq_type of the data
-#' @param flavour Specify what pipeline or source of data to use.
+#' @param pipeline Optional: get segments from specific pipelines instead of
+#' the combined merge (one chosen source per sample). Names as in the
+#' per-pipeline merge files (the `per_pipeline` directory next to the
+#' combined merge in `results_merged$cnv`, named
+#' `<pipeline>--<seq_type>--<projection>.seg`), e.g. "battenberg",
+#' "controlfreec", "sequenza", "cnvkit" or "purecn". Default NULL uses the
+#' combined merge. A pipeline without a file for a seq_type is skipped, with
+#' a message.
+#' @param priority With several pipelines, the ones to prefer, in order;
+#' pipelines not named follow in `pipeline` order. E.g. `pipeline =
+#' c("purecn", "battenberg"), priority = "battenberg"` takes each sample from
+#' battenberg when it has it, and from purecn otherwise. Default NULL: the
+#' order of `pipeline`.
+#' @param one_per_sample With several pipelines, TRUE (default) returns each
+#' sample's segments from one pipeline only (the first, by `priority`, whose
+#' file has the sample); FALSE returns every pipeline's segments for every
+#' sample, e.g. to compare them (the overlap check is then per pipeline).
+#' @param flavour Deprecated: use `pipeline`. "combined" (default) is the
+#' combined merge; any other value is used as `pipeline`.
 #' @param max_CN Cap CN values at this value. Default is 20. This is to avoid extreme CN values dominating the colour scale in visualisations.
-#' Available options are "combined" (for the merge of the best tool for each data type),
-#' or one of "purecn_cnvkit", "purecn_denovo", or "battenberg".
-#' Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
-#' matched or capture samples).
 #' @param projection Desired genome coordinate system for returned CN segments. Default is "grch37".
 #' @param fill_missing_with Deprecated.
 #' This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
@@ -42,8 +56,8 @@
 #' than half of the autosomal genome or fewer than 20 autosomes,
 #' coordinates past the chromosome ends, or no CN) get NA, with a message;
 #' functions that need a baseline stop on them, so remove them first, e.g.
-#' with [annotate_cn_availability] and `cn_available`. Only for flavour
-#' "combined" by default.
+#' with [annotate_cn_availability] and `cn_available`. With `pipeline`, each
+#' sample's baseline comes from the pipeline its segments come from.
 #' @param overlap_action What to do if a sample (profile, i.e. sample_id and
 #' seq_type) has overlapping segments, which should never happen and would
 #' cause double counting downstream: "warn" (default, naming the samples),
@@ -54,12 +68,15 @@
 #' @param with_metadata Set to TRUE to return a list with the segments
 #' (`seg_data`) and `metadata`: `these_samples_metadata`, all rows kept,
 #' with a `cn_available` column (and `all_available`) saying which samples
-#' have usable copy number data. See [annotate_data_availability]. Default
-#' FALSE.
+#' have usable copy number data (and, with `pipeline`, `cn_pipeline`: the
+#' pipeline each sample's data come from). See [annotate_data_availability].
+#' Default FALSE.
 #' @return A data frame with CN segments for the specified region. Dummy
 #' (placeholder) segments are dropped, and the `dummy_segment` column with
 #' them. Includes `module` (the pipeline each segment came from, e.g.
-#' battenberg, cnvkit, sequenza) when the seg file has it. `CN` and
+#' battenberg, cnvkit, sequenza) when the seg file has it, and with
+#' `pipeline`, a `pipeline` column naming the per-pipeline merge each
+#' segment was read from. `CN` and
 #' `log.ratio` are as in the file (CN is NA where the file has none);
 #' `CN_inferred` is the copy number implied by the log ratio alone
 #' (`2 * 2^log.ratio`, capped at `max_CN`), which ignores purity and ploidy
@@ -99,9 +116,25 @@
 #'
 #' dplyr::group_by(all_seq_type_segs,seg_seq_type) %>% dplyr::count()
 #'
+#' \dontrun{
+#' # segments from one pipeline only
+#' purecn_segs = get_cn_segments(capture_metadata, pipeline = "purecn")
+#'
+#' # battenberg where available, purecn otherwise
+#' segs = get_cn_segments(mixed_seq_type_meta, pipeline = c("purecn", "battenberg"),
+#'                        priority = "battenberg")
+#'
+#' # every pipeline's segments, side by side
+#' all_segs = get_cn_segments(capture_metadata, pipeline = c("cnvkit", "purecn"),
+#'                            one_per_sample = FALSE)
+#' }
+#'
 
 get_cn_segments <- function(these_samples_metadata,
                             projection = "grch37",
+                            pipeline = NULL,
+                            priority = NULL,
+                            one_per_sample = TRUE,
                             flavour = "combined",
                             this_seq_type,
                             max_CN = 20,
@@ -110,13 +143,20 @@ get_cn_segments <- function(these_samples_metadata,
                             region = NULL,
                             baseline_method = "mode",
                             with_metadata = FALSE) {
+  # flavour is deprecated: anything but "combined" is a pipeline
+  if(flavour != "combined"){
+    if(!is.null(pipeline)) stop("give pipeline or flavour, not both (flavour is deprecated)")
+    message("flavour is deprecated; use pipeline = \"", flavour, "\"")
+    pipeline <- flavour
+  }
+  if(!is.null(pipeline)) pipeline_order <- .pipeline_order(pipeline, priority)
   if(with_metadata){
     if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
       stop("with_metadata = TRUE needs these_samples_metadata")
     }
-    if(flavour != "combined") stop("with_metadata = TRUE is available for flavour = \"combined\"")
     return(.with_metadata(match.call(), parent.frame(), "seg_data", function()
-      annotate_cn_availability(these_samples_metadata, projection = projection)))
+      annotate_cn_availability(these_samples_metadata, projection = projection,
+                               pipeline = pipeline, priority = priority)))
   }
   if (!missing(this_seq_type)) {
     stop("this_seq_type is deprecated. Subset your metadata instead.")
@@ -124,9 +164,7 @@ get_cn_segments <- function(these_samples_metadata,
   # optional baselines: each sample's genome-wide baseline copy number, from
   # the cached per-file table (see get_cn_baselines)
   add_baselines = function(x, path) x
-  # baselines come from the combined seg files' cache; other flavours get
-  # them only when asked for
-  if (missing(baseline_method) && flavour != "combined") baseline_method <- NULL
+  # baselines come from each seg file's cache (combined or per-pipeline)
   if (!is.null(baseline_method)) {
     baseline_method <- match.arg(baseline_method, GAMBLR.utils::baseline_methods())
     add_baselines = function(x, path) {
@@ -184,90 +222,78 @@ get_cn_segments <- function(these_samples_metadata,
   capture_ids <- dplyr::filter(these_samples_metadata,
     seq_type == "capture") %>%
     pull(sample_id)
-  if (flavour == "combined") {
+  if (!is.null(pipeline)) {
+    all_segs <- .get_pipeline_segments(pipeline_order, one_per_sample, projection,
+                                       list(genome = genome_ids, capture = capture_ids),
+                                       in_region, add_baselines, verbose)
+  } else {
     cnv_flatfile_template <- check_config_and_value(
       "results_flatfiles$cnv_combined$icgc_dart"
     )
-    # set per file from its header (see .combined_seg_col_types)
-    coltypes = NULL
-  } else if (flavour == "battenberg") {
-    seq_types = "genome"
-    cnv_flatfile_template <- check_config_and_value(
-      "results_merged$battenberg"
-    )
-    coltypes = "cciiidi"
-  } else if(grepl("purecn",flavour)){
-    seq_types = "capture"
-    coltypes = "cciidd"
-    cnv_flatfile_template <- check_config_and_value(
-      paste0("results_merged$",flavour))
-  } else{
-    stop("currently available flavours: combined, purecn_denovo, purecn_cnvkit or battenberg")
-  }
-  df_list <- list()
-  for (seq_type in seq_types) {
-    cnv_path <- glue::glue(cnv_flatfile_template)
-    full_cnv_path <- paste0(check_config_and_value("project_base"), cnv_path)
-    # check permissions to ICGC data.
-    permissions <- file.access(full_cnv_path, 4)
-    if (permissions == -1) {
-      message(paste("failed loading from", full_cnv_path[1]))
-      message("restricting to non-ICGC data")
-      cnv_flatfile_template <- check_config_and_value("results_flatfiles$cnv_combined$gambl")
+    df_list <- list()
+    for (seq_type in seq_types) {
       cnv_path <- glue::glue(cnv_flatfile_template)
       full_cnv_path <- paste0(check_config_and_value("project_base"), cnv_path)
-    }
+      # check permissions to ICGC data.
+      permissions <- file.access(full_cnv_path, 4)
+      if (permissions == -1) {
+        message(paste("failed loading from", full_cnv_path[1]))
+        message("restricting to non-ICGC data")
+        cnv_flatfile_template <- check_config_and_value("results_flatfiles$cnv_combined$gambl")
+        cnv_path <- glue::glue(cnv_flatfile_template)
+        full_cnv_path <- paste0(check_config_and_value("project_base"), cnv_path)
+      }
 
-    # check for missingness.
-    if (!file.exists(full_cnv_path)) {
-      print(paste("missing: ", full_cnv_path))
-      message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
-      message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
-    }
+      # check for missingness.
+      if (!file.exists(full_cnv_path)) {
+        print(paste("missing: ", full_cnv_path))
+        message("Cannot find file locally. If working remotely, perhaps you forgot to load your config (see below) or sync your files?")
+        message('Sys.setenv(R_CONFIG_ACTIVE = "remote")')
+      }
 
-    if (flavour == "combined") {
+      # column types from the file's header (see .combined_seg_col_types)
       coltypes <- .combined_seg_col_types(full_cnv_path)
-    }
-    if (seq_type == "capture") {
+      if (seq_type == "capture") {
+        if(verbose){
+          print(full_cnv_path)
+        }
+
+        # read lazily and keep only these samples' segments straight away
+        seg <- suppressMessages(read_tsv(full_cnv_path,
+                                         col_types = coltypes,
+                                         na = c("NA", "NaN"),
+                                         progress = FALSE, lazy = TRUE))
+        seg <- in_region(seg[seg$ID %in% capture_ids, , drop = FALSE])
+        seg <- add_baselines(seg, full_cnv_path)
+      } else {
+        if(verbose){
+          print(full_cnv_path)
+        }
+
+        seg <- suppressMessages(read_tsv(full_cnv_path,
+                                         col_types = coltypes,
+                                         na = c("NA", "NaN"),
+                                         progress = FALSE, lazy = TRUE))
+        seg <- in_region(seg[seg$ID %in% genome_ids, , drop = FALSE])
+        seg <- add_baselines(seg, full_cnv_path)
+      }
+      seg <- mutate(seg, seg_seq_type = seq_type)
       if(verbose){
-        print(full_cnv_path)
+        print(seq_type)
+        print(head(seg))
       }
 
-      # read lazily and keep only these samples' segments straight away
-      seg <- suppressMessages(read_tsv(full_cnv_path,
-                                       col_types = coltypes,
-                                       na = c("NA", "NaN"),
-                                       progress = FALSE, lazy = TRUE))
-      seg <- in_region(seg[seg$ID %in% capture_ids, , drop = FALSE])
-      seg <- add_baselines(seg, full_cnv_path)
-    } else {
-      if(verbose){
-        print(full_cnv_path)
-      }
-
-      seg <- suppressMessages(read_tsv(full_cnv_path,
-                                       col_types = coltypes,
-                                       na = c("NA", "NaN"),
-                                       progress = FALSE, lazy = TRUE))
-      seg <- in_region(seg[seg$ID %in% genome_ids, , drop = FALSE])
-      seg <- add_baselines(seg, full_cnv_path)
+      df_list[[seq_type]] <- seg
     }
-    seg <- mutate(seg, seg_seq_type = seq_type)
+    if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
+      stop("overlapping IDs found!")
+    }
     if(verbose){
-      print(seq_type)
-      print(head(seg))
+      print(names(df_list))
     }
 
-    df_list[[seq_type]] <- seg
+    all_segs <- do.call("bind_rows", df_list)
   }
-  if (any(unique(df_list[["capture"]]$ID) %in% unique(df_list[["genome"]]$ID))) {
-    stop("overlapping IDs found!")
-  }
-  if(verbose){
-    print(names(df_list))
-  }
-
-  all_segs <- do.call("bind_rows", df_list)
   if(!"log.ratio" %in% colnames(all_segs)){
     all_segs = rename(all_segs,
       c("log.ratio"="seg.mean"))
@@ -303,17 +329,73 @@ get_cn_segments <- function(these_samples_metadata,
                     sum(no_cn), dplyr::n_distinct(all_segs$ID[no_cn]), by_module))
   }
   # segments of a sample (profile) should never overlap
-  all_segs <- GAMBLR.utils::handle_segment_overlaps(all_segs, action = overlap_action)
+  # (with several pipelines kept side by side, per pipeline)
+  overlap_by <- if (!is.null(pipeline) && !one_per_sample) {
+    c("ID", intersect("seg_seq_type", colnames(all_segs)), "pipeline")
+  } else NULL
+  all_segs <- GAMBLR.utils::handle_segment_overlaps(all_segs, action = overlap_action,
+                                                    by = overlap_by)
   # return S3 class with CN segments and genome_build
   all_segs <- create_seg_data(all_segs, projection)
   return(all_segs)
+}
+
+# Segments from the per-pipeline merges, for get_cn_segments(pipeline = ...).
+# For each seq_type, the pipelines' files are read in `order`; with
+# one_per_sample, each sample comes from the first file that has it (judged
+# on the whole file, before any region filter, so a sample isn't switched to
+# another pipeline just for lacking segments in the region)
+.get_pipeline_segments = function(order, one_per_sample, projection, ids_by_seq_type,
+                                  in_region, add_baselines, verbose){
+  out = list()
+  for(seq_type in names(ids_by_seq_type)){
+    ids = ids_by_seq_type[[seq_type]]
+    if(length(ids) == 0) next
+    taken = character(0)
+    counts = c()
+    for(p in order){
+      path = .cnv_pipeline_path(p, seq_type, projection)
+      if(!file.exists(path)){
+        message("no ", p, " segments for ", seq_type, " samples (", path, " not found)")
+        next
+      }
+      if(verbose) print(path)
+      seg = suppressMessages(readr::read_tsv(path, col_types = .combined_seg_col_types(path),
+                                             na = c("NA", "NaN"), progress = FALSE,
+                                             lazy = TRUE))
+      seg = seg[seg$ID %in% ids, , drop = FALSE]
+      if(one_per_sample){
+        seg = seg[!seg$ID %in% taken, , drop = FALSE]
+        taken = c(taken, unique(seg$ID))
+      }
+      counts[p] = dplyr::n_distinct(seg$ID)
+      if(nrow(seg) == 0) next
+      seg = add_baselines(in_region(seg), path)
+      seg$pipeline = rep(p, nrow(seg))
+      seg$seg_seq_type = rep(seq_type, nrow(seg))
+      out[[paste(seq_type, p)]] = seg
+    }
+    if(length(counts) > 0){
+      found = if(one_per_sample) length(taken) else
+        dplyr::n_distinct(unlist(lapply(out[grepl(paste0("^", seq_type, " "), names(out))],
+                                        function(x) x$ID)))
+      message(seq_type, ": ", paste(counts, "sample(s) from", names(counts), collapse = ", "),
+              if(length(ids) > found) paste0("; ", length(ids) - found,
+                                               " sample(s) in none of these pipelines") else "")
+    }
+  }
+  if(length(out) == 0){
+    stop("no segments found for these samples in pipeline(s): ", paste(order, collapse = ", "))
+  }
+  dplyr::bind_rows(out)
 }
 
 # Column types for a combined seg file, by name, so they're right whatever
 # the column order (module, the pipeline each segment came from, is text)
 .combined_seg_col_types = function(path){
   header = colnames(suppressMessages(readr::read_tsv(path, n_max = 0, progress = FALSE)))
-  types = c(ID = "c", chrom = "c", start = "i", end = "i", module = "c", LOH_flag = "i",
+  # LOH_flag as a number: some modules write it as 0.0/1.0
+  types = c(ID = "c", chrom = "c", start = "i", end = "i", module = "c", LOH_flag = "d",
             CN = "d", log.ratio = "d", seg.mean = "d", dummy_segment = "i")
   types = types[names(types) %in% header]
   do.call(readr::cols, c(as.list(types), list(.default = readr::col_guess())))
