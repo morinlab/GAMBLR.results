@@ -1,3 +1,53 @@
+#' @title Compute ASHM hypermutation counts for a sample scope.
+#'
+#' @description Core computation behind `collate_ashm_results()`, extracted
+#' so it can also be called directly by [collate_results_db()] for just the
+#' subset of samples missing from its cache table. Every `sample_id` present
+#' in `sample_table` gets a row back -- including one with `NA` in every
+#' `ashm_*` column if it had no hypermutation calls in any of the three
+#' regions at all (would otherwise not appear after the group_by/tally
+#' below). This matters beyond just column completeness: `collate_results_db()`
+#' treats any row present in the cache table as "already computed" and
+#' won't retry it on a future run unless explicitly listed in `refresh` --
+#' so a sample genuinely lacking calls gets cached as such (NA, skip next
+#' time) exactly like one legitimately found to have zero.
+#'
+#' @param sample_table A data frame with sample_id as a column, scoping
+#' which samples to compute for. Must already be filtered to the desired
+#' seq_type.
+#'
+#' @return A data frame with `sample_id`, `ashm_CCND1`, `ashm_BCL2`, `ashm_MYC`.
+#'
+#' @import dplyr tidyr tibble
+#'
+#' @keywords internal
+#' @noRd
+compute_ashm_results_core <- function(sample_table){
+
+  #just annotate BCL2, MYC and CCND1 hypermutation
+  regions_df = data.frame(name = c("CCND1","BCL2","MYC"),
+  region = c("chr11:69455000-69459900", "chr18:60983000-60989000", "chr8:128747615-128751834"))
+  region_mafs = lapply(regions_df$region, function(x){get_ssm_by_region(region = x, streamlined = FALSE, these_samples_metadata = sample_table)})
+  tibbled_data = tibble(region_mafs, region_name = regions_df$name)
+  unnested_df = tibbled_data %>%
+    unnest_longer(region_mafs)
+
+  unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
+    dplyr::select(start, sample_id, region_name)
+
+  tallied = unlisted_df %>%
+    group_by(sample_id, region_name) %>%
+    tally() %>%
+    pivot_wider(values_from = n, names_from = region_name, values_fill = 0, names_prefix = "ashm_")
+
+  # every requested sample_id gets a row back, even one absent from tallied
+  # entirely (NA ashm_* columns) -- see description above.
+  result <- dplyr::select(sample_table, sample_id) %>%
+    left_join(tallied, by = "sample_id")
+
+  return(result)
+}
+
 #' @title Collate ASHM Results.
 #'
 #' @description Determine the hypermutation status of a few genes.
@@ -28,21 +78,9 @@ collate_ashm_results = function(sample_table,
   }else{
     sample_table = dplyr::filter(sample_table, seq_type == seq_type_filter)
   }
-  #just annotate BCL2, MYC and CCND1 hypermutation
-  regions_df = data.frame(name = c("CCND1","BCL2","MYC"),
-  region = c("chr11:69455000-69459900", "chr18:60983000-60989000", "chr8:128747615-128751834"))
-  region_mafs = lapply(regions_df$region, function(x){get_ssm_by_region(region = x, streamlined = FALSE, these_samples_metadata = sample_table)})
-  tibbled_data = tibble(region_mafs, region_name = regions_df$name)
-  unnested_df = tibbled_data %>%
-    unnest_longer(region_mafs)
 
-  unlisted_df = mutate(unnested_df, start = region_mafs$Start_Position, sample_id = region_mafs$Tumor_Sample_Barcode) %>%
-    dplyr::select(start, sample_id, region_name)
+  new_cols <- compute_ashm_results_core(sample_table)
+  sample_table = left_join(sample_table, new_cols, by = "sample_id")
 
-  tallied = unlisted_df %>%
-    group_by(sample_id, region_name) %>%
-    tally() %>%
-    pivot_wider(values_from = n, names_from = region_name, values_fill = 0, names_prefix = "ashm_")
-
-  sample_table = left_join(sample_table, tallied, by = "sample_id")
+  return(sample_table)
 }

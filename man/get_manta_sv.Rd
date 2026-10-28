@@ -18,7 +18,8 @@ get_manta_sv(
   qstart,
   qend,
   these_sample_ids = NULL,
-  pairing_status
+  pairing_status,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,12 @@ Setting this to TRUE forces \code{from_cache = FALSE}.}
 
 \item{pairing_status}{DEPRECATED.
 Subset your metadata and supply these_samples_metadata instead.}
+
+\item{with_metadata}{Set to TRUE to return a list with the SVs
+(\code{sv_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{sv_available} column (and \code{all_available}) saying which samples
+have SV data, so samples without SVs can be told from samples without
+data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
 A data frame in a bedpe-like format with additional

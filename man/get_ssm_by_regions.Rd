@@ -18,7 +18,8 @@ get_ssm_by_regions(
   min_read_support = 3,
   verbose = FALSE,
   these_sample_ids,
-  this_seq_type
+  this_seq_type,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -66,9 +67,19 @@ Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are
 \item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata.}
 
 \item{this_seq_type}{Deprecated. Inferred from these_samples_metadata.}
+
+\item{with_metadata}{Set to TRUE to return a list with the mutations
+(\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{ssm_available} column (and \code{all_available}) saying which samples
+have SSM data, so samples without mutations can be told from samples
+without data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
-Returns a data frame of variants in 3 column format or in MAF-like format (one row per mutation).
+Returns a data frame of variants in 3 column format or in MAF-like
+format (one row per mutation). The MAF-like format also carries a
+maf_seq_type column recording which seq_type (genome/capture) each
+variant came from, so genome- and capture-derived rows for the same
+sample_id can still be separated after the two are merged together.
 }
 \description{
 Efficiently retrieve all mutations across a range of genomic regions.

@@ -171,6 +171,28 @@ collate_results = function(these_samples_metadata,
     sample_table = sample_table_final
   }
   if(write_to_file){
+    # Refuse to write a subset that would shrink the shared, all-users
+    # cache. from_cache's right_join() silently fills any sample missing
+    # from the cache with NA rather than erroring, so writing a partial
+    # cohort here doesn't fail loudly -- it just quietly breaks results
+    # for whoever else calls this with from_cache = TRUE (the default)
+    # next, for every sample not in this particular call's sample_table.
+    for(seq in intersect(seq_types, c("genome", "capture", "mrna"))){
+      full_cohort_ids = get_gambl_metadata(seq_type_filter = seq) %>% pull(sample_id)
+      writing_ids = dplyr::filter(sample_table, seq_type == seq) %>% pull(sample_id)
+      missing_ids = setdiff(full_cohort_ids, writing_ids)
+      if(length(missing_ids) > 0){
+        stop(glue::glue(
+          "Refusing to write to the shared cache: {length(missing_ids)} sample(s) ",
+          "in the current full {seq} cohort are missing from the data you're ",
+          "about to write (e.g. {paste(head(missing_ids, 5), collapse = ', ')}). ",
+          "Writing this subset would overwrite the shared cache used by everyone ",
+          "and silently drop results for those samples on their next from_cache = TRUE ",
+          "call. Run collate_results() with the full cohort (the default, when ",
+          "these_samples_metadata is omitted) before setting write_to_file = TRUE."
+        ))
+      }
+    }
     #write results from "slow option" to new cached results file
     for (f in output_file) {
       if (grepl("genome", f)) {

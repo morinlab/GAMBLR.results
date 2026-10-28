@@ -13,9 +13,21 @@
 #' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param drop_silent_outside_ashm_regions Default FALSE. Convenience feature to restrict non-coding variants to aSHM space.
 #' @param ashm_regions Optional coordinates defining aSHM space if you don't want to use the default bundled with GAMBLR.data
-#' @param expand_by Optional padding to expand region around genes (default 0)
+#' @param expand_by Padding (bp) to expand the tabix pull region around each
+#' gene's coordinates before filtering to the gene itself. Default 10000 (a
+#' 2x margin over VEP's default 5kb upstream/downstream annotation window),
+#' matching GAMBLR.data::assemble_bundled_data.R's GENE_PAD_BP -- without
+#' this, real gene-attributed mutations just outside gene_to_region()'s exact
+#' span (promoter/UTR/annotation-source discrepancies, e.g. a long first
+#' intron) are never fetched in the first place, and the Hugo_Symbol filter
+#' below can't recover rows that were never pulled.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
 #' @import dplyr stringr GAMBLR.helpers
@@ -36,14 +48,45 @@
 #'     these_samples_metadata = dlbcl_meta,
 #'     drop_silent_outside_ashm_regions = T)
 #' }
+#'
+#' # Not wrapped in \dontrun, so tools/logExampleOutputs_test.R
+#' # (devtools::run_examples()) captures and diffs this on every run.
+#' # Covers established drivers (EZH2, KMT2D, MYD88) alongside genes whose
+#' # real mutations sit outside gene_to_region()'s unpadded span (ID3, FOXO1
+#' # -- see expand_by) -- an unexpected drop in these counts flags a
+#' # padding/alias regression. Restricted to two frozen cohorts (not all of
+#' # get_gambl_metadata()) so counts stay stable as new, unrelated cohorts
+#' # are added to GAMBL over time.
+#' test_meta = suppressMessages(get_gambl_metadata()) %>%
+#'   dplyr::filter(cohort %in% c("DLBCL_GenomeCanada", "DLBCL_cell_lines"),
+#'                 seq_type != "mrna")
+#' test_genes = c("EZH2", "KMT2D", "MYD88", "ID3", "FOXO1")
+#' test_maf = get_ssm_by_genes(genes = test_genes, these_samples_metadata = test_meta)
+#' dplyr::count(test_maf, Hugo_Symbol, sort = TRUE)
+#'
+#' # HIST1H1C was renamed to H1-2 on hg38 (grch37 still uses the old name
+#' # natively, so this specifically exercises the hg38 alias-fallback path in
+#' # gene_to_region() / GAMBLR.utils::expand_gene_aliases() -- a broken alias
+#' # table or fallback would silently return 0 rows here).
+#' hist_maf = get_ssm_by_genes(genes = "HIST1H1C", these_samples_metadata = test_meta,
+#'                             projection = "hg38")
+#' dplyr::count(hist_maf, Hugo_Symbol, sort = TRUE)
 #' @export
 get_ssm_by_genes = function(genes,
                            these_samples_metadata = NULL,
                            projection = "grch37",
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
-                           expand_by = 0,
-                           verbose = FALSE) {
+                           expand_by = 10000,
+                           verbose = FALSE,
+                            with_metadata = FALSE) {
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection)))
+  }
 
     all_ssms = list()
     if(!missing(ashm_regions)){
@@ -62,8 +105,10 @@ get_ssm_by_genes = function(genes,
         rename(c("chrom"="chr_name","ashm_region_start"="hg38_start","ashm_region_end"="hg38_end"))
     }
     for(gene in genes){
-        #get gene region first
-        gene_region = suppressMessages(gene_to_region(gene,projection=projection))
+        #get gene region first, padded by expand_by so real gene-attributed
+        #mutations just outside gene_to_region()'s exact span aren't lost
+        #before the Hugo_Symbol filter below even sees them
+        gene_region = suppressMessages(gene_to_region(gene,projection=projection,pad_length=expand_by))
        
         if(is.null(gene_region) || length(gene_region)==0){
           warning(paste0("No coordinates found for gene: ", gene, " skipping..."))
@@ -75,12 +120,17 @@ get_ssm_by_genes = function(genes,
         these_samples_metadata = filter(these_samples_metadata,seq_type %in% c("genome","capture"))
 
         for(s_type in unique(these_samples_metadata$seq_type)){
+            # gene_to_region() resolves `gene` to the right coordinates even
+            # if the actual MAF Hugo_Symbol annotation uses a different name
+            # (e.g. old/new HGNC histone names) for that build -- match on
+            # all known aliases here too, not just the literal input string,
+            # so those rows aren't dropped by this filter.
             seq_type_ssms = get_ssm_by_region(region=gene_region,
                                             basic_columns=TRUE,
                                             streamlined=FALSE,
                                             these_samples_metadata =  filter(these_samples_metadata,seq_type == s_type),
                                             projection=projection) %>%
-                                            filter(Hugo_Symbol==gene)
+                                            filter(Hugo_Symbol %in% GAMBLR.utils::expand_gene_aliases(gene))
             all_ssms[[paste0(gene,"-",s_type)]] = seq_type_ssms %>%
               mutate(maf_seq_type = s_type)
 

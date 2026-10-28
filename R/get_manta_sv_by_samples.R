@@ -45,8 +45,9 @@ get_manta_sv_by_samples = function(these_samples_metadata,
   #create an empty list.
   all_bedpe = list()
 
-  #wrap get_manta_sv_by_sample.
-  all_bedpe = parallel::mclapply(samples, function(x){get_manta_sv_by_sample(this_sample_id = x,
+  #wrap get_manta_sv_by_sample. Sequential (not parallel) to avoid
+  #wasteful memory duplication from forking across mclapply workers.
+  all_bedpe = lapply(samples, function(x){get_manta_sv_by_sample(this_sample_id = x,
                                                                  these_samples_metadata = these_samples_metadata,
                                                                  force_lift = FALSE, #the wrapper function performs liftover on all samples that need it.
                                                                  return_anyway = TRUE, #make sure unlifted calls, with the extra column (need_lift) are returned.
@@ -54,7 +55,7 @@ get_manta_sv_by_samples = function(these_samples_metadata,
                                                                  min_score = min_score,
                                                                  pass_filters = pass_filters,
                                                                  projection = projection,
-                                                                 verbose = verbose)}, mc.cores = 12)
+                                                                 verbose = verbose)})
 
   #un-nest list into long format.
   merged_bedpe = bind_rows(all_bedpe)

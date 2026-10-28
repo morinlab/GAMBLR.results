@@ -306,6 +306,7 @@ annotate_focal_and_arm_level_CNV <- function(seg_data,
 #' segs_cb <- assign_segment_to_cytoband(segs)
 #' head(segs_cb$cytoband)
 #' }
+#' @import GAMBLR.data
 #' @export
 assign_segment_to_cytoband <- function(seg_data, genome_build){
   gb = get_genome_build(seg_data)
@@ -349,6 +350,7 @@ assign_segment_to_cytoband <- function(seg_data, genome_build){
 #' segs_arm <- assign_segment_to_arm(segs)
 #' table(segs_arm$arm_name)
 #' }
+#' @import GAMBLR.data
 #' @export
 assign_segment_to_arm <- function(seg_data,genome_build){
   gb = get_genome_build(seg_data)

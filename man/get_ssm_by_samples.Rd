@@ -13,11 +13,13 @@ get_ssm_by_samples(
   min_read_support = 3,
   basic_columns = TRUE,
   maf_cols = NULL,
+  variant_classification_filter = NULL,
   subset_from_merge = FALSE,
   augmented = TRUE,
   engine = "fread_maf",
   these_sample_ids,
-  this_seq_type
+  this_seq_type,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -29,6 +31,12 @@ If provided, it will return SSM calls for the samples in the metadata table.}
 \item{projection}{Obtain variants projected to this reference
 (one of grch37 or hg38).}
 
+\item{flavour}{One of "clustered" (slms-3, default), "sage", or "legacy"
+(not currently supported). \code{subset_from_merge = TRUE} is only available
+for "clustered" -- "sage" only has individual per-sample files (see
+\link{get_ssm_by_sample}), so \code{subset_from_merge} must be left
+FALSE (the default) when using it.}
+
 \item{min_read_support}{Only returns variants with at least this
 many reads in t_alt_count (for cleaning up augmented MAFs).}
 
@@ -39,6 +47,17 @@ full details. Default is TRUE.}
 specify which columns to be returned within the MAF.
 This parameter can either be a vector of indexes (integer)
 or a vector of characters.}
+
+\item{variant_classification_filter}{Optional character vector of
+Variant_Classification values to keep (e.g. GAMBLR.helpers::vc_nonSynonymous).
+When \code{subset_from_merge = FALSE} (the default), this is passed through to
+\link{get_ssm_by_sample} for each sample, where it is used to
+grep-filter each per-sample MAF before it is parsed (see that function's
+documentation for details) -- avoiding the cost of materializing every
+variant for every sample when only a subset of classifications is needed.
+When \code{subset_from_merge = TRUE}, an ordinary \code{dplyr::filter()} is applied
+after reading the merge (no per-sample grep is possible there). Default
+NULL returns all variant classifications (original behaviour).}
 
 \item{subset_from_merge}{Instead of merging individual MAFs,
 the data will be subset from a pre-merged MAF of samples with
@@ -54,6 +73,12 @@ You may have better performance with one or the other.}
 \item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata}
 
 \item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
+
+\item{with_metadata}{Set to TRUE to return a list with the mutations
+(\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{ssm_available} column (and \code{all_available}) saying which samples
+have SSM data, so samples without mutations can be told from samples
+without data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
 A data frame in MAF format.

@@ -1,7 +1,7 @@
 Type: Package
 Package: GAMBLR.results
 Title: Access results of the Genomic Analysis of Mature B-cell Lymphomas
-Version: 1.3
+Version: 1.4
 Authors@R:
     c(
         person(given = "Ryan",
@@ -26,8 +26,6 @@ Depends:
     R (>= 4.1)
 Imports:
     BSgenome,
-    BSgenome.Hsapiens.UCSC.hg19,
-    BSgenome.Hsapiens.UCSC.hg38,
     circlize,
     ComplexHeatmap,
     config,
@@ -37,7 +35,7 @@ Imports:
     dplyr,
     GAMBLR.data,
     GAMBLR.helpers,
-    GAMBLR.utils,
+    GAMBLR.utils (>= 1.5),
     GAMBLR.viz,
     GenomicRanges,
     ggplot2,
@@ -47,18 +45,21 @@ Imports:
     IRanges,
     lubridate,
     magrittr,
-    msigdbr,
     org.Hs.eg.db,
     purrr,
     readr,
-    RMariaDB,
     Rsamtools,
-    ssh,
+    RSQLite,
     stringi,
     stringr,
     tibble,
     tidyr,
     vroom
+Suggests:
+    BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Hsapiens.UCSC.hg38,
+    RMariaDB,
+    ssh
 Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,

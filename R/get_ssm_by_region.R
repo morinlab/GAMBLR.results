@@ -45,6 +45,11 @@
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
 #'
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame of variants in 3 column format or in MAF-like format (one row per mutation).
 #'
 #' @rawNamespace import(vroom, except = c("col_skip", "fwf_positions", "default_locale", "date_names_lang", "cols_only", "output_column", "col_character", "col_guess", "spec", "as.col_spec", "fwf_cols", "cols", "col_date", "col_datetime", "locale", "col_time", "cols_condense", "col_logical", "col_number", "col_integer", "col_factor", "fwf_widths", "date_names_langs", "problems", "date_names", "col_double", "fwf_empty"))
@@ -79,7 +84,18 @@ get_ssm_by_region = function(chromosome,
                              min_read_support = 3,
                              verbose = FALSE,
                              these_sample_ids,
-                             this_seq_type){
+                             this_seq_type,
+                             with_metadata = FALSE){
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    if(!missing(maf_data) || tool_name != "slms_3"){
+      stop("with_metadata = TRUE needs slms_3 calls read from the results files (not maf_data)")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection, augmented = augmented)))
+  }
 
   if(!missing(this_seq_type) | !missing(these_sample_ids)){
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
@@ -127,6 +143,33 @@ get_ssm_by_region = function(chromosome,
       stop("Genome is currently the only available seq_type for strelka2 outputs...")
     }
   }else if(tool_name == "slms_3"){
+    #patch due to change in merging strategy
+    maf_header = c(1:104)
+    names(maf_header) = c("Hugo_Symbol",
+                          "Entrez_Gene_Id","Center",
+                          "NCBI_Build","Chromosome",
+                          "Start_Position",
+                          "End_Position",
+                          "Strand",
+                          "Variant_Classification", "Variant_Type","Reference_Allele","Tumor_Seq_Allele1", "Tumor_Seq_Allele2",
+                          "dbSNP_RS", "dbSNP_Val_Status" , "Tumor_Sample_Barcode", "Matched_Norm_Sample_Barcode",
+                          "Match_Norm_Seq_Allele1",  "Match_Norm_Seq_Allele2",  "Tumor_Validation_Allele1",
+                          "Tumor_Validation_Allele2",    "Match_Norm_Validation_Allele1",    "Match_Norm_Validation_Allele2",
+                          "Verification_Status",     "Validation_Status", "Mutation_Status", "Sequencing_Phase",
+                          "Sequence_Source", "Validation_Method", "Score",   "BAM_File",    "Sequencer", "Tumor_Sample_UUID",
+                          "Matched_Norm_Sample_UUID", "HGVSc",   "HGVSp",   "HGVSp_Short",     "Transcript_ID",   "Exon_Number",
+                          "t_depth", "t_ref_count",     "t_alt_count",     "n_depth", "n_ref_count",     "n_alt_count", "all_effects",
+                          "Allele",  "Gene",    "Feature", "Feature_type",    "Consequence",     "cDNA_position",
+                          "CDS_position",    "Protein_position",        "Amino_acids",     "Codons",  "Existing_variation",
+                          "ALLELE_NUM", "DISTANCE",        "STRAND_VEP",   "SYMBOL",  "SYMBOL_SOURCE",   "HGNC_ID",
+                          "BIOTYPE", "CANONICAL", "CCDS", "ENSP", "SWISSPROT", "TREMBL",  "UNIPARC", "RefSeq",
+                          "SIFT",    "PolyPhen",        "EXON",    "INTRON",  "DOMAINS", "AF",
+                          "AFR_AF",  "AMR_AF",  "ASN_AF",  "EAS_AF",  "EUR_AF",       "SAS_AF",  "AA_AF",   "EA_AF",
+                          "CLIN_SIG", "SOMATIC", "PUBMED",  "MOTIF_NAME",      "MOTIF_POS",       "HIGH_INF_POS",    
+                          "MOTIF_SCORE_CHANGE",  "IMPACT",  "PICK", "VARIANT_CLASS", "TSL", "HGVS_OFFSET",
+                          "PHENO",   "MINIMISED", "gnomAD_ASJ_AF", "gnomAD_EAS_AF", "gnomAD_FIN_AF",  "gnomAD_NFE_AF",
+                          "gnomAD_OTH_AF")
+
     if(streamlined){
       maf_columns = names(maf_header)[c(6, 16, 42)]
       maf_column_types = "ici"
@@ -135,16 +178,17 @@ get_ssm_by_region = function(chromosome,
       maf_columns = names(maf_header)[c(1:45)]
       maf_column_types =  "ciccciiccccccclcccclllllllllllllllccccciiiiii"
     }else{
-      maf_columns = names(maf_header) #return all MAF columns (116)
-      maf_column_types = "ciccciiccccccclcccclllllllllllllllccccciiiiiiccccccccccccinnccccccccccccccccccclcccccccccnclcncccclncccclllllllllicn"
+      maf_columns = names(maf_header) #return all MAF columns (104)
+      maf_column_types = "ciccciiccccccclcccclllllllllllllllccccciiiiiiccccccccccccinnccccccccccccccccccclcccccccccnclcncccclnnnnn"
     }
   }
-
   # I'm pretty sure the below check will always pass, but I'll leave it in here just in case
   #check that maf_columns requested all exist in the header and get their indexes
   if(!all(maf_columns %in% names(maf_header))){
-    stop("Cannot find one of the requested maf_columns in your MAF header")
+    missing_cols = setdiff(maf_columns,names(maf_header))
+    stop(paste("Cannot find some of the requested maf_columns in your MAF header",paste(missing_cols,collapse=",")))
   }
+  
 
   #get MAF column indexes
   maf_indexes = maf_header[maf_columns]
@@ -268,6 +312,9 @@ get_ssm_by_region = function(chromosome,
     seq_type_muts_region = list() # items are dataframes of mutations
 
     for(a_seq_type in names(seq_type_sample_ids)){
+      if(verbose){
+        print(paste("seq_type",a_seq_type))
+      }
       seq_type = a_seq_type # needed for glue
       if(augmented){
         maf_partial_path = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
@@ -335,14 +382,25 @@ get_ssm_by_region = function(chromosome,
       }
       # filter to only the samples of interest
       sample_ids = seq_type_sample_ids[[a_seq_type]]
-      seq_type_muts_region[[a_seq_type]] = dplyr::filter(seq_type_muts_region[[a_seq_type]], Tumor_Sample_Barcode %in% sample_ids)
+      seq_type_muts_region[[a_seq_type]] = dplyr::filter(
+        seq_type_muts_region[[a_seq_type]], Tumor_Sample_Barcode %in% sample_ids)
     }
     # combine list into one
+    if(verbose){
+      for(st in names(seq_type_sample_ids)){
+        print(paste(st,ncol(seq_type_muts_region[[st]])))
+      }
+    }
     muts_region = do.call("rbind", seq_type_muts_region)
   }
   if(streamlined){
     muts_region = muts_region %>%
       dplyr::select(Start_Position, Tumor_Sample_Barcode)
+  }else{
+    # Matches get_ssm_by_regions()'s own convention (same package): the
+    # full MAF-shaped result gets wrapped as maf_data; the minimal
+    # streamlined summary above does not.
+    muts_region = GAMBLR.utils::create_maf_data(muts_region, projection)
   }
 
   return(muts_region)

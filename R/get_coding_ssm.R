@@ -53,10 +53,15 @@
 #' @param limit_pathology Deprecated. Use these_samples_metadata instead.
 #' @param limit_samples Deprecated. Use these_samples_metadata instead.
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame containing all the MAF data columns
 #' (one row per mutation).
 #'
-#' @import dplyr tidyr RMariaDB DBI glue GAMBLR.helpers GAMBLR.utils
+#' @import dplyr tidyr DBI glue GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples
@@ -90,7 +95,16 @@ get_coding_ssm = function(these_samples_metadata = NULL,
                           limit_pathology,
                           limit_samples,
                           from_flatfile,
-                          these_sample_ids){
+                          these_sample_ids,
+                          with_metadata = FALSE){
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection, source = "cds",
+                                augmented = augmented, seq_types = this_seq_type)))
+  }
   
 
   if(any(!missing(groups),!missing(limit_cohort),!missing(exclude_cohort),!missing(limit_pathology),!missing(limit_samples),!missing(these_sample_ids))){
