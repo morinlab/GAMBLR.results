@@ -26,33 +26,16 @@ collate_battenberg_purity = function(
     sample_table
     ){
 
-    #get paths
-    base <- GAMBLR.helpers::check_config_value(
-        config::get("project_base")
+    # paths from the config, via get_battenberg (genomes with a matched normal)
+    bat_files <- suppressMessages(
+        get_battenberg(sample_table, file_types = "cellularity_ploidy")
     )
-    bat_template <- GAMBLR.helpers::check_config_value(
-        config::get("results_flatfiles")$cnv$battenberg_cellularity
-    )
+    bat_files <- bat_files[bat_files$cellularity_ploidy_exists, , drop = FALSE]
 
-    bat_path <- sample_table %>%
-        rowwise() %>%
-        mutate(
-            path_to_bat = paste0(
-                base,
-                glue::glue(bat_template)
-            )
-        )
-
-    ploidy <- apply(
-        bat_path %>% select(path_to_bat, sample_id), 1, function(row) {
-            file_path <- row[1]
-            if (file.exists(file_path)) {
-                suppressMessages(read_tsv(file_path)) %>%
-                    mutate(sample_id = row[2]) %>%
-                    as.data.frame()
-            } else {
-                return(NULL)
-            }
+    ploidy <- lapply(seq_len(nrow(bat_files)), function(i) {
+        suppressMessages(read_tsv(bat_files$cellularity_ploidy_file[i])) %>%
+            mutate(sample_id = bat_files$sample_id[i]) %>%
+            as.data.frame()
     })
 
     ploidy <- do.call(bind_rows, ploidy)

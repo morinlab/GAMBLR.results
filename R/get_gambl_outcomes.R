@@ -12,7 +12,7 @@
 #'
 #' @return Data frame with one row for each patient_id.
 #'
-#' @import tidyr dplyr readr RMariaDB DBI GAMBLR.helpers
+#' @import tidyr dplyr readr DBI GAMBLR.helpers
 #'
 #' @examples
 #' \dontrun{

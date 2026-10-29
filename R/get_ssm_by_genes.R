@@ -23,6 +23,11 @@
 #' below can't recover rows that were never pulled.
 #' @param projection Obtain variants projected to this reference (one of grch37 or hg38).
 #'
+#' @param with_metadata Set to TRUE to return a list with the mutations
+#' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `ssm_available` column (and `all_available`) saying which samples
+#' have SSM data, so samples without mutations can be told from samples
+#' without data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame containing all the MAF data columns (one row per mutation).
 #'
 #' @import dplyr stringr GAMBLR.helpers
@@ -73,7 +78,15 @@ get_ssm_by_genes = function(genes,
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
                            expand_by = 10000,
-                           verbose = FALSE) {
+                           verbose = FALSE,
+                            with_metadata = FALSE) {
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "maf_data", function()
+      annotate_ssm_availability(these_samples_metadata, projection = projection)))
+  }
 
     all_ssms = list()
     if(!missing(ashm_regions)){

@@ -4,7 +4,12 @@
 \alias{get_all_coding_ssm}
 \title{Get all Coding SSMs}
 \usage{
-get_all_coding_ssm(these_samples_metadata = NULL, include_silent = FALSE, ...)
+get_all_coding_ssm(
+  these_samples_metadata = NULL,
+  include_silent = FALSE,
+  with_metadata = FALSE,
+  ...
+)
 }
 \arguments{
 \item{these_samples_metadata}{Supply a metadata table containing the
@@ -12,6 +17,12 @@ sample/seq_type combinations you want.}
 
 \item{include_silent}{If set to TRUE, silent/synonymous mutations in the
 coding regions will also be returned. Default is FALSE.}
+
+\item{with_metadata}{Set to TRUE to return a list with the mutations
+(\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{ssm_available} column (and \code{all_available}) saying which samples
+have SSM data, so samples without mutations can be told from samples
+without data. See \link{annotate_data_availability}. Default FALSE.}
 
 \item{...}{Additional arguments passed to get_coding_ssm}
 }

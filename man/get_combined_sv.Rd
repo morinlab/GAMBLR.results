@@ -10,7 +10,8 @@ get_combined_sv(
   oncogenes,
   region,
   min_vaf = 0,
-  these_sample_ids
+  these_sample_ids,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,12 @@ Recommended: 0. (default: 0)}
 You may want to include one or more e.g.: c("CCND1", "BCL2","MYC")
 NOTE: If you are looking for SV affecting oncogenes you are more likely
 going to want to pass the full output to \link[GAMBLR.utils:annotate_sv]{GAMBLR.utils::annotate_sv}}
+
+\item{with_metadata}{Set to TRUE to return a list with the SVs
+(\code{sv_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{sv_available} column (and \code{all_available}) saying which samples
+have SV data, so samples without SVs can be told from samples without
+data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
 A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.

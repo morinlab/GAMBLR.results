@@ -13,7 +13,7 @@
 #' @param update_db Set to TRUE to overwrite any existing rows in the table for this tool/unix_group combination.
 #' @param target_path Path to targets.
 #'
-#' @import dplyr readr RMariaDB stringr DBI tidyr GAMBLR.helpers
+#' @import dplyr readr stringr DBI tidyr GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -79,6 +79,9 @@ find_expected_outputs = function(targ_df,
   }
   if(update_db){
     database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
+    if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+      stop("The RMariaDB package must be installed to use this functionality")
+    }
     con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
     table_name = GAMBLR.helpers::check_config_value(config::get("tables")$files)
     message(paste("updating", table_name,"in", database_name))

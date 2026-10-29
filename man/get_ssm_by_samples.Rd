@@ -18,7 +18,8 @@ get_ssm_by_samples(
   augmented = TRUE,
   engine = "fread_maf",
   these_sample_ids,
-  this_seq_type
+  this_seq_type,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -72,6 +73,12 @@ You may have better performance with one or the other.}
 \item{these_sample_ids}{Deprecated. Inferred from these_samples_metadata}
 
 \item{this_seq_type}{Deprecated. Inferred from these_samples_metadata}
+
+\item{with_metadata}{Set to TRUE to return a list with the mutations
+(\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{ssm_available} column (and \code{all_available}) saying which samples
+have SSM data, so samples without mutations can be told from samples
+without data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
 A data frame in MAF format.
