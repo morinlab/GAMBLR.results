@@ -2,14 +2,15 @@
 #'
 #' @description Retrieve the top (most abundant) MiXCR clone for each BCR and/or TCR chain of each sample.
 #'
-#' @details For every sample in `these_samples_metadata` and every chain of the requested
-#' `receptor_type`, the per-sample dominant MiXCR clone table (with glycosylation annotations)
+#' @details For every sample in `these_samples_metadata` and every requested chain
+#' (from `chains`, or else all chains of `receptor_type`), the per-sample dominant MiXCR clone table (with glycosylation annotations)
 #' is loaded from the 99-outputs directory and the clone with the highest readFraction is kept.
 #' Chains with a missing or empty clone file for a sample are skipped. TCR outputs are only
 #' generated when requested, so most samples will not have TCR clones.
 #'
 #' @param these_samples_metadata A metadata table with (at least) sample_id, seq_type and unix_group columns.
-#' @param receptor_type Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR".
+#' @param receptor_type Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR". Ignored if `chains` is provided.
+#' @param chains Optional vector of specific chains to retrieve, e.g. "IGH" or c("IGH", "IGK"). Overrides `receptor_type`.
 #' @param base_path Optional base directory to override project_base from the config.
 #' @param num_cores Number of cores used to read the clone files in parallel with [parallel::mclapply]. Default is 8. Set to 1 to read sequentially.
 #' @param verbose Set to TRUE to print the path of each file being read. Default is FALSE.
@@ -29,10 +30,15 @@
 #' #BCR and TCR clones
 #' all_clones = get_mixcr(these_samples_metadata = my_meta,
 #'                        receptor_type = "both")
+#'
+#' #only heavy and kappa chain clones
+#' igh_igk_clones = get_mixcr(these_samples_metadata = my_meta,
+#'                            chains = c("IGH", "IGK"))
 #' }
 #'
 get_mixcr = function(these_samples_metadata,
                      receptor_type = "BCR",
+                     chains,
                      base_path,
                      num_cores = 8,
                      verbose = FALSE){
@@ -40,13 +46,22 @@ get_mixcr = function(these_samples_metadata,
   if(missing(these_samples_metadata)){
     stop("Please provide a metadata table with these_samples_metadata")
   }
-  receptor_type = match.arg(receptor_type, c("BCR", "TCR", "both"))
   bcr_chains = c("IGH", "IGK", "IGL")
   tcr_chains = c("TRA", "TRB", "TRD", "TRG")
-  chains = switch(receptor_type,
-                  BCR = bcr_chains,
-                  TCR = tcr_chains,
-                  both = c(bcr_chains, tcr_chains))
+  if(missing(chains)){
+    receptor_type = match.arg(receptor_type, c("BCR", "TCR", "both"))
+    chains = switch(receptor_type,
+                    BCR = bcr_chains,
+                    TCR = tcr_chains,
+                    both = c(bcr_chains, tcr_chains))
+  }else{
+    chains = unique(toupper(chains))
+    invalid_chains = setdiff(chains, c(bcr_chains, tcr_chains))
+    if(length(invalid_chains) > 0){
+      stop(paste0("Invalid chain(s): ", paste(invalid_chains, collapse = ", "),
+                  ". Valid chains are: ", paste(c(bcr_chains, tcr_chains), collapse = ", ")))
+    }
+  }
 
   if(missing(base_path)){
     base_path = GAMBLR.helpers::check_config_and_value("project_base")

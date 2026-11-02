@@ -7,6 +7,7 @@
 get_mixcr(
   these_samples_metadata,
   receptor_type = "BCR",
+  chains,
   base_path,
   num_cores = 8,
   verbose = FALSE
@@ -15,7 +16,9 @@ get_mixcr(
 \arguments{
 \item{these_samples_metadata}{A metadata table with (at least) sample_id, seq_type and unix_group columns.}
 
-\item{receptor_type}{Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR".}
+\item{receptor_type}{Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR". Ignored if \code{chains} is provided.}
+
+\item{chains}{Optional vector of specific chains to retrieve, e.g. "IGH" or c("IGH", "IGK"). Overrides \code{receptor_type}.}
 
 \item{base_path}{Optional base directory to override project_base from the config.}
 
@@ -32,8 +35,8 @@ num_glycosylation_sites_cdr and potential_ags.
 Retrieve the top (most abundant) MiXCR clone for each BCR and/or TCR chain of each sample.
 }
 \details{
-For every sample in \code{these_samples_metadata} and every chain of the requested
-\code{receptor_type}, the per-sample dominant MiXCR clone table (with glycosylation annotations)
+For every sample in \code{these_samples_metadata} and every requested chain
+(from \code{chains}, or else all chains of \code{receptor_type}), the per-sample dominant MiXCR clone table (with glycosylation annotations)
 is loaded from the 99-outputs directory and the clone with the highest readFraction is kept.
 Chains with a missing or empty clone file for a sample are skipped. TCR outputs are only
 generated when requested, so most samples will not have TCR clones.
@@ -46,6 +49,10 @@ bcr_clones = get_mixcr(these_samples_metadata = my_meta)
 #BCR and TCR clones
 all_clones = get_mixcr(these_samples_metadata = my_meta,
                        receptor_type = "both")
+
+#only heavy and kappa chain clones
+igh_igk_clones = get_mixcr(these_samples_metadata = my_meta,
+                           chains = c("IGH", "IGK"))
 }
 
 }
