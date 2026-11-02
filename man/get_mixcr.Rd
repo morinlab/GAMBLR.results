@@ -30,12 +30,10 @@ Retrieve the top (most abundant) MiXCR clone for each BCR and/or TCR chain of ea
 }
 \details{
 For every sample in \code{these_samples_metadata} and every chain of the requested
-\code{receptor_type}, the per-sample MiXCR clone table is loaded from the 99-outputs directory
-and the clone with the highest readFraction is kept. BCR chains (IGH, IGK, IGL) are read
-from the merged clone tables, which include the glycosylation annotations. TCR chains
-(TRA, TRB, TRD, TRG) have no glycosylation output, so \code{num_glycosylation_sites_cdr} and
-\code{potential_ags} are NA for those rows. Chains with a missing or empty clone file for a
-sample are skipped.
+\code{receptor_type}, the per-sample dominant MiXCR clone table (with glycosylation annotations)
+is loaded from the 99-outputs directory and the clone with the highest readFraction is kept.
+Chains with a missing or empty clone file for a sample are skipped. TCR outputs are only
+generated when requested, so most samples will not have TCR clones.
 }
 \examples{
 \dontrun{

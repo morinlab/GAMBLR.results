@@ -3,12 +3,10 @@
 #' @description Retrieve the top (most abundant) MiXCR clone for each BCR and/or TCR chain of each sample.
 #'
 #' @details For every sample in `these_samples_metadata` and every chain of the requested
-#' `receptor_type`, the per-sample MiXCR clone table is loaded from the 99-outputs directory
-#' and the clone with the highest readFraction is kept. BCR chains (IGH, IGK, IGL) are read
-#' from the merged clone tables, which include the glycosylation annotations. TCR chains
-#' (TRA, TRB, TRD, TRG) have no glycosylation output, so `num_glycosylation_sites_cdr` and
-#' `potential_ags` are NA for those rows. Chains with a missing or empty clone file for a
-#' sample are skipped.
+#' `receptor_type`, the per-sample dominant MiXCR clone table (with glycosylation annotations)
+#' is loaded from the 99-outputs directory and the clone with the highest readFraction is kept.
+#' Chains with a missing or empty clone file for a sample are skipped. TCR outputs are only
+#' generated when requested, so most samples will not have TCR clones.
 #'
 #' @param these_samples_metadata A metadata table with (at least) sample_id, seq_type and unix_group columns.
 #' @param receptor_type Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR".
@@ -51,10 +49,8 @@ get_mixcr = function(these_samples_metadata,
   if(missing(base_path)){
     base_path = GAMBLR.helpers::check_config_and_value("project_base")
   }
-  merged_template = paste0(base_path,
-                           GAMBLR.helpers::check_config_and_value("results_flatfiles$mixcr$merged"))
-  clones_template = paste0(base_path,
-                           GAMBLR.helpers::check_config_and_value("results_flatfiles$mixcr$clones"))
+  clone_template = paste0(base_path,
+                          GAMBLR.helpers::check_config_and_value("results_flatfiles$mixcr"))
 
   sample_groups = these_samples_metadata %>%
     dplyr::select(sample_id, seq_type, unix_group) %>%
@@ -63,11 +59,7 @@ get_mixcr = function(these_samples_metadata,
   combos = tidyr::expand_grid(sample_groups, chain = chains)
 
   get_top_clone = function(sample_id, seq_type, unix_group, chain){
-    if(chain %in% bcr_chains){
-      clone_path = glue::glue(merged_template)
-    }else{
-      clone_path = glue::glue(clones_template)
-    }
+    clone_path = glue::glue(clone_template)
     #empty files mean no clones were assembled for that chain
     if(!file.exists(clone_path) || file.size(clone_path) == 0){
       return(NULL)
@@ -80,11 +72,6 @@ get_mixcr = function(these_samples_metadata,
                                        progress = FALSE))
     if(nrow(clones) == 0){
       return(NULL)
-    }
-    if(!"num_glycosylation_sites_cdr" %in% colnames(clones)){
-      clones = mutate(clones,
-                      num_glycosylation_sites_cdr = NA_character_,
-                      potential_ags = NA_character_)
     }
     clones %>%
       mutate(sample_id = sample_id,
