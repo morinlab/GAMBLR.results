@@ -6,7 +6,7 @@
 #'
 #' @return Table.
 #'
-#' @import RMariaDB DBI dplyr
+#' @import DBI dplyr
 #'
 #' @noRd
 #'
@@ -16,6 +16,9 @@
 #' @keywords internal
 referesh_metadata_tables = function(){
 
+  if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+    stop("The RMariaDB package must be installed to use this functionality")
+  }
   con = dbConnect(RMariaDB::MariaDB(), dbname = database_name)
   all_metadata_info = sanity_check_metadata()
   tables = pull(all_metadata_info, table)

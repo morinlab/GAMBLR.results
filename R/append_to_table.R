@@ -9,7 +9,7 @@
 #'
 #' @return A table.
 #'
-#' @import RMariaDB DBI GAMBLR.helpers
+#' @import DBI GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -21,6 +21,9 @@ append_to_table = function(table_name,
                            data_df){
 
   db = GAMBLR.helpers::check_config_value(config::get("database_name"))
+  if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+    stop("The RMariaDB package must be installed to use this functionality")
+  }
   con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = db)
   dbWriteTable(con, table_name, table_data, append = TRUE)
 }

@@ -18,7 +18,7 @@
 #' 
 #' @return A list containing a counts matrix and the associated metadata for DESeq2
 #'
-#' @import dplyr readr tidyr msigdbr org.Hs.eg.db
+#' @import dplyr readr tidyr org.Hs.eg.db
 #' @export
 #'
 #' @examples
@@ -155,6 +155,9 @@ get_raw_expression_counts = function(these_samples_metadata,
     
     
   }else{
+    if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+      stop("The RMariaDB package must be installed to use this functionality")
+    }
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = "gambl_test")
     counts_table <- tbl(con, "salmon_counts")
     if(check){

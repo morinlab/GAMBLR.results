@@ -7,10 +7,17 @@
 get_cn_segments(
   these_samples_metadata,
   projection = "grch37",
+  pipeline = NULL,
+  priority = NULL,
+  one_per_sample = TRUE,
   flavour = "combined",
   this_seq_type,
   max_CN = 20,
-  verbose = FALSE
+  verbose = FALSE,
+  overlap_action = "warn",
+  region = NULL,
+  baseline_method = "mode",
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -20,17 +27,67 @@ seq_type in the metadata faithfully represents the seq_type of the data}
 
 \item{projection}{Desired genome coordinate system for returned CN segments. Default is "grch37".}
 
-\item{flavour}{Specify what pipeline or source of data to use.}
+\item{pipeline}{Optional: get segments from specific pipelines instead of
+the combined merge (one chosen source per sample). Names as in the
+per-pipeline merge files (the \code{per_pipeline} directory next to the
+combined merge in \code{results_merged$cnv}, named
+\verb{<pipeline>--<seq_type>--<projection>.seg}), e.g. "battenberg",
+"controlfreec", "sequenza", "cnvkit" or "purecn". Default NULL uses the
+combined merge. A pipeline without a file for a seq_type is skipped, with
+a message.}
+
+\item{priority}{With several pipelines, the ones to prefer, in order;
+pipelines not named follow in \code{pipeline} order. E.g. \verb{pipeline = c("purecn", "battenberg"), priority = "battenberg"} takes each sample from
+battenberg when it has it, and from purecn otherwise. Default NULL: the
+order of \code{pipeline}.}
+
+\item{one_per_sample}{With several pipelines, TRUE (default) returns each
+sample's segments from one pipeline only (the first, by \code{priority}, whose
+file has the sample); FALSE returns every pipeline's segments for every
+sample, e.g. to compare them (the overlap check is then per pipeline).}
+
+\item{flavour}{Deprecated: use \code{pipeline}. "combined" (default) is the
+combined merge; any other value is used as \code{pipeline}.}
 
 \item{this_seq_type}{Deprecated.}
 
-\item{max_CN}{Cap CN values at this value. Default is 20. This is to avoid extreme CN values dominating the colour scale in visualisations.
-Available options are "combined" (for the merge of the best tool for each data type),
-or one of "purecn_cnvkit", "purecn_denovo", or "battenberg".
-Other thabn "combined", the other flavours are incomplete (e.g. limited to genome,
-matched or capture samples).}
+\item{max_CN}{Cap CN values at this value. Default is 20. This is to avoid extreme CN values dominating the colour scale in visualisations.}
 
 \item{verbose}{Set to TRUE for a chattier experience}
+
+\item{overlap_action}{What to do if a sample (profile, i.e. sample_id and
+seq_type) has overlapping segments, which should never happen and would
+cause double counting downstream: "warn" (default, naming the samples),
+"error", "resolve" (clean up with
+\link[GAMBLR.utils:resolve_segment_overlaps]{GAMBLR.utils::resolve_segment_overlaps}) or "none".}
+
+\item{region}{Optional region ("chrom:start-end"): only segments
+overlapping it are read in (saving memory). Note that whole-genome
+segments are needed for anything that estimates a sample's baseline
+(modal) copy number, such as GAMBLR.viz::plot_cohort_CN_region; with
+\code{region}, the segments get a genome-wide \code{baseline_cn} (see
+\code{baseline_method}).}
+
+\item{baseline_method}{Add each sample's genome-wide baseline copy number
+as \code{baseline_cn} (and \code{baseline_method}): "mode" (default; continuous),
+"mode_rounded" (a whole number) or "mean" (see
+\link[GAMBLR.utils:add_segment_baseline]{GAMBLR.utils::add_segment_baseline}); NULL adds none. These are what
+e.g. \link[GAMBLR.utils:center_segments]{GAMBLR.utils::center_segments} and
+GAMBLR.viz::plot_cohort_CN_region use. Baselines come from a cache built
+once per seg file (see \link{get_cn_baselines}; the first call takes a little
+while). Samples that can't get a reliable one (segments covering less
+than half of the autosomal genome or fewer than 20 autosomes,
+coordinates past the chromosome ends, or no CN) get NA, with a message;
+functions that need a baseline stop on them, so remove them first, e.g.
+with \link{annotate_cn_availability} and \code{cn_available}. With \code{pipeline}, each
+sample's baseline comes from the pipeline its segments come from.}
+
+\item{with_metadata}{Set to TRUE to return a list with the segments
+(\code{seg_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with a \code{cn_available} column (and \code{all_available}) saying which samples
+have usable copy number data (and, with \code{pipeline}, \code{cn_pipeline}: the
+pipeline each sample's data come from). See \link{annotate_data_availability}.
+Default FALSE.}
 
 \item{fill_missing_with}{Deprecated.
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.
@@ -40,7 +97,16 @@ For simplicity, dummy segments (if detected) are now dropped.}
 This argument is no longer available as we are updating how GAMBL reports CN and log.ratio values.}
 }
 \value{
-A data frame with CN segments for the specified region.
+A data frame with CN segments for the specified region. Dummy
+(placeholder) segments are dropped, and the \code{dummy_segment} column with
+them. Includes \code{module} (the pipeline each segment came from, e.g.
+battenberg, cnvkit, sequenza) when the seg file has it, and with
+\code{pipeline}, a \code{pipeline} column naming the per-pipeline merge each
+segment was read from. \code{CN} and
+\code{log.ratio} are as in the file (CN is NA where the file has none);
+\code{CN_inferred} is the copy number implied by the log ratio alone
+(\code{2 * 2^log.ratio}, capped at \code{max_CN}), which ignores purity and ploidy
+and so is not equivalent to \code{CN}.
 }
 \description{
 Retrieve all copy number segments from the GAMBL outputs
@@ -80,5 +146,18 @@ all_seq_type_segs <- get_cn_segments(
 )
 
 dplyr::group_by(all_seq_type_segs,seg_seq_type) \%>\% dplyr::count()
+
+\dontrun{
+# segments from one pipeline only
+purecn_segs = get_cn_segments(capture_metadata, pipeline = "purecn")
+
+# battenberg where available, purecn otherwise
+segs = get_cn_segments(mixed_seq_type_meta, pipeline = c("purecn", "battenberg"),
+                       priority = "battenberg")
+
+# every pipeline's segments, side by side
+all_segs = get_cn_segments(capture_metadata, pipeline = c("cnvkit", "purecn"),
+                           one_per_sample = FALSE)
+}
 
 }

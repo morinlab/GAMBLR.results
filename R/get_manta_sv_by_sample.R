@@ -88,6 +88,14 @@ get_manta_sv_by_sample = function(this_sample_id,
     normal_sample_id = pull(these_samples_metadata, normal_sample_id)
   }else{
     normal_sample_id = config::get("unmatched_normal_ids")[[unix_group]][[seq_type]][[genome_build]]
+    if(length(normal_sample_id) == 0){
+      stop(
+        "No unmatched_normal_ids entry configured for unix_group = '", unix_group,
+        "', seq_type = '", seq_type, "', genome_build = '", genome_build,
+        "' (sample_id = '", this_sample_id, "'). Add this combination to the ",
+        "unmatched_normal_ids config, or check this sample's metadata for errors."
+      )
+    }
   }
 
   #get samples from individual flat files

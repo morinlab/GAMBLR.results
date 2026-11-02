@@ -61,6 +61,11 @@
 #' Subset your metadata and supply these_samples_metadata instead.
 
 #'
+#' @param with_metadata Set to TRUE to return a list with the SVs
+#' (`sv_data`) and `metadata`: `these_samples_metadata`, all rows kept,
+#' with an `sv_available` column (and `all_available`) saying which samples
+#' have SV data, so samples without SVs can be told from samples without
+#' data. See [annotate_data_availability]. Default FALSE.
 #' @return A data frame in a bedpe-like format with additional
 #' columns that allow filtering of high-confidence SVs.
 #'
@@ -127,7 +132,15 @@ get_manta_sv <- function(these_samples_metadata = NULL,
                          qstart,
                          qend,
                          these_sample_ids = NULL,
-                         pairing_status) {
+                         pairing_status,
+                         with_metadata = FALSE) {
+  if(with_metadata){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("with_metadata = TRUE needs these_samples_metadata")
+    }
+    return(.with_metadata(match.call(), parent.frame(), "sv_data", function()
+      annotate_sv_availability(these_samples_metadata, projection = projection, sv_source = "manta")))
+  }
   if (!missing(these_sample_ids)) {
     print("parameter these_sample_ids is deprecated.
       Please use these_samples_metadata instead.")
@@ -144,8 +157,9 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     split_chunks <- unlist(strsplit(region, ":"))
     chromosome <- split_chunks[1]
     startend <- unlist(strsplit(split_chunks[2], "-"))
-    qstart <- startend[1]
-    qend <- startend[2]
+    # numeric, so positions aren't compared as text (e.g. 1000000 < "500000")
+    qstart <- as.numeric(startend[1])
+    qend <- as.numeric(startend[2])
   }
 
   if ("capture" %in% these_samples_metadata$seq_type) {
@@ -195,13 +209,18 @@ get_manta_sv <- function(these_samples_metadata = NULL,
     }
 
     # read merged data
-    manta_sv <- suppressMessages(read_tsv(output_file,
-                                         progress = FALSE)) %>%
-      dplyr::filter(
-        tumour_sample_id %in% this_meta$sample_id,
-        VAF_tumour >= min_vaf,
-        SCORE >= min_score
-      )
+    # read lazily and keep only rows of these samples (and region) straight
+    # away, so only the filter columns and the kept rows are loaded
+    in_region = !missing(region) || !missing(chromosome)
+    keep_rows = .sv_row_filter(
+      sample_ids = this_meta$sample_id,
+      chromosome = if (in_region) chromosome else NULL,
+      qstart = if (in_region) as.numeric(qstart) else NULL,
+      qend = if (in_region) as.numeric(qend) else NULL)
+    manta_sv <- keep_rows(suppressMessages(read_tsv(output_file, progress = FALSE,
+                                                    lazy = TRUE)))
+    manta_sv <- manta_sv[!is.na(manta_sv$VAF_tumour) & manta_sv$VAF_tumour >= min_vaf &
+                           !is.na(manta_sv$SCORE) & manta_sv$SCORE >= min_score, , drop = FALSE]
 
     if (verbose) {
       no_manta <- setdiff(this_meta$sample_id, manta_sv$tumour_sample_id)

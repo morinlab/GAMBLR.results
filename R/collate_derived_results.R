@@ -10,7 +10,7 @@
 #'
 #' @return Data frame with one row per sample. Contains the contents of the derived_data table in the database.
 #'
-#' @import dplyr DBI RMariaDB GAMBLR.helpers
+#' @import dplyr DBI GAMBLR.helpers
 #'
 #' @noRd
 #'
@@ -26,6 +26,9 @@ collate_derived_results = function(sample_table,
     message("not implemented YET")
   }else{
     database_name = GAMBLR.helpers::check_config_value(config::get("database_name"))
+    if (!requireNamespace("RMariaDB", quietly = TRUE)) {
+      stop("The RMariaDB package must be installed to use this functionality")
+    }
     con = DBI::dbConnect(RMariaDB::MariaDB(), dbname = database_name)
     derived_tbl = dplyr::tbl(con, "derived_data") %>%
       as.data.frame()

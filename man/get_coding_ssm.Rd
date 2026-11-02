@@ -24,6 +24,8 @@ get_coding_ssm(
   from_flatfile,
   apply_curated_blacklist = TRUE,
   these_sample_ids
+  these_sample_ids,
+  with_metadata = FALSE
 )
 }
 \arguments{
@@ -78,6 +80,12 @@ internally called helpers).}
 \item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{these_sample_ids}{Deprecated. Use these_samples_metadata instead.}
+
+\item{with_metadata}{Set to TRUE to return a list with the mutations
+(\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
+with an \code{ssm_available} column (and \code{all_available}) saying which samples
+have SSM data, so samples without mutations can be told from samples
+without data. See \link{annotate_data_availability}. Default FALSE.}
 }
 \value{
 A data frame containing all the MAF data columns

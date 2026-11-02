@@ -83,7 +83,7 @@
 #'   \item{ighv_mutation_original}{TODO}
 #' }
 #'
-#' @import config dplyr tidyr readr RMariaDB DBI GAMBLR.helpers GAMBLR.utils
+#' @import config dplyr tidyr readr DBI GAMBLR.helpers GAMBLR.utils
 #' @export
 #'
 #' @examples

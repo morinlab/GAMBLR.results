@@ -33,9 +33,13 @@ any subsetting (\emph{see warnings below}).}
 
 \item{verbose}{Set to TRUE for a more chatty output}
 
-\item{engine}{Either readr or grep. The grep engine usually will increase
-the speed of loading but doesn't work if you want all genes or a very
-long list.}
+\item{engine}{One of "grep" (default), "fread" or "readr". The grep and
+fread engines only work when you request specific genes. "fread" reads the
+tidy expression file in chunks with \code{data.table::fread()}, keeping only the
+requested genes from each chunk, so memory use stays low; it is usually
+several times faster than "grep" (e.g. on macOS, whose built-in grep is
+slow on very large files) and its speed doesn't depend on how many genes
+you request.}
 
 \item{format}{Either \code{wide} or \code{long}. Wide format returns one column
 of expression values per gene. Long format returns one column of expression
