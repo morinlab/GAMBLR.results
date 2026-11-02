@@ -1,31 +1,17 @@
-library(optparse)
+#! /usr/bin/env Rscript
+# Usage: Rscript /path/to/GAMBLR.results/tools/logExampleOutputs.R
+# If using renv, launch from your project root directory where renv.lock is located
+# Do NOT run interactively
 
-option_list = list(
-	make_option(c("-e", "--renv"), type="logical", default=FALSE, action="store_true",
-		help="Flag to specify whether to use renv or not. [default %default]", metavar="character"),
-	make_option(c("-p", "--path"), type="character", default=NULL, action="store",
-		help="Full path to the directory with the renv files.", metavar="character")
-)
+args <- commandArgs(trailingOnly = FALSE)
+script_path <- sub("--file=", "", args[grep("--file=", args)])
+script_path <- normalizePath(script_path)
 
-opt_parser <- OptionParser(option_list=option_list)
-opt <- parse_args(opt_parser)
-
-current_path <- getwd()
-
-use_renv <- opt$renv
-if(use_renv){
-	if(is.null(opt$path)){
-		stop("Pleaser provide the full path to the directory with the renv files.")
-	}else if(!dir.exists(opt$path)){
-		stop(paste("Directory,", opt$path, "does not exist."))
-	}else{
-		cat("Using renv\n")
-		Sys.setenv(RENV_PROJECT = opt$path)
-		setwd(opt$path)
-		renv::load()
-		setwd(current_path)
-	}
+if(length(script_path) != 1){
+	stop("script_path cannot be determined. Use Rscript /path/to/GAMBLR.results/tools/logExampleOutputs.R. Do not run interactively.")
 }
+
+setwd(dirname(dirname(script_path)))
 
 log_file = "GAMBLR_examples_output.log"
 options(width=2000)
