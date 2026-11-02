@@ -76,12 +76,13 @@ get_mixcr = function(these_samples_metadata,
   combos = tidyr::expand_grid(sample_groups, chain = chains) %>%
     mutate(clone_path = as.character(glue::glue_data(., clone_template)))
 
-  #only read files that exist; empty files mean no clones were assembled for that chain
-  combos = dplyr::filter(combos,
-                         file.exists(clone_path),
-                         file.size(clone_path) > 0)
-
   get_top_clone = function(sample_id, seq_type, unix_group, chain, clone_path){
+    #checked here so the slow filesystem calls run in parallel.
+    #file.size is NA for missing files; empty files mean no clones were assembled for that chain
+    clone_size = file.size(clone_path)
+    if(is.na(clone_size) || clone_size == 0){
+      return(NULL)
+    }
     if(verbose){
       message(paste("loading from:", clone_path))
     }
