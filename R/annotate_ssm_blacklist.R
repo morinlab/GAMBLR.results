@@ -142,7 +142,7 @@ annotate_ssm_blacklist = function(mutations_df,
     mutations_df = left_join(mutations_df, additional_blacklist, by = c("Chromosome", "Start_Position")) %>% 
       mutate(blacklist_count = ifelse(!is.na(blacklist_count_bespoke), blacklist_count_bespoke, blacklist_count)) %>% 
       mutate(blacklist_count = replace_na(blacklist_count, 0)) %>% 
-      select(-blacklist_count_bespoke)
+      dplyr::select(-blacklist_count_bespoke)
 
     dropped = dplyr::filter(mutations_df, blacklist_count > drop_threshold)
 

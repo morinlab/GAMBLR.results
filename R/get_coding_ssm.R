@@ -197,7 +197,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
         use_curated_blacklist = TRUE, 
         verbose = TRUE
       ) %>% 
-      select(-blacklist_count)
+      dplyr::select(-blacklist_count)
     }
   return(muts)
 }

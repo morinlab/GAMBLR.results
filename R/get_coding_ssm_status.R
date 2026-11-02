@@ -322,7 +322,7 @@ get_coding_ssm_status = function(
             dplyr::arrange(n_mut) %>%
             slice_head() %>%
             ungroup %>%
-            select(-hot_spot)
+            dplyr::select(-hot_spot)
 
         # Return the annotation of this gene to mutated in these samples
         all_tabulated <- all_tabulated %>%
@@ -338,7 +338,7 @@ get_coding_ssm_status = function(
                         !!!syms(this_gene)
                     )
             ) %>%
-            select(- n_mut)
+            dplyr::select(- n_mut)
       }
 
     }
