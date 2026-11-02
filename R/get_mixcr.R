@@ -11,13 +11,14 @@
 #' @param these_samples_metadata A metadata table with (at least) sample_id, seq_type and unix_group columns.
 #' @param receptor_type Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR".
 #' @param base_path Optional base directory to override project_base from the config.
+#' @param num_cores Number of cores used to read the clone files in parallel with [parallel::mclapply]. Default is 8. Set to 1 to read sequentially.
 #' @param verbose Set to TRUE to print the path of each file being read. Default is FALSE.
 #'
 #' @return A data frame with one row per sample/chain combination with the columns
 #' sample_id, seq_type, chain, cloneId, readFraction, bestVHit, bestDHit, bestJHit, bestCHit,
 #' num_glycosylation_sites_cdr and potential_ags.
 #'
-#' @import dplyr readr glue purrr GAMBLR.helpers
+#' @import dplyr readr glue parallel GAMBLR.helpers
 #' @export
 #'
 #' @examples
@@ -33,6 +34,7 @@
 get_mixcr = function(these_samples_metadata,
                      receptor_type = "BCR",
                      base_path,
+                     num_cores = 8,
                      verbose = FALSE){
 
   if(missing(these_samples_metadata)){
@@ -56,14 +58,15 @@ get_mixcr = function(these_samples_metadata,
     dplyr::select(sample_id, seq_type, unix_group) %>%
     distinct()
 
-  combos = tidyr::expand_grid(sample_groups, chain = chains)
+  combos = tidyr::expand_grid(sample_groups, chain = chains) %>%
+    mutate(clone_path = as.character(glue::glue_data(., clone_template)))
 
-  get_top_clone = function(sample_id, seq_type, unix_group, chain){
-    clone_path = glue::glue(clone_template)
-    #empty files mean no clones were assembled for that chain
-    if(!file.exists(clone_path) || file.size(clone_path) == 0){
-      return(NULL)
-    }
+  #only read files that exist; empty files mean no clones were assembled for that chain
+  combos = dplyr::filter(combos,
+                         file.exists(clone_path),
+                         file.size(clone_path) > 0)
+
+  get_top_clone = function(sample_id, seq_type, unix_group, chain, clone_path){
     if(verbose){
       message(paste("loading from:", clone_path))
     }
@@ -83,8 +86,16 @@ get_mixcr = function(these_samples_metadata,
                     num_glycosylation_sites_cdr, potential_ags)
   }
 
-  top_clones = purrr::pmap(combos, get_top_clone) %>%
-    bind_rows()
+  top_clones = parallel::mclapply(seq_len(nrow(combos)), function(i){
+    do.call(get_top_clone, as.list(combos[i, ]))
+  }, mc.cores = num_cores)
+
+  failed = vapply(top_clones, function(x){inherits(x, "try-error")}, logical(1))
+  if(any(failed)){
+    stop(paste("Failed to read:", paste(combos$clone_path[failed], collapse = ", "),
+               "\n", top_clones[failed][[1]]))
+  }
+  top_clones = bind_rows(top_clones)
   if(nrow(top_clones) == 0){
     message("No MiXCR clones found for the supplied samples")
     return(top_clones)

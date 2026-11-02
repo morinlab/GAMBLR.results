@@ -8,6 +8,7 @@ get_mixcr(
   these_samples_metadata,
   receptor_type = "BCR",
   base_path,
+  num_cores = 8,
   verbose = FALSE
 )
 }
@@ -17,6 +18,8 @@ get_mixcr(
 \item{receptor_type}{Which receptor chains to retrieve. One of "BCR" (IGH, IGK, IGL), "TCR" (TRA, TRB, TRD, TRG) or "both". Default is "BCR".}
 
 \item{base_path}{Optional base directory to override project_base from the config.}
+
+\item{num_cores}{Number of cores used to read the clone files in parallel with \link[parallel:mclapply]{parallel::mclapply}. Default is 8. Set to 1 to read sequentially.}
 
 \item{verbose}{Set to TRUE to print the path of each file being read. Default is FALSE.}
 }
