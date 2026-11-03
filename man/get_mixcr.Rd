@@ -42,8 +42,9 @@ Chains with a missing or empty clone file for a sample are skipped. TCR outputs 
 generated when requested, so most samples will not have TCR clones.
 }
 \examples{
-\dontrun{
-my_meta = get_gambl_metadata(seq_type_filter = "mrna")
+
+my_meta = get_gambl_metadata() \%>\% 
+ filter(seq_type == "mrna", cohort == "DLBCL_DLC")
 bcr_clones = get_mixcr(these_samples_metadata = my_meta)
 
 #BCR and TCR clones
@@ -54,7 +55,6 @@ head(all_clones)
 #only heavy and kappa chain clones
 igh_igk_clones = get_mixcr(these_samples_metadata = my_meta,
                            chains = c("IGH", "IGK"))
-}
 head(igh_igk_clones)
 
 }
