@@ -17,6 +17,7 @@ get_cnv_and_ssm_status(
   adjust_for_ploidy = TRUE,
   include_silent = FALSE,
   binary = TRUE,
+  apply_curated_blacklist = TRUE,
   this_seq_type
 )
 }
@@ -63,6 +64,8 @@ mutations to also be considered}
 
 \item{binary}{Set to FALSE and combine with only_cnv = "all"
 to obtain the actual values (absolute CN) instead of binary status}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{this_seq_type}{Deprecated}
 }
