@@ -37,15 +37,12 @@ span (promoter/UTR/annotation-source discrepancies, e.g. a long first
 intron) are never fetched in the first place, and the Hugo_Symbol filter
 below can't recover rows that were never pulled.}
 
-<<<<<<< HEAD
 \item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
-=======
 \item{with_metadata}{Set to TRUE to return a list with the mutations
 (\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
 with an \code{ssm_available} column (and \code{all_available}) saying which samples
 have SSM data, so samples without mutations can be told from samples
 without data. See \link{annotate_data_availability}. Default FALSE.}
->>>>>>> origin/main
 }
 \value{
 A data frame containing all the MAF data columns (one row per mutation).
