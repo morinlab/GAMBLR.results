@@ -30,11 +30,13 @@
 #' #BCR and TCR clones
 #' all_clones = get_mixcr(these_samples_metadata = my_meta,
 #'                        receptor_type = "both")
+#' head(all_clones)
 #'
 #' #only heavy and kappa chain clones
 #' igh_igk_clones = get_mixcr(these_samples_metadata = my_meta,
 #'                            chains = c("IGH", "IGK"))
 #' }
+#' head(igh_igk_clones)
 #'
 get_mixcr = function(these_samples_metadata,
                      receptor_type = "BCR",
