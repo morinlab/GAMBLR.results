@@ -22,6 +22,8 @@ get_coding_ssm(
   limit_pathology,
   limit_samples,
   from_flatfile,
+  apply_curated_blacklist = TRUE,
+  these_sample_ids
   these_sample_ids,
   with_metadata = FALSE
 )
@@ -74,6 +76,8 @@ internally called helpers).}
 \item{limit_samples}{Deprecated. Use these_samples_metadata instead.}
 
 \item{from_flatfile}{Deprecated. Ignored}
+
+\item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
 
 \item{these_sample_ids}{Deprecated. Use these_samples_metadata instead.}
 
