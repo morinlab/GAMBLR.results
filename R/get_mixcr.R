@@ -116,7 +116,10 @@ get_mixcr = function(these_samples_metadata,
   top_clones = bind_rows(top_clones)
   if(nrow(top_clones) == 0){
     message("No MiXCR clones found for the supplied samples")
-    return(top_clones)
+    return(tibble::tibble(sample_id = character(), seq_type = character(), chain = character(),
+                          cloneId = integer(), readFraction = numeric(), bestVHit = character(),
+                          bestDHit = character(), bestJHit = character(), bestCHit = character(),
+                          num_glycosylation_sites_cdr = integer(), potential_ags = character()))
   }
   top_clones = top_clones %>%
     mutate(cloneId = as.integer(cloneId),
