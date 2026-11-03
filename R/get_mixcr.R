@@ -23,7 +23,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' 
 #' my_meta = get_gambl_metadata(seq_type_filter = "mrna")
 #' bcr_clones = get_mixcr(these_samples_metadata = my_meta)
 #'
@@ -35,7 +35,6 @@
 #' #only heavy and kappa chain clones
 #' igh_igk_clones = get_mixcr(these_samples_metadata = my_meta,
 #'                            chains = c("IGH", "IGK"))
-#' }
 #' head(igh_igk_clones)
 #'
 get_mixcr = function(these_samples_metadata,
