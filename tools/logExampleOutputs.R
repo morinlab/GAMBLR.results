@@ -11,13 +11,11 @@ if(length(script_path) != 1){
 	stop("script_path cannot be determined. Use Rscript /path/to/GAMBLR.results/tools/logExampleOutputs.R. Do not run interactively.")
 }
 
-setwd(dirname(dirname(script_path)))
-
-log_file = "GAMBLR_examples_output.log"
+log_file = paste0(dirname(dirname(script_path)), "/GAMBLR_examples_output.log")
 options(width=2000)
 
 sink(log_file)
 print(paste("=== STARTED AT",Sys.time(),"==="))
-devtools::run_examples()
+devtools::run_examples(pkg = dirname(dirname(script_path)))
 print(paste("=== COMPLETED AT",Sys.time(),"==="))
 sink()
