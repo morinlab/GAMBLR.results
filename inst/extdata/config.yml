@@ -17,6 +17,7 @@ default:
         manta: "manta_current/level_3/01-gamblr_preprocess/"
     results_merged:
         collated: "shared/gambl_{seq_type_filter}_results.tsv"
+        collated_db: "shared/gambl_collated_results.db"
         tidy_expression_path: "icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/vst-matrix-Hugo_Symbol_tidy.tsv"
         tidy_expression_metadata: "icgc_dart/DESeq2-0.0_salmon-1.0/mrna--gambl-icgc-all/sample_metadata.tsv"
         tidy_expression_path_gambl: "gambl/DESeq2-0.0_salmon-1.0/mrna/vst-matrix-Hugo_Symbol_tidy.tsv"
