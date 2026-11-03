@@ -1,0 +1,43 @@
+name: GAMBLR.results config check
+
+# Checks that inst/extdata/config.yml has every key the package reads, and
+# that inst/extdata/required_config_keys.txt is up to date with R/. Runs only
+# tests/testthat/test-config.R, so it needs config and testthat but not the
+# package's own dependencies.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "R/**"
+      - "inst/extdata/**"
+      - "tests/testthat/test-config.R"
+      - "tools/update_required_config_keys.R"
+      - ".github/workflows/config_check.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "R/**"
+      - "inst/extdata/**"
+      - "tests/testthat/test-config.R"
+      - "tools/update_required_config_keys.R"
+      - ".github/workflows/config_check.yaml"
+
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup R
+      uses: r-lib/actions/setup-r@v2
+      with:
+        use-public-rspm: true
+
+    - name: Install test dependencies
+      run: Rscript -e 'install.packages(c("config", "testthat"))'
+
+    - name: Run config tests
+      run: Rscript -e 'testthat::test_file("tests/testthat/test-config.R", stop_on_failure = TRUE)'
