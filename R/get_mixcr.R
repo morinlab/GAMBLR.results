@@ -68,8 +68,8 @@ get_mixcr = function(these_samples_metadata,
   if(missing(base_path)){
     base_path = GAMBLR.helpers::check_config_and_value("project_base")
   }
-  clone_template = paste0(base_path,
-                          GAMBLR.helpers::check_config_and_value("results_flatfiles$mixcr"))
+  clone_template = file.path(base_path,
+                              GAMBLR.helpers::check_config_and_value("results_flatfiles$mixcr"))
 
   sample_groups = these_samples_metadata %>%
     dplyr::select(sample_id, seq_type, unix_group) %>%
