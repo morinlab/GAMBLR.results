@@ -29,7 +29,8 @@ capture), or in the per-pipeline seg files with \code{pipeline}. Give this or
 \item{pipeline, priority}{Optional: look samples up in the per-pipeline seg
 files instead of the combined one, as in \link{get_cn_segments}. Each sample is
 taken from the first pipeline (in \code{priority}, then \code{pipeline} order) whose
-file has it, and the result has a \code{pipeline} column naming it.}
+file has it, and the result has a \code{pipeline} column naming it.
+\code{pipeline = "all"} uses every pipeline with a per-pipeline seg file.}
 
 \item{min_genome_coverage, min_autosomes}{Thresholds for \code{ok}, as used by
 \link{get_cn_segments}. Defaults 0.5 and 20.}

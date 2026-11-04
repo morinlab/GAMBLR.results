@@ -12,8 +12,12 @@
 #' @param regions_bed Better yet, provide a bed file with the coordinates you want to retrieve.
 #' @param these_samples_metadata Optional metadata table.
 #'  If provided, it will return SSM calls for the only the samples in the metadata table.
-#'  Otherwise it will use all samples from `get_gambl_metadata()` of the appropriate seq_types.
-#' @param maf_data Use an already loaded MAF data frame.
+#'  Otherwise, when `maf_data` is given, every sample in `maf_data` is used (no GAMBL
+#'  metadata or exclusion list is consulted, so `maf_data` can come from any source);
+#'  without `maf_data`, it will use all samples from `get_gambl_metadata()` of the appropriate seq_types.
+#' @param maf_data Use an already loaded MAF data frame, e.g. from a non-GAMBL source.
+#'  Only rows inside the requested regions are returned; without `these_samples_metadata`,
+#'  all of its samples are kept.
 #'  If you would like all columns of this input maf returned,
 #'  set `streamlined = FALSE` and `basic_columns = FALSE`.
 #'  Otherwise the first 45 columns will be returned.
@@ -35,7 +39,9 @@
 #'  Provide to `maf_data` the results of `get_ssm_by_samples` if those are needed.
 #' @param projection Obtain variants projected to this reference, one of grch37 (default) or hg38.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count
-#'  (for cleaning up augmented MAFs). Default: 3.
+#'  (for cleaning up augmented MAFs). Default: 3. For `maf_data`, rows without a numeric
+#'  t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
+#'  kept unfiltered, with a message; 0 or less applies no filter.
 #' @param verbose Boolean parameter set to FALSE per default.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata.
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata.
@@ -116,8 +122,15 @@ get_ssm_by_regions = function(regions_list,
 
   # Also done in get_ssm_by_region, but this allows passing a df
   # for these_sample_metadata and avoidng a bunch of output messages
-  to_exclude = get_excluded_samples(tool_name)
-  if(missing(these_samples_metadata)){
+  use_all_maf_samples = !missing(maf_data) &&
+    (missing(these_samples_metadata) || is.null(these_samples_metadata))
+  # GAMBL's exclusion list applies to GAMBL's results files, not to maf_data
+  to_exclude = if(missing(maf_data)) get_excluded_samples(tool_name) else character(0)
+  if(use_all_maf_samples){
+    # maf_data without these_samples_metadata: every sample in maf_data, with
+    # no GAMBL metadata or exclusion list (maf_data needn't come from GAMBL)
+    these_samples_metadata = NULL
+  }else if(missing(these_samples_metadata)){
     # kept for legacy, assumes user provided these_sample_ids
     message("CAUTION! these_samples_metadata was not provided. Using all of get_gambl_metadata().")
     these_samples_metadata = get_gambl_metadata() %>%
@@ -158,6 +171,9 @@ get_ssm_by_regions = function(regions_list,
   }else{
     stop("You must supply either a regions_list vector or regions_bed object")
   }
+  # an empty or malformed region list must stop: otherwise the query isn't
+  # restricted (an empty tabix -R list returns every mutation of the samples)
+  .check_query_regions(regions)
   if(verbose){
     print(regions)
   }
@@ -331,6 +347,8 @@ get_ssm_by_regions = function(regions_list,
         verbose = verbose
         )})
     }else{
+      # read support filtered once here (one message, not one per region)
+      maf_data = .filter_read_support(maf_data, min_read_support)
       region_mafs = lapply(regions, function(x){get_ssm_by_region(
         region = x,
         these_samples_metadata = these_samples_metadata,
@@ -340,7 +358,7 @@ get_ssm_by_regions = function(regions_list,
         tool_name = tool_name,
         augmented = augmented,
         projection = genome_build,
-        min_read_support = min_read_support,
+        min_read_support = 0,
         verbose = verbose
         )})
     }
@@ -363,4 +381,28 @@ get_ssm_by_regions = function(regions_list,
       return(region_mafs)
     }
   }
+}
+
+# Regions for an SSM query, as "chr:start-end": stop unless there is at least
+# one and each has a chromosome and finite start <= end. A query with no
+# regions, or a region without coordinates, isn't restricted to anything
+# (tabix returns the whole file, or a whole chromosome), so it is never run.
+.check_query_regions = function(regions){
+  if(length(regions) == 0){
+    stop("no regions given (regions_bed or regions_list is empty); not querying, since an ",
+         "unrestricted query would return every mutation of the samples", call. = FALSE)
+  }
+  regions = gsub(",", "", as.character(regions))
+  parts = strsplit(regions, ":", fixed = TRUE)
+  chrom = vapply(parts, function(x) if(length(x) >= 1) x[1] else NA_character_, "")
+  range = vapply(parts, function(x) if(length(x) == 2) x[2] else NA_character_, "")
+  start = suppressWarnings(as.numeric(sub("-.*$", "", range)))
+  end = suppressWarnings(as.numeric(sub("^[^-]*-", "", range)))
+  bad = is.na(chrom) | chrom == "" | is.na(range) | !grepl("-", range) |
+    !is.finite(start) | !is.finite(end) | end < start
+  if(any(bad)){
+    stop(sum(bad), " region(s) aren't of the form chr:start-end with start <= end, e.g. '",
+         regions[which(bad)[1]], "'; not querying", call. = FALSE)
+  }
+  invisible(TRUE)
 }

@@ -18,8 +18,11 @@
 #'  "chrX:1234-5678", instead of specifying chromosome, start and end separately.
 #' @param these_samples_metadata Optional metadata table.
 #'  If provided, it will return SSM calls for the only the samples in this metadata table.
-#'  Otherwise it will use all samples from `get_gambl_metadata()` of the appropriate seq_types.
-#' @param maf_data Optional data frame with mutations in MAF format.
+#'  Otherwise, when `maf_data` is given, every sample in `maf_data` is used (no GAMBL
+#'  metadata or exclusion list is consulted, so `maf_data` can come from any source);
+#'  without `maf_data`, it will use all samples from `get_gambl_metadata()` of the appropriate seq_types.
+#' @param maf_data Optional data frame with mutations in MAF format, e.g. from a non-GAMBL source.
+#'  Only rows inside the region are returned; without `these_samples_metadata`, all of its samples are kept.
 #'  If you would like all columns of this input maf returned,
 #'  set `streamlined = FALSE` and `basic_columns = FALSE`.
 #'  Otherwise the first 45 columns will be returned.
@@ -39,7 +42,9 @@
 #'  Provide to `maf_data` the results of `get_ssm_by_samples` if those are needed.
 #' @param projection Obtain variants projected to this reference, one of grch37 (default) or hg38.
 #' @param min_read_support Only returns variants with at least this many reads in t_alt_count
-#'  (for cleaning up augmented MAFs). Default: 3.
+#'  (for cleaning up augmented MAFs). Default: 3. For `maf_data`, rows without a numeric
+#'  t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
+#'  kept unfiltered, with a message; 0 or less applies no filter.
 #' @param verbose Boolean parameter set to FALSE per default.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
@@ -111,9 +116,16 @@ get_ssm_by_region = function(chromosome,
     stop("tool_name must be either slms_3 or strelka2")
   }
 
-  to_exclude = get_excluded_samples(tool_name)
+  use_all_maf_samples = !missing(maf_data) &&
+    (missing(these_samples_metadata) || is.null(these_samples_metadata))
+  # GAMBL's exclusion list applies to GAMBL's results files, not to maf_data
+  to_exclude = if(missing(maf_data)) get_excluded_samples(tool_name) else character(0)
 
-  if(missing(these_samples_metadata)){
+  if(use_all_maf_samples){
+    # maf_data without these_samples_metadata: every sample in maf_data, with
+    # no GAMBL metadata or exclusion list (maf_data needn't come from GAMBL)
+    these_samples_metadata = NULL
+  }else if(missing(these_samples_metadata)){
     # kept for legacy, assumes user provided these_sample_ids
     message("CAUTION! these_samples_metadata was not provided. Using all of get_gambl_metadata().")
     these_samples_metadata = get_gambl_metadata() %>%
@@ -196,11 +208,13 @@ get_ssm_by_region = function(chromosome,
   maf_columns = names(maf_indexes)
   maf_indexes = unname(maf_indexes)
 
-  #get config values
-  tabix_bin = check_config_and_value("dependencies$tabix")
-  table_name = check_config_and_value("results_tables$ssm")
-  base_path = check_config_and_value("project_base")
-  base_path_remote = check_config_and_value("project_base",config_name="default")
+  #get config values (not needed, nor necessarily present, for maf_data)
+  if(missing(maf_data)){
+    tabix_bin = check_config_and_value("dependencies$tabix")
+    table_name = check_config_and_value("results_tables$ssm")
+    base_path = check_config_and_value("project_base")
+    base_path_remote = check_config_and_value("project_base",config_name="default")
+  }
 
   #split region into chunks (chr, start, end) and deal with chr prefixes based on the selected projection
   if(!region == ""){
@@ -223,20 +237,25 @@ get_ssm_by_region = function(chromosome,
   if(projection =="grch37"){
     chromosome = gsub("chr", "", chromosome)
   }
+  # a region without a chromosome or coordinates must stop (tabix would return
+  # a whole chromosome or file)
+  .check_query_regions(paste0(chromosome, ":", qstart, "-", qend))
 
   # if maf_data provided, no need to loop over seq_type or get from indexed flatfile
   if(!missing(maf_data)){
     muts_region = maf_data %>%
-      dplyr::filter(Chromosome == chromosome & Start_Position > qstart & Start_Position < qend) %>%
-      dplyr::filter(Tumor_Sample_Barcode %in% these_samples_metadata$sample_id) %>%
-      dplyr::filter(t_alt_count >= min_read_support)
+      dplyr::filter(Chromosome == chromosome & Start_Position >= qstart & Start_Position <= qend) %>%
+      .filter_read_support(min_read_support)
+    if(!is.null(these_samples_metadata)){
+      muts_region = dplyr::filter(muts_region, Tumor_Sample_Barcode %in% these_samples_metadata$sample_id)
+    }
 
     if(streamlined == TRUE){
       muts_region = muts_region %>% dplyr::select(Start_Position, Tumor_Sample_Barcode)
     }else if(basic_columns == TRUE){
-      # would error if provided maf_data does not have these columns
-      # but if it's truly maf data, it should
-      muts_region = muts_region %>% dplyr::select(names(maf_header)[c(1:45)])
+      # the standard 45 columns that maf_data has (MAFs from other sources
+      # may lack some, e.g. read counts)
+      muts_region = muts_region %>% dplyr::select(dplyr::any_of(names(maf_header)[c(1:45)]))
     }
   }else if(tool_name == "strelka2"){ # separated out bc only one seq_type, slms_3 case below loops over seq_type
     maf_partial_path = check_config_and_value("results_flatfiles$ssm$all$strelka2")
@@ -404,4 +423,29 @@ get_ssm_by_region = function(chromosome,
   }
 
   return(muts_region)
+}
+
+# Read-support filter for maf_data, whose t_alt_count may be absent or not
+# numeric (e.g. "." in published MAFs): rows without a numeric count are kept,
+# with a message; min_read_support <= 0 applies no filter
+.filter_read_support = function(maf, min_read_support){
+  if(is.null(min_read_support) || min_read_support <= 0 || nrow(maf) == 0){
+    return(maf)
+  }
+  counts = if("t_alt_count" %in% colnames(maf)){
+    suppressWarnings(as.numeric(as.character(maf$t_alt_count)))
+  }else{
+    rep(NA_real_, nrow(maf))
+  }
+  no_count = is.na(counts)
+  if(all(no_count)){
+    message("maf_data has no numeric t_alt_count; min_read_support (", min_read_support,
+            ") not applied")
+    return(maf)
+  }
+  if(any(no_count)){
+    message(sum(no_count), " of ", nrow(maf), " maf_data rows have no numeric t_alt_count; ",
+            "kept without the min_read_support filter")
+  }
+  maf[no_count | counts >= min_read_support, , drop = FALSE]
 }

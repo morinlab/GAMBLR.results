@@ -33,6 +33,7 @@
 #' files instead of the combined one, as in [get_cn_segments]. Each sample is
 #' taken from the first pipeline (in `priority`, then `pipeline` order) whose
 #' file has it, and the result has a `pipeline` column naming it.
+#' `pipeline = "all"` uses every pipeline with a per-pipeline seg file.
 #' @param min_genome_coverage,min_autosomes Thresholds for `ok`, as used by
 #' [get_cn_segments]. Defaults 0.5 and 20.
 #' @param refresh Set to TRUE to rebuild the cache(s).
@@ -81,6 +82,10 @@ get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37"
   if(is.null(these_samples_metadata)) stop("give these_samples_metadata or seg_file")
   meta = as.data.frame(these_samples_metadata)
   meta = meta[meta$seq_type %in% c("genome", "capture"), c("sample_id", "seq_type"), drop = FALSE]
+  if(!is.null(pipeline)){
+    r = .resolve_cn_pipelines(pipeline, priority, unique(meta$seq_type), projection)
+    pipeline = r$pipeline; priority = r$priority
+  }
   order = if(is.null(pipeline)) NULL else .pipeline_order(pipeline, priority)
   out = do.call(rbind, lapply(unique(meta$seq_type), function(st){
     m = meta[meta$seq_type == st, , drop = FALSE]
@@ -93,9 +98,8 @@ get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37"
       b = NULL
       from = rep(NA_character_, nrow(m))
       for(p in order){
-        path = .cnv_pipeline_path(p, st, projection)
-        if(!file.exists(path)) next
-        bp = .cn_baselines_for_file(path, projection, refresh, verbose)
+        if(!.pipeline_has_data(p, st, projection)) next
+        bp = .pipeline_baselines(p, st, projection, refresh, verbose)
         take = is.na(from) & m$sample_id %in% bp$ID
         from[take] = p
         b = rbind(b, bp[bp$ID %in% m$sample_id[take], , drop = FALSE])
@@ -124,6 +128,82 @@ get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37"
   merges = dirname(check_config_and_value("results_merged$cnv"))
   paste0(check_config_and_value("project_base"), merges, "/per_pipeline/",
          pipeline, "--", seq_type, "--", projection, ".seg")
+}
+
+# Published copy number sources bundled in GAMBLR.data (none with an older
+# GAMBLR.data). They are read from GAMBLR.data directly and cover capture
+# samples only.
+.published_cn_sources = function(){
+  if(!"published_cn_sources" %in% getNamespaceExports("GAMBLR.data")) return(character(0))
+  GAMBLR.data::published_cn_sources()$source
+}
+
+# Whether a pipeline has segments for a seq_type: a per-pipeline seg file, or
+# a published source (capture only)
+.pipeline_has_data = function(pipeline, seq_type, projection){
+  if(pipeline %in% .published_cn_sources()) return(seq_type == "capture")
+  file.exists(.cnv_pipeline_path(pipeline, seq_type, projection))
+}
+
+# A published source's segments from GAMBLR.data, in the standard seg layout
+# (module = the source), optionally for some samples only
+.published_segments = function(source, projection, sample_ids = NULL){
+  s = GAMBLR.data::get_published_cn_segments(source, projection = projection, sample_ids = sample_ids)
+  s$module = rep(source, nrow(s))
+  s[, c("ID", "chrom", "start", "end", "module", "LOH_flag", "CN", "log.ratio",
+        "source_id", "purity", "ploidy")]
+}
+
+# Baselines for every sample of a pipeline: from the seg file's cache, or
+# computed in memory for a published source (kept for the session)
+.published_baselines_cache = new.env(parent = emptyenv())
+.pipeline_baselines = function(pipeline, seq_type, projection, refresh = FALSE, verbose = FALSE){
+  if(!pipeline %in% .published_cn_sources()){
+    return(.cn_baselines_for_file(.cnv_pipeline_path(pipeline, seq_type, projection), projection,
+                                  refresh, verbose))
+  }
+  key = paste(pipeline, projection)
+  if(refresh || is.null(.published_baselines_cache[[key]])){
+    .published_baselines_cache[[key]] = .cn_baselines_from_segments(
+      .published_segments(pipeline, projection), projection)
+  }
+  .published_baselines_cache[[key]]
+}
+
+# Pipelines with a per-pipeline merge for any of these seq_types in this
+# projection, from the file names (<pipeline>--<seq_type>--<projection>.seg;
+# other files in the directory are ignored)
+.available_cn_pipelines = function(seq_types, projection){
+  dir = dirname(.cnv_pipeline_path("x", "x", projection))
+  files = list.files(dir)
+  pattern = paste0("^(.+)--(", paste(seq_types, collapse = "|"), ")--", projection, "\\.seg$")
+  hits = regmatches(files, regexec(pattern, files))
+  pipelines = unique(vapply(hits[lengths(hits) > 0], `[`, "", 2))
+  pipelines = pipelines[!grepl("--", pipelines)]
+  # published sources (GAMBLR.data) for capture samples
+  if("capture" %in% seq_types) pipelines = c(pipelines, .published_cn_sources())
+  sort(unique(pipelines))
+}
+
+# pipeline = "all": every pipeline with a per-pipeline merge for these
+# seq_types; priority is then limited to those (others are dropped, with a
+# message). Any other pipeline value is returned as given.
+.resolve_cn_pipelines = function(pipeline, priority, seq_types, projection){
+  if(!identical(pipeline, "all")) return(list(pipeline = pipeline, priority = priority))
+  if(length(seq_types) == 0){
+    stop("these_samples_metadata has no genome or capture samples (is it empty, ",
+         "e.g. after filtering on a sample_id that doesn't match?)")
+  }
+  available = .available_cn_pipelines(seq_types, projection)
+  if(length(available) == 0){
+    stop("no per-pipeline seg files for ", paste(seq_types, collapse = "/"), " in ", projection,
+         " (", dirname(.cnv_pipeline_path("x", "x", projection)), ")")
+  }
+  absent = setdiff(priority, available)
+  if(length(absent) > 0){
+    message("no per-pipeline seg files for priority pipeline(s): ", paste(absent, collapse = ", "))
+  }
+  list(pipeline = available, priority = intersect(priority, available))
 }
 
 # Pipelines in the order they are used: those in priority first (in that
@@ -192,6 +272,13 @@ get_cn_baselines = function(these_samples_metadata = NULL, projection = "grch37"
                                        na = c("NA", "NaN"), lazy = TRUE, progress = FALSE))
   s = as.data.frame(s)
   if(!"log.ratio" %in% colnames(s) && "seg.mean" %in% colnames(s)) s$log.ratio = s$seg.mean
+  .cn_baselines_from_segments(s, projection)
+}
+
+# Coverage and baselines for every sample in a data frame of segments (ID,
+# chrom, start, end, CN, optionally module and dummy_segment)
+.cn_baselines_from_segments = function(s, projection){
+  s = as.data.frame(s)
   if("dummy_segment" %in% colnames(s)){
     s = s[is.na(s$dummy_segment) | s$dummy_segment != 1, , drop = FALSE]
   }

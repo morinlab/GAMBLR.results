@@ -35,9 +35,12 @@ get_ssm_by_region(
 
 \item{these_samples_metadata}{Optional metadata table.
 If provided, it will return SSM calls for the only the samples in this metadata table.
-Otherwise it will use all samples from \code{get_gambl_metadata()} of the appropriate seq_types.}
+Otherwise, when \code{maf_data} is given, every sample in \code{maf_data} is used (no GAMBL
+metadata or exclusion list is consulted, so \code{maf_data} can come from any source);
+without \code{maf_data}, it will use all samples from \code{get_gambl_metadata()} of the appropriate seq_types.}
 
-\item{maf_data}{Optional data frame with mutations in MAF format.
+\item{maf_data}{Optional data frame with mutations in MAF format, e.g. from a non-GAMBL source.
+Only rows inside the region are returned; without \code{these_samples_metadata}, all of its samples are kept.
 If you would like all columns of this input maf returned,
 set \code{streamlined = FALSE} and \code{basic_columns = FALSE}.
 Otherwise the first 45 columns will be returned.}
@@ -63,7 +66,9 @@ Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are
 \item{projection}{Obtain variants projected to this reference, one of grch37 (default) or hg38.}
 
 \item{min_read_support}{Only returns variants with at least this many reads in t_alt_count
-(for cleaning up augmented MAFs). Default: 3.}
+(for cleaning up augmented MAFs). Default: 3. For \code{maf_data}, rows without a numeric
+t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
+kept unfiltered, with a message; 0 or less applies no filter.}
 
 \item{verbose}{Boolean parameter set to FALSE per default.}
 

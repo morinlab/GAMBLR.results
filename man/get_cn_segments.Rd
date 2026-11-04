@@ -10,6 +10,10 @@ get_cn_segments(
   pipeline = NULL,
   priority = NULL,
   one_per_sample = TRUE,
+  source_rule = "cnv_master",
+  max_oversegmentation = 2,
+  calibrate = FALSE,
+  calibrate_reference = c("purecn", "battenberg"),
   flavour = "combined",
   this_seq_type,
   max_CN = 20,
@@ -32,19 +36,97 @@ the combined merge (one chosen source per sample). Names as in the
 per-pipeline merge files (the \code{per_pipeline} directory next to the
 combined merge in \code{results_merged$cnv}, named
 \verb{<pipeline>--<seq_type>--<projection>.seg}), e.g. "battenberg",
-"controlfreec", "sequenza", "cnvkit" or "purecn". Default NULL uses the
-combined merge. A pipeline without a file for a seq_type is skipped, with
-a message.}
+"controlfreec", "sequenza", "cnvkit", "purecn" or "gatk_cnv" (GATK
+ModelSegments; capture only, with CN = round(2 * 2^log.ratio), i.e. not
+purity-corrected). Published segmentations bundled in GAMBLR.data can be
+used the same way, for comparison with GAMBL's: "dlbclass" (DLBClass,
+Chapuy et al.; CN is ABSOLUTE's purity/ploidy-corrected copy number) and
+"schmitz_array" (Schmitz et al. arrays), for capture samples of
+dlbcl_chapuy and dlbcl_schmitz (see GAMBLR.data::published_cn_sources).
+"all" uses every pipeline with a per-pipeline file, and the published
+sources
+for the seq_types in the metadata (see \link{cn_pipeline_availability}), and
+then \code{one_per_sample} defaults to FALSE. Default NULL uses the combined
+merge. A pipeline without a file for a seq_type is skipped, with a
+message (silently with "all").}
 
-\item{priority}{With several pipelines, the ones to prefer, in order;
+\item{priority}{With several pipelines, the ones to prefer, in order
+(with \code{source_rule = "preference"}, the order of preference);
 pipelines not named follow in \code{pipeline} order. E.g. \verb{pipeline = c("purecn", "battenberg"), priority = "battenberg"} takes each sample from
 battenberg when it has it, and from purecn otherwise. Default NULL: the
 order of \code{pipeline}.}
 
-\item{one_per_sample}{With several pipelines, TRUE (default) returns each
-sample's segments from one pipeline only (the first, by \code{priority}, whose
-file has the sample); FALSE returns every pipeline's segments for every
-sample, e.g. to compare them (the overlap check is then per pipeline).}
+\item{one_per_sample}{With several pipelines, TRUE (default, except with
+\code{pipeline = "all"}) returns each sample's segments from one pipeline only
+(the first, by \code{priority}, whose file has the sample); FALSE returns every
+pipeline's segments for every sample, e.g. to compare them (the overlap
+check is then per pipeline).}
+
+\item{source_rule}{How each sample's pipeline is chosen:
+\itemize{
+\item "cnv_master" (default): the combined merge, whose pipeline per
+sample is set by a fixed priority when the merges are built.
+\item "qc_score": each sample's lowest-scoring GAMBL pipeline by
+\link[GAMBLR.utils:compare_segmentations]{GAMBLR.utils::compare_segmentations}. Every sample in the
+per-pipeline files of the seq_type and \code{projection} is scored, not
+only those in \code{these_samples_metadata} (which only subsets the result
+afterwards), so the choice depends on the files alone and is the same
+for every caller. A segmentation that can't give a genome-wide
+baseline (see \link{get_cn_baselines}) is never chosen, so samples whose
+segmentations all fail that are dropped. controlfreec, run on genomes
+without a matched normal, reports only altered segments: its scores
+carry a large coverage penalty and aren't comparable with other
+pipelines', but it is usually a sample's only candidate. The scores are cached in a table next to the files
+(\verb{cn_qc_scores--<seq_type>--<projection>.tsv}), or in the per-user cache
+directory, rebuilt when a file is newer, the pipelines available
+change, or GAMBLR.utils's version changes. A choice can change when a
+merge is regenerated or a pipeline is added: to keep it, save
+\code{attr(result, "selection")} and pass it back as \code{source_rule}.
+\item "preference": each sample's first pipeline, in order of
+preference (\code{priority}; by default c("purecn", "gatk_cnv", "cnvkit")
+for capture and c("battenberg", "sequenza", "controlfreec") for
+genomes, purity-corrected pipelines first; pipelines not named follow,
+alphabetically), that passes the QC gates of the scores used by
+"qc_score": it can give a genome-wide baseline, has no contradictory
+deep loss, and isn't over-segmented (more segments per 100 Mb than
+\code{max_oversegmentation} times the median of the same pipeline, so a
+pipeline that segments finely by design isn't held to another's
+density). A sample whose pipelines all fail a gate gets the eligible
+one closest to passing (no contradiction first, then the least
+over-segmented for its pipeline). The selection records each sample's skipped pipelines
+and why (\code{skipped}) and whether its pipeline passed every gate
+(\code{all_gates_passed}). On LymphGen's training data (Schmitz exomes),
+this beats "qc_score", which prefers gatk_cnv for almost every sample
+because PureCN segments more finely.
+\item A saved selection: a table (e.g. \code{attr(result, "selection")}, or
+\link[GAMBLR.utils:compare_segmentations]{GAMBLR.utils::compare_segmentations}'s selected rows) or the path of
+a TSV of one, with sample_id (or ID), pipeline and optionally seq_type.
+}
+With anything but "cnv_master", samples without a chosen pipeline are
+dropped, with a message; \code{pipeline} can't be given too.}
+
+\item{max_oversegmentation}{With \code{source_rule = "preference"}, the
+most segments per 100 Mb a pipeline may have, as a multiple of that
+pipeline's median (per seq_type and native genome version), before the
+next preferred pipeline is used. Default 2; NA turns the gate off.}
+
+\item{calibrate}{Convert the segments of samples whose pipeline has
+relative copy number (e.g. gatk_cnv and CNVkit, whose CN is only a
+rescaled log ratio; see \link[GAMBLR.utils:cn_pipeline_types]{GAMBLR.utils::cn_pipeline_types}) to absolute
+copy number with \link[GAMBLR.utils:calibrate_relative_cn]{GAMBLR.utils::calibrate_relative_cn}, using the same
+sample's segmentation from the first pipeline in \code{calibrate_reference}
+that passes QC (eligible in the QC scores of \code{source_rule = "qc_score"},
+i.e. it gives a baseline, with no contradiction penalty, i.e. not a failed
+absolute fit). The fit uses genome-wide segments, also with \code{region}.
+Calibrated segments get \code{cn_type} "absolute" (the original CN is in
+\code{CN_relative}), so copy number features are then called on CN (e.g. by
+GAMBLR.predict::lymphgen_input); samples without a passing reference, or
+whose fit is flagged, stay relative. Each sample's reference and fit are
+in \code{attr(result, "calibration")}. Default FALSE.}
+
+\item{calibrate_reference}{Pipelines with absolute copy number to
+calibrate against, in order of preference. Default c("purecn",
+"battenberg").}
 
 \item{flavour}{Deprecated: use \code{pipeline}. "combined" (default) is the
 combined merge; any other value is used as \code{pipeline}.}
@@ -86,7 +168,13 @@ sample's baseline comes from the pipeline its segments come from.}
 (\code{seg_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
 with a \code{cn_available} column (and \code{all_available}) saying which samples
 have usable copy number data (and, with \code{pipeline}, \code{cn_pipeline}: the
-pipeline each sample's data come from). See \link{annotate_data_availability}.
+pipeline each sample's data come from, or with \code{one_per_sample = FALSE}
+a comma-separated list of the pipelines with segments for it). See
+\link{annotate_data_availability}.
+With the combined merge (\code{source_rule = "cnv_master"}), \code{cn_pipeline} is
+the module each sample's segments come from (NA without segments).
+With a \code{source_rule} other than "cnv_master", \code{cn_pipeline} is each
+sample's chosen pipeline (and \code{cn_qc_score} its score, when known).
 Default FALSE.}
 
 \item{fill_missing_with}{Deprecated.
@@ -100,9 +188,11 @@ This argument is no longer available as we are updating how GAMBL reports CN and
 A data frame with CN segments for the specified region. Dummy
 (placeholder) segments are dropped, and the \code{dummy_segment} column with
 them. Includes \code{module} (the pipeline each segment came from, e.g.
-battenberg, cnvkit, sequenza) when the seg file has it, and with
-\code{pipeline}, a \code{pipeline} column naming the per-pipeline merge each
-segment was read from. \code{CN} and
+battenberg, cnvkit, sequenza) when the seg file has it, and a \code{pipeline}
+column naming each segment's source: the per-pipeline merge it was read
+from, or for the combined merge a copy of \code{module}. With a \code{source_rule}
+other than "cnv_master", each sample's chosen pipeline (and its scores)
+are in \code{attr(result, "selection")}. \code{CN} and
 \code{log.ratio} are as in the file (CN is NA where the file has none);
 \code{CN_inferred} is the copy number implied by the log ratio alone
 (\code{2 * 2^log.ratio}, capped at \code{max_CN}), which ignores purity and ploidy
@@ -158,6 +248,15 @@ segs = get_cn_segments(mixed_seq_type_meta, pipeline = c("purecn", "battenberg")
 # every pipeline's segments, side by side
 all_segs = get_cn_segments(capture_metadata, pipeline = c("cnvkit", "purecn"),
                            one_per_sample = FALSE)
+
+# every available pipeline, side by side
+all_segs = get_cn_segments(capture_metadata, pipeline = "all")
+
+# each sample's pipeline chosen by QC score (scored over all samples in
+# the files); save the choice to reuse it later
+qc_segs = get_cn_segments(capture_metadata, source_rule = "qc_score")
+readr::write_tsv(attr(qc_segs, "selection"), "cn_selection.tsv")
+same_segs = get_cn_segments(capture_metadata, source_rule = "cn_selection.tsv")
 }
 
 }
