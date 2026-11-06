@@ -71,6 +71,12 @@ collate_registry <- list(
     metadata_arg = "sample_table",
     extra_args = list()
   ),
+  dlbclass_gambl = list(
+    core_fn = "compute_dlbclass_gambl_core",
+    metadata_arg = "these_samples_metadata",
+    extra_args = list(),
+    batchable = FALSE
+  ),
   qc_results = list(
     core_fn = "compute_qc_results_core",
     metadata_arg = "sample_table",
