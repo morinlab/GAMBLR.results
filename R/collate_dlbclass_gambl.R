@@ -119,9 +119,6 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
 #' collate_dlbclass_gambl(dlbcl_meta, flavour = "full") %>%
 #'     dplyr::select(sample_id, dlbclass_full, dlbclass_confidence_full)
 #'
-#' dlbcl_meta <- collate_dlbclass_gambl(dlbcl_meta)
-#' dlbcl_meta <- collate_dlbclass_gambl(dlbcl_meta, flavour = c("full", "no_cnv"))
-#' }
 collate_dlbclass_gambl <- function(these_samples_metadata,
                                    flavour = "all",
                                    return_probabilities = FALSE){
