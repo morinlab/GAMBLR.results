@@ -139,7 +139,15 @@ get_ssm_by_sample = function(these_samples_metadata,
   # That will need to be kept up to date if/when any new references are added.
   if(pair_status == "unmatched"){
     keys = paste0("unmatched_normal_ids$",unix_group,"$",seq_type,"$",genome_build)
-    normal_sample_id = check_config_and_value(keys)
+    normal_sample_id = tryCatch(check_config_and_value(keys), error = function(e) NULL)
+    if(length(normal_sample_id) == 0){
+      stop(
+        "No unmatched_normal_ids entry configured for unix_group = '", unix_group,
+        "', seq_type = '", seq_type, "', genome_build = '", genome_build,
+        "' (sample_id = '", sample_id, "'). Add this combination to the ",
+        "unmatched_normal_ids config, or check this sample's metadata for errors."
+      )
+    }
   }else{
     normal_sample_id = pull(these_samples_metadata, normal_sample_id)
   }
