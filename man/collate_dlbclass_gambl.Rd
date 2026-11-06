@@ -32,11 +32,15 @@ Expand a metadata table horizontally with DLBclass calls from
 the GAMBL DLBclass runs (one set of columns per flavour).
 }
 \examples{
-\dontrun{
-dlbcl_meta <- get_gambl_metadata() \%>\%
+dlbcl_meta <- suppressMessages(get_gambl_metadata()) \%>\%
     dplyr::filter(pathology == "DLBCL")
 
-dlbcl_meta <- collate_dlbclass_gambl(dlbcl_meta)
-dlbcl_meta <- collate_dlbclass_gambl(dlbcl_meta, flavour = c("full", "no_cnv"))
-}
+# All four flavours
+dlbcl_collated <- collate_dlbclass_gambl(dlbcl_meta)
+dplyr::count(dlbcl_collated, dlbclass_full)
+
+# Full flavour only
+collate_dlbclass_gambl(dlbcl_meta, flavour = "full") \%>\%
+    dplyr::select(sample_id, dlbclass_full, dlbclass_confidence_full)
+
 }

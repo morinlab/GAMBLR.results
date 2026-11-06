@@ -26,12 +26,12 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
                                         flavour = "all",
                                         return_probabilities = FALSE){
 
-    # Flavour name -> part of the results file name
+    # Define flavour names so paths and objects can be operated on correctly
     all_flavours <- c(
-        full         = "with_sv--with_cnv",
+        full = "with_sv--with_cnv",
         no_sv_no_cnv = "no_sv--no_cnv",
-        no_sv        = "no_sv--with_cnv",
-        no_cnv       = "with_sv--no_cnv"
+        no_sv = "no_sv--with_cnv",
+        no_cnv = "with_sv--no_cnv"
     )
 
     if (identical(flavour, "all")) flavour <- names(all_flavours)
@@ -45,6 +45,7 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
     # DLBclass results directory
     output_base <- GAMBLR.helpers::check_config_value(config::get("project_base"))
     dlbclass_dir <- file.path(output_base, "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all--2025-10")
+    # TODO: add DLBclass results path to config.yml to move away from hardcoded results filepaths here
 
     # Read each flavour, rename, and combine
     calls_combined <- NULL
