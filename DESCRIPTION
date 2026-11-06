@@ -59,7 +59,8 @@ Suggests:
     BSgenome.Hsapiens.UCSC.hg19,
     BSgenome.Hsapiens.UCSC.hg38,
     RMariaDB,
-    ssh
+    ssh,
+    testthat (>= 3.0.0)
 Remotes:
     morinlab/GAMBLR.data,
     morinlab/GAMBLR.helpers,
@@ -70,3 +71,4 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0
+Config/testthat/edition: 3
