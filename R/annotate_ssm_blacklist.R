@@ -127,7 +127,8 @@ annotate_ssm_blacklist = function(mutations_df,
                        GAMBLR.helpers::check_config_and_value("resources$curated_blacklist"))
     
     additional_blacklist = glue::glue(full_path) %>% 
-    readr::read_tsv()
+    readr::read_tsv(col_types = readr::cols(.default = readr::col_character(),
+                                             blacklist_count = readr::col_double()))
 
     additional_blacklist = additional_blacklist %>%
       dplyr::select(chrpos, blacklist_count_bespoke = blacklist_count) %>% 
