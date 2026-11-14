@@ -23,7 +23,6 @@ get_coding_ssm(
   limit_samples,
   from_flatfile,
   apply_curated_blacklist = TRUE,
-  these_sample_ids
   these_sample_ids,
   with_metadata = FALSE
 )

@@ -1,5 +1,5 @@
-[1] "=== STARTED AT 2026-11-06 14:12:58 ==="
-── Running 81 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
+[1] "=== STARTED AT 2026-11-14 15:57:32 ==="
+── Running 81 example files ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── GAMBLR.results ──
 
 > my_metadata = suppressMessages(get_gambl_metadata())
 
@@ -177,7 +177,7 @@ Showing first 10 rows:
 > table(maf_all_seqtype$maf_seq_type)
 
 capture  genome 
- 971823  237061 
+ 941659  237061 
 
 > dplyr::group_by(maf_all_seqtype, Hugo_Symbol, Variant_Classification) %>% 
 +     dplyr::count() %>% dplyr::arrange(desc(n))
@@ -185,16 +185,16 @@ genomic_data Object
 Genome Build: grch37 
 Showing first 10 rows:
    Hugo_Symbol Variant_Classification    n
-1      IGLV3-1      Missense_Mutation 3834
-2     IGHV2-70      Missense_Mutation 3626
-3        IGLL5      Missense_Mutation 3568
-4         BCL2      Missense_Mutation 3093
-5          TTN      Missense_Mutation 2633
-6         PIM1      Missense_Mutation 2183
-7     IGHV1-69      Missense_Mutation 1940
-8          MYC      Missense_Mutation 1456
-9        MUC16      Missense_Mutation 1354
-10       SOCS1      Missense_Mutation 1310
+1      IGLV3-1      Missense_Mutation 3899
+2        IGLL5      Missense_Mutation 3692
+3     IGHV2-70      Missense_Mutation 3672
+4          TTN      Missense_Mutation 2611
+5         BCL2      Missense_Mutation 2568
+6         PIM1      Missense_Mutation 2128
+7     IGHV1-69      Missense_Mutation 1942
+8          MYC      Missense_Mutation 1458
+9        MUC16      Missense_Mutation 1340
+10       SOCS1      Missense_Mutation 1309
 
 > DLBCL_genome_meta = get_gambl_metadata() %>% dplyr::filter(pathology == 
 +     "DLBCL")
@@ -344,11 +344,11 @@ Showing first 10 rows:
 2        OR4F5     GRCh38       chr1          69634      Missense_Mutation      capture
 3        OR4F5     GRCh38       chr1          69644      Missense_Mutation      capture
 4       SAMD11     GRCh38       chr1         925914          Splice_Region      capture
-5       SAMD11     GRCh38       chr1         925916          Splice_Region      capture
-6       SAMD11     GRCh38       chr1         925918          Splice_Region      capture
-7       SAMD11     GRCh38       chr1         925950                 Silent      capture
-8       SAMD11     GRCh38       chr1         925981      Missense_Mutation      capture
-9       SAMD11     GRCh38       chr1         930163                 Silent      capture
+5       SAMD11     GRCh38       chr1         925918          Splice_Region      capture
+6       SAMD11     GRCh38       chr1         925950                 Silent      capture
+7       SAMD11     GRCh38       chr1         925981      Missense_Mutation      capture
+8       SAMD11     GRCh38       chr1         930163                 Silent      capture
+9       SAMD11     GRCh38       chr1         930221      Missense_Mutation      capture
 10      SAMD11     GRCh38       chr1         930221      Missense_Mutation      capture
 
 > genes = dplyr::filter(GAMBLR.data::lymphoma_genes, 
@@ -370,7 +370,7 @@ capture  genome
 [1] 54
 
 > dim(coding_tabulated_df)
-[1] 924  55
+[1] 924  47
 
 > head(colnames(coding_tabulated_df))
 [1] "sample_id" "TNFRSF14"  "ARID1A"    "RRAGC"     "BCL10"     "CTSS"     
@@ -857,4 +857,4 @@ Showing first 10 rows:
 
 > maf_to_custom_track(maf_data = capture_maf, this_seq_type = "capture", 
 +     output_file = "myc_capture_hg19.bed")
-[1] "=== COMPLETED AT 2026-11-06 14:40:50 ==="
+[1] "=== COMPLETED AT 2026-11-14 16:18:29 ==="
