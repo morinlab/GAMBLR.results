@@ -7,14 +7,15 @@
 collate_dlbclass_gambl(
   these_samples_metadata,
   flavour = "all",
-  return_probabilities = FALSE
+  return_probabilities = FALSE,
+  dlbclass_dir = NULL
 )
 }
 \arguments{
 \item{these_samples_metadata}{Optional metadata with the sample_ids of
 interest. If provided, the DLBclass columns are joined onto it (any
-existing copies of those columns are replaced). If missing, the calls for
-every sample in the results files are returned.}
+existing copies of those columns are replaced, with a warning). If
+missing, the calls for every sample in the results files are returned.}
 
 \item{flavour}{Which DLBclass runs to collate: "all" (default), or any of
 "full" (with SVs and CNVs), "no_sv_no_cnv", "no_sv" and "no_cnv". All
@@ -22,6 +23,13 @@ columns get the flavour as a suffix (e.g. dlbclass_full, dlbclass_confidence_no_
 
 \item{return_probabilities}{Set to TRUE to keep the per-cluster
 probabilities (C1-C5). Default is FALSE.}
+
+\item{dlbclass_dir}{Optional directory holding your own DLBclass results
+files, used instead of the GAMBL ones. Each flavour's file must end in
+\verb{<flavour run>_classified_samples.tsv}, where the flavour run is
+\code{with_sv--with_cnv} (full), \code{no_sv--no_cnv}, \code{no_sv--with_cnv} or
+\code{with_sv--no_cnv} (e.g. \code{my_cohort--with_sv--with_cnv_classified_samples.tsv}).
+If you only have some of these, set \code{flavour} to match.}
 }
 \value{
 The metadata with the DLBclass columns added, or the calls alone

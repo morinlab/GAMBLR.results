@@ -15,6 +15,11 @@
 #' columns get the flavour as a suffix (e.g. dlbclass_full, dlbclass_confidence_no_cnv).
 #' @param return_probabilities Set to TRUE to keep the per-cluster
 #' probabilities (C1-C5). Default is FALSE.
+#' @param dlbclass_dir Optional directory holding the DLBclass results files.
+#' If NULL (default), the GAMBL files listed under
+#' `results_merged$dlbclass_gambl` in the config are used. Otherwise, each
+#' flavour's file must end in `<flavour run>_classified_samples.tsv`
+#' (e.g. `my_cohort--with_sv--with_cnv_classified_samples.tsv`).
 #'
 #' @return A data frame with `sample_id` and the DLBclass columns.
 #'
@@ -24,7 +29,8 @@
 #' @noRd
 compute_dlbclass_gambl_core <- function(these_samples_metadata,
                                         flavour = "all",
-                                        return_probabilities = FALSE){
+                                        return_probabilities = FALSE,
+                                        dlbclass_dir = NULL){
 
     # Define flavour names so paths and objects can be operated on correctly
     all_flavours <- c(
@@ -42,16 +48,27 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
              ". Use \"all\" or any of: ", paste(names(all_flavours), collapse = ", "))
     }
 
-    # DLBclass results directory
-    output_base <- GAMBLR.helpers::check_config_value(config::get("project_base"))
-    dlbclass_dir <- file.path(output_base, "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all--2025-10")
-    # TODO: add DLBclass results path to config.yml to move away from hardcoded results filepaths here
+    if (is.null(dlbclass_dir)){
+        output_base <- GAMBLR.helpers::check_config_and_value("project_base")
+    }
 
     # Read each flavour, rename, and combine
     calls_combined <- NULL
 
     for (this_flavour in flavour){
-        file <- file.path(dlbclass_dir, paste0("gambl-all--", all_flavours[[this_flavour]], "_classified_samples.tsv"))
+        if (is.null(dlbclass_dir)){
+            # GAMBL results: one config entry per flavour, all under the gambl-all_current symlink
+            file <- paste0(output_base, GAMBLR.helpers::check_config_and_value(paste0("results_merged$dlbclass_gambl$", this_flavour)))
+        } else {
+            # Match on the flavour part of the file name only, so results from other runs (with a different prefix) also work
+            file_pattern <- paste0("(^|--)", all_flavours[[this_flavour]], "_classified_samples\\.tsv$")
+            file <- list.files(dlbclass_dir, pattern = file_pattern, full.names = TRUE)
+            if (length(file) != 1){
+                stop("Expected one file ending in ", all_flavours[[this_flavour]], "_classified_samples.tsv in ",
+                     dlbclass_dir, " for flavour \"", this_flavour, "\", found ", length(file),
+                     ". Use the flavour argument to choose which flavours to collate.")
+            }
+        }
         suffix <- paste0("_", this_flavour) # e.g. dlbclass_full, dlbclass_confidence_no_cnv
 
         calls <- data.table::fread(file) %>%
@@ -94,13 +111,19 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
 #'
 #' @param these_samples_metadata Optional metadata with the sample_ids of
 #' interest. If provided, the DLBclass columns are joined onto it (any
-#' existing copies of those columns are replaced). If missing, the calls for
-#' every sample in the results files are returned.
+#' existing copies of those columns are replaced, with a warning). If
+#' missing, the calls for every sample in the results files are returned.
 #' @param flavour Which DLBclass runs to collate: "all" (default), or any of
 #' "full" (with SVs and CNVs), "no_sv_no_cnv", "no_sv" and "no_cnv". All
 #' columns get the flavour as a suffix (e.g. dlbclass_full, dlbclass_confidence_no_cnv).
 #' @param return_probabilities Set to TRUE to keep the per-cluster
 #' probabilities (C1-C5). Default is FALSE.
+#' @param dlbclass_dir Optional directory holding your own DLBclass results
+#' files, used instead of the GAMBL ones. Each flavour's file must end in
+#' `<flavour run>_classified_samples.tsv`, where the flavour run is
+#' `with_sv--with_cnv` (full), `no_sv--no_cnv`, `no_sv--with_cnv` or
+#' `with_sv--no_cnv` (e.g. `my_cohort--with_sv--with_cnv_classified_samples.tsv`).
+#' If you only have some of these, set `flavour` to match.
 #'
 #' @return The metadata with the DLBclass columns added, or the calls alone
 #' if no metadata is given.
@@ -122,20 +145,29 @@ compute_dlbclass_gambl_core <- function(these_samples_metadata,
 #'
 collate_dlbclass_gambl <- function(these_samples_metadata,
                                    flavour = "all",
-                                   return_probabilities = FALSE){
+                                   return_probabilities = FALSE,
+                                   dlbclass_dir = NULL){
 
     if (missing(these_samples_metadata)){
         return(compute_dlbclass_gambl_core(flavour = flavour,
-                                           return_probabilities = return_probabilities))
+                                           return_probabilities = return_probabilities,
+                                           dlbclass_dir = dlbclass_dir))
     }
 
     new_cols <- compute_dlbclass_gambl_core(these_samples_metadata = these_samples_metadata,
                                             flavour = flavour,
-                                            return_probabilities = return_probabilities)
+                                            return_probabilities = return_probabilities,
+                                            dlbclass_dir = dlbclass_dir)
 
-    # Drop any existing copies of these columns so the join doesn't create .x/.y columns
+    # Drop any existing copies of these columns so the join doesn't create .x/.y columns, and say so
+    replaced_cols <- intersect(colnames(these_samples_metadata), setdiff(colnames(new_cols), "sample_id"))
+    if (length(replaced_cols) > 0){
+        warning("Replacing existing column(s) in these_samples_metadata with the new DLBclass results: ",
+                paste(replaced_cols, collapse = ", "))
+    }
+
     these_samples_metadata <- these_samples_metadata %>%
-        dplyr::select(-dplyr::any_of(setdiff(colnames(new_cols), "sample_id"))) %>%
+        dplyr::select(-dplyr::any_of(replaced_cols)) %>%
         dplyr::left_join(new_cols, by = "sample_id")
 
     return(these_samples_metadata)

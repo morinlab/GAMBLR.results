@@ -30,6 +30,11 @@ default:
         manta_sv:
             gambl: "gambl/manta-2.3/merges/manta.genome--{projection}.bedpe"
             icgc_dart: "all_the_things/manta-2.3/merges/manta.genome--{projection}.bedpe"
+        dlbclass_gambl:
+            full: "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all_current/gambl-all--with_sv--with_cnv_classified_samples.tsv"
+            no_sv_no_cnv: "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all_current/gambl-all--no_sv--no_cnv_classified_samples.tsv"
+            no_sv: "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all_current/gambl-all--no_sv--with_cnv_classified_samples.tsv"
+            no_cnv: "all_the_things/dlbclass-1.0/02-dlbclass/gambl-all_current/gambl-all--with_sv--no_cnv_classified_samples.tsv"
     results_merged_wildcards:
         lymphgen_template: "no_cnvs.no_sv.with_A53,no_cnvs.no_sv.no_A53,no_cnvs.with_sv.with_A53,with_cnvs.no_sv.no_A53,no_cnvs.with_sv.no_A53,with_cnvs.no_sv.with_A53,with_cnvs.with_sv.no_A53,with_cnvs.with_sv.with_A53"
     results_versioned:
