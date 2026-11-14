@@ -12,7 +12,6 @@ get_ssm_by_genes(
   drop_silent_outside_ashm_regions = FALSE,
   expand_by = 10000,
   apply_curated_blacklist = TRUE,
-  verbose = FALSE
   verbose = FALSE,
   with_metadata = FALSE
 )
@@ -38,6 +37,7 @@ intron) are never fetched in the first place, and the Hugo_Symbol filter
 below can't recover rows that were never pulled.}
 
 \item{apply_curated_blacklist}{Filter variants that appear in the curated blacklist as specified under config::get("resources")$curated_blacklist. Default: TRUE.}
+
 \item{with_metadata}{Set to TRUE to return a list with the mutations
 (\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,
 with an \code{ssm_available} column (and \code{all_available}) saying which samples
