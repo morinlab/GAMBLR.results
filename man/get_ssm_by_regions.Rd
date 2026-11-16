@@ -16,6 +16,7 @@ get_ssm_by_regions(
   augmented = TRUE,
   projection = "grch37",
   min_read_support = 3,
+  blacklist_version = "2026-11",
   verbose = FALSE,
   these_sample_ids,
   this_seq_type,
@@ -67,6 +68,11 @@ Provide to \code{maf_data} the results of \code{get_ssm_by_samples} if those are
 (for cleaning up augmented MAFs). Default: 3. For \code{maf_data}, rows without a numeric
 t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
 kept unfiltered, with a message; 0 or less applies no filter.}
+
+\item{blacklist_version}{"2026-11" (default; the current blacklists) or
+"2022", to drop the calls the blacklists dropped before the 2026-11
+audit, for results consistent with earlier analyses. See
+\link{apply_blacklist_version}. Not applied to \code{maf_data}.}
 
 \item{verbose}{Boolean parameter set to FALSE per default.}
 

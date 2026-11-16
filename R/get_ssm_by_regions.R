@@ -42,6 +42,10 @@
 #'  (for cleaning up augmented MAFs). Default: 3. For `maf_data`, rows without a numeric
 #'  t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
 #'  kept unfiltered, with a message; 0 or less applies no filter.
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version]. Not applied to `maf_data`.
 #' @param verbose Boolean parameter set to FALSE per default.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata.
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata.
@@ -93,6 +97,7 @@ get_ssm_by_regions = function(regions_list,
                               augmented = TRUE,
                               projection = "grch37",
                               min_read_support = 3,
+                              blacklist_version = "2026-11",
                               verbose = FALSE,
                               these_sample_ids,
                               this_seq_type,
@@ -113,6 +118,10 @@ get_ssm_by_regions = function(regions_list,
 
   if(!projection %in% c("grch37", "hg38")){
     stop("projection must be either grch37 or hg38")
+  }
+  blacklist_version = .check_blacklist_version(blacklist_version)
+  if(blacklist_version != "2026-11" && (!missing(maf_data) || tool_name != "slms_3")){
+    message("blacklist_version is only applied to slms_3 calls read from the GAMBL results files; ignored here")
   }
   if(length(tool_name) != 1){
     stop("tool_name can only be a single value, either slms_3 or strelka2")
@@ -310,6 +319,11 @@ get_ssm_by_regions = function(regions_list,
       # indistinguishable once merged.
       seq_type_muts_region[[a_seq_type]] = dplyr::mutate(seq_type_muts_region[[a_seq_type]],
                                                          maf_seq_type = a_seq_type)
+      seq_type_muts_region[[a_seq_type]] = apply_blacklist_version(
+        seq_type_muts_region[[a_seq_type]],
+        dplyr::filter(these_samples_metadata, seq_type == a_seq_type),
+        projection = projection,
+        blacklist_version = blacklist_version)
     }
     muts_all = do.call("rbind", seq_type_muts_region)
 
@@ -344,6 +358,7 @@ get_ssm_by_regions = function(regions_list,
         augmented = augmented,
         projection = genome_build,
         min_read_support = min_read_support,
+        blacklist_version = blacklist_version,
         verbose = verbose
         )})
     }else{

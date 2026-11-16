@@ -13,6 +13,10 @@
 #' @param these_samples_metadata Optional, a metadata table (with sample IDs in a column) to subset the return to.
 #' @param drop_silent_outside_ashm_regions Default FALSE. Convenience feature to restrict non-coding variants to aSHM space.
 #' @param ashm_regions Optional coordinates defining aSHM space if you don't want to use the default bundled with GAMBLR.data
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version].
 #' @param expand_by Padding (bp) to expand the tabix pull region around each
 #' gene's coordinates before filtering to the gene itself. Default 10000 (a
 #' 2x margin over VEP's default 5kb upstream/downstream annotation window),
@@ -78,6 +82,7 @@ get_ssm_by_genes = function(genes,
                            ashm_regions,
                            drop_silent_outside_ashm_regions = FALSE,
                            expand_by = 10000,
+                           blacklist_version = "2026-11",
                            verbose = FALSE,
                             with_metadata = FALSE) {
   if(with_metadata){
@@ -129,6 +134,7 @@ get_ssm_by_genes = function(genes,
                                             basic_columns=TRUE,
                                             streamlined=FALSE,
                                             these_samples_metadata =  filter(these_samples_metadata,seq_type == s_type),
+                                            blacklist_version = blacklist_version,
                                             projection=projection) %>%
                                             filter(Hugo_Symbol %in% GAMBLR.utils::expand_gene_aliases(gene))
             all_ssms[[paste0(gene,"-",s_type)]] = seq_type_ssms %>%

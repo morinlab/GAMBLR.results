@@ -16,6 +16,7 @@ get_ssm_by_samples(
   variant_classification_filter = NULL,
   subset_from_merge = FALSE,
   augmented = TRUE,
+  blacklist_version = "2026-11",
   engine = "fread_maf",
   these_sample_ids,
   this_seq_type,
@@ -65,6 +66,11 @@ the specified this_seq_type.}
 
 \item{augmented}{default: TRUE. Set to FALSE if you instead want
 the original MAF from each sample for multi-sample patients instead.}
+
+\item{blacklist_version}{"2026-11" (default; the current blacklists) or
+"2022", to drop the calls the blacklists dropped before the 2026-11
+audit, for results consistent with earlier analyses. See
+\link{apply_blacklist_version}.}
 
 \item{engine}{Specify one of readr or fread_maf (default) to
 change how the large files are loaded prior to subsetting.

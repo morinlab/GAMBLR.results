@@ -11,6 +11,7 @@ get_ssm_by_genes(
   ashm_regions,
   drop_silent_outside_ashm_regions = FALSE,
   expand_by = 10000,
+  blacklist_version = "2026-11",
   verbose = FALSE,
   with_metadata = FALSE
 )
@@ -34,6 +35,11 @@ this, real gene-attributed mutations just outside gene_to_region()'s exact
 span (promoter/UTR/annotation-source discrepancies, e.g. a long first
 intron) are never fetched in the first place, and the Hugo_Symbol filter
 below can't recover rows that were never pulled.}
+
+\item{blacklist_version}{"2026-11" (default; the current blacklists) or
+"2022", to drop the calls the blacklists dropped before the 2026-11
+audit, for results consistent with earlier analyses. See
+\link{apply_blacklist_version}.}
 
 \item{with_metadata}{Set to TRUE to return a list with the mutations
 (\code{maf_data}) and \code{metadata}: \code{these_samples_metadata}, all rows kept,

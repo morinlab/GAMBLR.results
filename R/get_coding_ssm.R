@@ -42,6 +42,10 @@
 #' reads in t_alt_count (for cleaning up augmented MAFs)
 #' @param include_silent Logical indicating whether to include
 #' silent mutations in coding regions (i.e. synonymous). Default is TRUE.
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version].
 #' @param verbose Controls the "verboseness" of this function (and
 #' internally called helpers).
 #' @param from_flatfile Deprecated. Ignored
@@ -88,6 +92,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
                           min_read_support = 3,
                           groups = c("gambl", "icgc_dart"),
                           include_silent = TRUE,
+                          blacklist_version = "2026-11",
                           engine,
                           verbose = FALSE,
                           limit_cohort,
@@ -112,6 +117,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
   }
   
   #remote_session = check_remote_configuration()
+  blacklist_version = .check_blacklist_version(blacklist_version)
   
   if(!include_silent){
     coding_class = coding_class[coding_class != "Silent"]
@@ -178,6 +184,14 @@ get_coding_ssm = function(these_samples_metadata = NULL,
         message(paste("after linking with metadata, we have mutations from exactly", mutated_samples, "samples")) 
       }
     }
+
+  if(blacklist_version != "2026-11"){
+    bl_meta = if(is.null(these_samples_metadata)) get_gambl_metadata() else these_samples_metadata
+    muts = apply_blacklist_version(muts,
+                                   dplyr::filter(bl_meta, seq_type == this_seq_type),
+                                   projection = projection,
+                                   blacklist_version = blacklist_version)
+  }
 
   #subset maf to a specific set of columns (defined in maf_cols)
   if(!is.null(maf_cols) && !basic_columns){

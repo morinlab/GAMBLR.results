@@ -49,6 +49,10 @@
 #' dplyr::filter on Variant_Classification is always applied afterwards to
 #' guarantee correctness. Default NULL returns all variant classifications
 #' (original behaviour, and no ssh optimization is attempted).
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version].
 #' @param verbose Enable for debugging/noisier output.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #'
@@ -93,11 +97,13 @@ get_ssm_by_sample = function(these_samples_metadata,
                              basic_columns = TRUE,
                              maf_cols = NULL,
                              variant_classification_filter = NULL,
+                             blacklist_version = "2026-11",
                              verbose = FALSE,
                              this_sample_id,
                              this_seq_type
                              ){
   remote_session = check_host() #determine if GAMBLR is running remotely
+  blacklist_version = .check_blacklist_version(blacklist_version)
 
   if(missing(this_sample_id) & missing(these_samples_metadata)){
     stop("Must provide a single row of metadata or multi-row metadata together with a single sample_id.")
@@ -358,6 +364,13 @@ get_ssm_by_sample = function(these_samples_metadata,
       sample_ssm = dplyr::filter(sample_ssm, t_alt_count >= min_read_support | is.na(t_alt_count))
   }
 
+
+  if(blacklist_version != "2026-11"){
+    sample_ssm = apply_blacklist_version(sample_ssm, these_samples_metadata,
+                                         projection = projection,
+                                         blacklist_version = blacklist_version,
+                                         verbose = verbose)
+  }
 
   #subset maf to only include first 43 columns (default)
   if(basic_columns){

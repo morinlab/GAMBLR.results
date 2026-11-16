@@ -15,6 +15,7 @@ get_coding_ssm(
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
   include_silent = TRUE,
+  blacklist_version = "2026-11",
   engine,
   verbose = FALSE,
   limit_cohort,
@@ -59,6 +60,11 @@ reads in t_alt_count (for cleaning up augmented MAFs)}
 
 \item{include_silent}{Logical indicating whether to include
 silent mutations in coding regions (i.e. synonymous). Default is TRUE.}
+
+\item{blacklist_version}{"2026-11" (default; the current blacklists) or
+"2022", to drop the calls the blacklists dropped before the 2026-11
+audit, for results consistent with earlier analyses. See
+\link{apply_blacklist_version}.}
 
 \item{engine}{Deprecated. Ignored}
 

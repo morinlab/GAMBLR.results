@@ -14,6 +14,7 @@ get_ssm_by_sample(
   basic_columns = TRUE,
   maf_cols = NULL,
   variant_classification_filter = NULL,
+  blacklist_version = "2026-11",
   verbose = FALSE,
   this_sample_id,
   this_seq_type
@@ -59,6 +60,11 @@ anywhere on the line, so it is a fast superset filter; an exact
 dplyr::filter on Variant_Classification is always applied afterwards to
 guarantee correctness. Default NULL returns all variant classifications
 (original behaviour, and no ssh optimization is attempted).}
+
+\item{blacklist_version}{"2026-11" (default; the current blacklists) or
+"2022", to drop the calls the blacklists dropped before the 2026-11
+audit, for results consistent with earlier analyses. See
+\link{apply_blacklist_version}.}
 
 \item{verbose}{Enable for debugging/noisier output.}
 

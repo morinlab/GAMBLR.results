@@ -31,6 +31,10 @@
 #' specify which columns to be returned within the MAF.
 #' This parameter can either be a vector of indexes (integer)
 #' or a vector of characters.
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version].
 #' @param variant_classification_filter Optional character vector of
 #' Variant_Classification values to keep (e.g. GAMBLR.helpers::vc_nonSynonymous).
 #' When `subset_from_merge = FALSE` (the default), this is passed through to
@@ -96,6 +100,7 @@ get_ssm_by_samples = function(these_samples_metadata,
                               variant_classification_filter = NULL,
                               subset_from_merge = FALSE,
                               augmented = TRUE,
+                              blacklist_version = "2026-11",
                               engine = 'fread_maf',
                               these_sample_ids,
                               this_seq_type,
@@ -113,6 +118,7 @@ get_ssm_by_samples = function(these_samples_metadata,
     stop("this_seq_type and these_sample_ids are deprecated. Use these_samples_metadata instead")
   }
 
+  blacklist_version = .check_blacklist_version(blacklist_version)
   to_exclude = get_excluded_samples(tool_name)
 
   if(missing(these_samples_metadata)){
@@ -295,6 +301,9 @@ get_ssm_by_samples = function(these_samples_metadata,
       # results. Wrap here once, after either branch has finished building
       # maf_df_merge, so the return type is consistent regardless of which
       # path was taken.
+      maf_df_merge <- apply_blacklist_version(maf_df_merge, these_samples_metadata,
+                                              projection = projection,
+                                              blacklist_version = blacklist_version)
       maf_df_merge <- GAMBLR.utils::create_maf_data(maf_df_merge, projection)
     }
 
@@ -314,6 +323,7 @@ get_ssm_by_samples = function(these_samples_metadata,
               basic_columns = basic_columns,
               maf_cols = maf_cols,
               variant_classification_filter = variant_classification_filter,
+              blacklist_version = blacklist_version,
               verbose = FALSE
             )})
             broken_mafs <- maf_df_list[[a_seq_type]][sapply(maf_df_list[[a_seq_type]], Negate(is.data.frame))]

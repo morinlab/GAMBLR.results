@@ -45,6 +45,10 @@
 #'  (for cleaning up augmented MAFs). Default: 3. For `maf_data`, rows without a numeric
 #'  t_alt_count (missing column, NA, or a placeholder such as "." in some published MAFs) are
 #'  kept unfiltered, with a message; 0 or less applies no filter.
+#' @param blacklist_version "2026-11" (default; the current blacklists) or
+#' "2022", to drop the calls the blacklists dropped before the 2026-11
+#' audit, for results consistent with earlier analyses. See
+#' [apply_blacklist_version]. Not applied to `maf_data`.
 #' @param verbose Boolean parameter set to FALSE per default.
 #' @param this_seq_type Deprecated. Inferred from these_samples_metadata
 #' @param these_sample_ids Deprecated. Inferred from these_samples_metadata
@@ -87,6 +91,7 @@ get_ssm_by_region = function(chromosome,
                              augmented = TRUE,
                              projection = "grch37",
                              min_read_support = 3,
+                             blacklist_version = "2026-11",
                              verbose = FALSE,
                              these_sample_ids,
                              this_seq_type,
@@ -108,6 +113,10 @@ get_ssm_by_region = function(chromosome,
 
   if(!projection %in% c("grch37", "hg38")){
     stop("projection must be either grch37 or hg38")
+  }
+  blacklist_version = .check_blacklist_version(blacklist_version)
+  if(blacklist_version != "2026-11" && (!missing(maf_data) || tool_name != "slms_3")){
+    message("blacklist_version is only applied to slms_3 calls read from the GAMBL results files; ignored here")
   }
 
   if(length(tool_name) != 1){
@@ -403,6 +412,19 @@ get_ssm_by_region = function(chromosome,
       sample_ids = seq_type_sample_ids[[a_seq_type]]
       seq_type_muts_region[[a_seq_type]] = dplyr::filter(
         seq_type_muts_region[[a_seq_type]], Tumor_Sample_Barcode %in% sample_ids)
+      if(blacklist_version != "2026-11"){
+        # streamlined reads have no Chromosome column; this pull is one region
+        bl_rows = seq_type_muts_region[[a_seq_type]]
+        added_chrom = !"Chromosome" %in% colnames(bl_rows)
+        if(added_chrom) bl_rows$Chromosome = rep(chromosome, nrow(bl_rows))
+        bl_rows = apply_blacklist_version(bl_rows,
+                                          dplyr::filter(these_samples_metadata, seq_type == a_seq_type),
+                                          projection = projection,
+                                          blacklist_version = blacklist_version,
+                                          verbose = verbose)
+        if(added_chrom) bl_rows$Chromosome = NULL
+        seq_type_muts_region[[a_seq_type]] = bl_rows
+      }
     }
     # combine list into one
     if(verbose){
