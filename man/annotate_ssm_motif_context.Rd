@@ -9,7 +9,8 @@ annotate_ssm_motif_context(
   motif = "WRCY",
   index = 3,
   genome_build,
-  fastaPath
+  fastaPath,
+  ...
 )
 }
 \arguments{
@@ -22,12 +23,16 @@ annotate_ssm_motif_context(
 \item{genome_build}{The genome build for the variants you are working with (default is grch37)}
 
 \item{fastaPath}{Can be a path to a FASTA file}
+
+\item{...}{Further arguments for \code{\link[GAMBLR.utils:annotate_ssm_context]{GAMBLR.utils::annotate_ssm_context()}} (e.g. \code{aid_alleles}, \code{motif_strand}).}
 }
 \value{
-A data frame with two extra columns (seq and motif).
+A data frame with a \code{seq} column and one column per motif ("SITE", "MOTIF", "FALSE" or NA for indels and multi-base substitutions).
 }
 \description{
-Checks for the presence of mutations at a given motif
+Checks for the presence of mutations at a given motif. A wrapper around
+\code{\link[GAMBLR.utils:annotate_ssm_context]{GAMBLR.utils::annotate_ssm_context()}} that finds the reference FASTA from the GAMBLR config
+(repo_base) before falling back to the BSgenome package.
 }
 \details{
 In positions that reference allele has been mutated, it will capture (motif length - 1) before and (motif length + 1) alleles after the mutated position.
