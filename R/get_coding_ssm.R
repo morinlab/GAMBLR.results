@@ -36,6 +36,11 @@
 #' which columns to be returned within the MAF. This parameter can either
 #' be a vector of indexes (integer) or a vector of characters (matching
 #' columns in MAF).
+#' @param these_genes Optional gene symbols (Hugo_Symbol as in the MAF): only
+#' their mutations are returned. Applied while the MAF is read, together with
+#' the samples of `these_samples_metadata` (of `this_seq_type`), so other
+#' rows never reach memory (see [GAMBLR.utils::fread_maf]). Default NULL: all
+#' genes.
 #' @param augmented Set to FALSE if you instead want the original MAF from
 #' each sample for multi-sample patients instead of the augmented MAF
 #' @param min_read_support Only returns variants with at least this many
@@ -88,6 +93,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
                           this_seq_type = "genome",
                           basic_columns = TRUE,
                           maf_cols = NULL,
+                          these_genes = NULL,
                           augmented = TRUE,
                           min_read_support = 3,
                           groups = c("gambl", "icgc_dart"),
@@ -152,14 +158,18 @@ get_coding_ssm = function(these_samples_metadata = NULL,
   }
 
 
+  # rows to keep while reading: these_genes, and the metadata's samples of this seq_type (NULL: no filter)
+  read_samples = if(is.null(these_samples_metadata)) NULL else
+    unique(as.character(these_samples_metadata$sample_id[these_samples_metadata$seq_type == this_seq_type]))
   if(basic_columns){
     #subset to basic columns during read to save time and memory with lazy loading (in theory)
     select_cols = c(1:45)
-    muts = suppressMessages(fread_maf(full_maf_path,select_cols=select_cols)) %>%
+    muts = suppressMessages(fread_maf(full_maf_path, select_cols = select_cols,
+                                      genes = these_genes, sample_ids = read_samples)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }else{
-    muts = suppressMessages(fread_maf(full_maf_path)) %>%
+    muts = suppressMessages(fread_maf(full_maf_path, genes = these_genes, sample_ids = read_samples)) %>%
         dplyr::filter(Variant_Classification %in% coding_class) %>%
         as.data.frame()
   }
@@ -210,6 +220,7 @@ get_coding_ssm = function(these_samples_metadata = NULL,
 
     #get replacements using get_ssm_by_samples
     fu_muts = get_ssm_by_samples(these_sample_ids = force_unmatched_samples)
+    if(!is.null(these_genes)) fu_muts = dplyr::filter(fu_muts, Hugo_Symbol %in% these_genes)
     muts = bind_rows(muts, fu_muts)
   }
   

@@ -10,7 +10,10 @@
 #' sample/seq_type combinations you want. 
 #' @param include_silent If set to TRUE, silent/synonymous mutations in the
 #' coding regions will also be returned. Default is FALSE.
-#' @param ... Additional arguments passed to get_coding_ssm
+#' @param ... Additional arguments passed to get_coding_ssm, e.g.
+#' `these_genes` to read only those genes' mutations (filtered while each
+#' MAF is read, so the whole MAF is never in memory), `augmented` or
+#' `min_read_support`.
 #'
 #' @param with_metadata Set to TRUE to return a list with the mutations
 #' (`maf_data`) and `metadata`: `these_samples_metadata`, all rows kept,
@@ -30,9 +33,12 @@
 #' table(maf_all_seqtype$maf_seq_type)
 #' 
 #' # most common mutations by gene and Variant_Classification
-#' dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>% 
-#'   dplyr::count() %>% 
+#' dplyr::group_by(maf_all_seqtype,Hugo_Symbol,Variant_Classification) %>%
+#'   dplyr::count() %>%
 #'   dplyr::arrange(desc(n))
+#'
+#' # only some genes, read without holding the whole MAF in memory
+#' maf_some_genes = get_all_coding_ssm(my_meta, these_genes = c("MYD88", "CD79B", "EZH2"))
 get_all_coding_ssm = function(these_samples_metadata = NULL,
                               include_silent=FALSE,
                               with_metadata = FALSE,

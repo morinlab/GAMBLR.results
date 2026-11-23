@@ -11,6 +11,7 @@ get_coding_ssm(
   this_seq_type = "genome",
   basic_columns = TRUE,
   maf_cols = NULL,
+  these_genes = NULL,
   augmented = TRUE,
   min_read_support = 3,
   groups = c("gambl", "icgc_dart"),
@@ -49,6 +50,12 @@ columns. Set this to FALSE if you want all the available columns instead.}
 which columns to be returned within the MAF. This parameter can either
 be a vector of indexes (integer) or a vector of characters (matching
 columns in MAF).}
+
+\item{these_genes}{Optional gene symbols (Hugo_Symbol as in the MAF): only
+their mutations are returned. Applied while the MAF is read, together with
+the samples of \code{these_samples_metadata} (of \code{this_seq_type}), so other
+rows never reach memory (see \link[GAMBLR.utils:fread_maf]{GAMBLR.utils::fread_maf}). Default NULL: all
+genes.}
 
 \item{augmented}{Set to FALSE if you instead want the original MAF from
 each sample for multi-sample patients instead of the augmented MAF}
