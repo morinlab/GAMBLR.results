@@ -29,6 +29,23 @@
 #' with an `sv_available` column (and `all_available`) saying which samples
 #' have SV data, so samples without SVs can be told from samples without
 #' data. See [annotate_data_availability]. Default FALSE.
+#' @param manta_fallback Set to TRUE to fill in genomes that are missing from
+#' the combined (GRIDSS + Manta) merge, e.g. because GRIDSS failed or was never
+#' run on them, with their calls from the Manta-only merge read by
+#' [get_manta_sv]. Only genomes in `these_samples_metadata` (required) that
+#' have no rows at all in the combined merge are filled in; genomes in the
+#' combined merge keep its calls only. Fallback calls are filtered as
+#' `get_manta_sv(min_vaf = manta_min_vaf, min_score = manta_min_score,
+#' pass_filters = TRUE)` (and `min_vaf`, if higher), have NA in the
+#' combined-only columns (`gridss_name`, `ANNOTATION_*`,
+#' `DIST_TO_ANNOTATION_*`), and the result gets an `sv_source` column
+#' ("combined" or "manta"). With `with_metadata = TRUE`, `sv_available` then
+#' counts a genome in either merge. Default FALSE.
+#' @param manta_min_vaf,manta_min_score Filters for the fallback Manta calls,
+#' as `min_vaf` and `min_score` of [get_manta_sv]. Defaults 0.05 (the VAF the
+#' combined merge was pre-filtered at; it has no VAF filter for SVs at BCL2,
+#' BCL6, MYC and CCND1, which the fallback does not reproduce) and 40 (the
+#' [get_manta_sv] default).
 #' @return A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.
 #'
 #' @import config dplyr readr stringr GAMBLR.helpers
@@ -85,13 +102,26 @@ get_combined_sv <- function(these_samples_metadata,
                             region,
                             min_vaf = 0,
                             these_sample_ids,
-                            with_metadata = FALSE) {
+                            with_metadata = FALSE,
+                            manta_fallback = FALSE,
+                            manta_min_vaf = 0.05,
+                            manta_min_score = 40) {
+  if(manta_fallback){
+    if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
+      stop("manta_fallback = TRUE needs these_samples_metadata (the genomes to fill in come from it)")
+    }
+    if(!missing(oncogenes)){
+      stop("manta_fallback can't be combined with oncogenes: the Manta merge has no ANNOTATION columns. ",
+           "Use GAMBLR.utils::annotate_sv() on the result instead.")
+    }
+  }
   if(with_metadata){
     if(missing(these_samples_metadata) || is.null(these_samples_metadata)){
       stop("with_metadata = TRUE needs these_samples_metadata")
     }
     return(.with_metadata(match.call(), parent.frame(), "sv_data", function()
-      annotate_sv_availability(these_samples_metadata, projection = projection, sv_source = "combined")))
+      annotate_sv_availability(these_samples_metadata, projection = projection,
+                               sv_source = if(manta_fallback) "combined_manta" else "combined")))
   }
   # Handle deprecated parameters
   if (!missing(these_sample_ids)) {
@@ -170,6 +200,27 @@ get_combined_sv <- function(these_samples_metadata,
     }
     all_sv <- all_sv %>%
       dplyr::filter((CHROM_A == chromosome & START_A >= qstart & START_A <= qend) | (CHROM_B == chromosome & START_B >= qstart & START_B <= qend))
+  }
+
+  if (manta_fallback) {
+    all_sv$sv_source <- rep("combined", nrow(all_sv))
+    # genomes with no rows anywhere in the combined merge (not just in this region)
+    in_combined <- .file_samples_or_none(.sv_merged_path("combined", projection), "tumour_sample_id")
+    fill_meta <- these_samples_metadata[these_samples_metadata$seq_type %in% "genome" &
+                                          !these_samples_metadata$sample_id %in% in_combined, , drop = FALSE]
+    if (nrow(fill_meta) > 0) {
+      manta_args <- list(these_samples_metadata = fill_meta, projection = projection,
+                         min_vaf = max(min_vaf, manta_min_vaf), min_score = manta_min_score,
+                         pass_filters = TRUE, verbose = FALSE)
+      if (!missing(region)) manta_args$region <- region
+      manta_sv <- as.data.frame(do.call(get_manta_sv, manta_args))
+      manta_sv <- manta_sv[, intersect(colnames(manta_sv), colnames(all_sv)), drop = FALSE]
+      manta_sv$sv_source <- rep("manta", nrow(manta_sv))
+      message("manta_fallback: ", length(unique(manta_sv$tumour_sample_id)), " of ", nrow(fill_meta),
+              " genomes missing from the combined SV merge filled in from the Manta merge (",
+              nrow(manta_sv), " SVs)")
+      all_sv <- dplyr::bind_rows(as.data.frame(all_sv), manta_sv)
+    }
   }
 
   all_sv <- all_sv %>%

@@ -22,7 +22,8 @@
 #'     region.
 #'   \item `sv_available`: a genome present in the merged SV file of
 #'     `sv_source` ("combined" as read by [get_combined_sv], or "manta" as
-#'     read by [get_manta_sv]).
+#'     read by [get_manta_sv]), or with "combined_manta" in either (as read by
+#'     `get_combined_sv(manta_fallback = TRUE)`).
 #'   \item `cn_available`: the sample has copy number segments (combined seg
 #'     file) that cover enough of its genome for a baseline and have no
 #'     coordinates past the chromosome ends; see [get_cn_baselines].
@@ -44,7 +45,8 @@
 #' @param augmented For SSMs, the augmented (default) or deblacklisted MAF.
 #' @param seq_types For SSMs, the seq_types the data come from; rows of
 #' other seq_types are FALSE. Default genome and capture.
-#' @param sv_source For SVs, "combined" (default) or "manta".
+#' @param sv_source For SVs, "combined" (default), "manta" or "combined_manta"
+#' (either merge; see `manta_fallback` in [get_combined_sv]).
 #' @param pipeline,priority For copy number, optionally the per-pipeline seg
 #' files to use instead of the combined one, as in [get_cn_segments]. The
 #' metadata then also gets `cn_pipeline`, the pipeline each sample's copy
@@ -126,9 +128,11 @@ annotate_sv_availability = function(these_samples_metadata,
                                     sv_source = "combined",
                                     drop_unavailable = FALSE,
                                     verbose = TRUE){
-  sv_source = match.arg(sv_source, c("combined", "manta"))
+  sv_source = match.arg(sv_source, c("combined", "manta", "combined_manta"))
   meta = these_samples_metadata
-  ids = .file_samples_or_none(.sv_merged_path(sv_source, projection), "tumour_sample_id")
+  sources = if(sv_source == "combined_manta") c("combined", "manta") else sv_source
+  ids = unique(unlist(lapply(sources, function(s)
+    .file_samples_or_none(.sv_merged_path(s, projection), "tumour_sample_id"))))
   available = meta$seq_type %in% "genome" & meta$sample_id %in% ids
   .set_available(meta, "sv_available", available, "SV data", drop_unavailable, verbose)
 }

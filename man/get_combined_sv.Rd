@@ -11,7 +11,10 @@ get_combined_sv(
   region,
   min_vaf = 0,
   these_sample_ids,
-  with_metadata = FALSE
+  with_metadata = FALSE,
+  manta_fallback = FALSE,
+  manta_min_vaf = 0.05,
+  manta_min_score = 40
 )
 }
 \arguments{
@@ -38,6 +41,24 @@ going to want to pass the full output to \link[GAMBLR.utils:annotate_sv]{GAMBLR.
 with an \code{sv_available} column (and \code{all_available}) saying which samples
 have SV data, so samples without SVs can be told from samples without
 data. See \link{annotate_data_availability}. Default FALSE.}
+
+\item{manta_fallback}{Set to TRUE to fill in genomes that are missing from
+the combined (GRIDSS + Manta) merge, e.g. because GRIDSS failed or was never
+run on them, with their calls from the Manta-only merge read by
+\link{get_manta_sv}. Only genomes in \code{these_samples_metadata} (required) that
+have no rows at all in the combined merge are filled in; genomes in the
+combined merge keep its calls only. Fallback calls are filtered as
+\code{get_manta_sv(min_vaf = manta_min_vaf, min_score = manta_min_score, pass_filters = TRUE)} (and \code{min_vaf}, if higher), have NA in the
+combined-only columns (\code{gridss_name}, \verb{ANNOTATION_*},
+\verb{DIST_TO_ANNOTATION_*}), and the result gets an \code{sv_source} column
+("combined" or "manta"). With \code{with_metadata = TRUE}, \code{sv_available} then
+counts a genome in either merge. Default FALSE.}
+
+\item{manta_min_vaf, manta_min_score}{Filters for the fallback Manta calls,
+as \code{min_vaf} and \code{min_score} of \link{get_manta_sv}. Defaults 0.05 (the VAF the
+combined merge was pre-filtered at; it has no VAF filter for SVs at BCL2,
+BCL6, MYC and CCND1, which the fallback does not reproduce) and 40 (the
+\link{get_manta_sv} default).}
 }
 \value{
 A data frame in a bedpe-like format with additional columns that allow filtering of high-confidence SVs.

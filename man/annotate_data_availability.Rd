@@ -52,7 +52,8 @@ annotate_cn_availability(
 
 \item{projection}{"grch37" (default) or "hg38".}
 
-\item{sv_source}{For SVs, "combined" (default) or "manta".}
+\item{sv_source}{For SVs, "combined" (default), "manta" or "combined_manta"
+(either merge; see \code{manta_fallback} in \link{get_combined_sv}).}
 
 \item{drop_unavailable}{Set to TRUE to also drop the rows that lack the
 data type (for \code{annotate_data_availability}, rows with \code{all_available}
@@ -104,7 +105,8 @@ targets, so TRUE doesn't mean a capture sample covers a non-coding
 region.
 \item \code{sv_available}: a genome present in the merged SV file of
 \code{sv_source} ("combined" as read by \link{get_combined_sv}, or "manta" as
-read by \link{get_manta_sv}).
+read by \link{get_manta_sv}), or with "combined_manta" in either (as read by
+\code{get_combined_sv(manta_fallback = TRUE)}).
 \item \code{cn_available}: the sample has copy number segments (combined seg
 file) that cover enough of its genome for a baseline and have no
 coordinates past the chromosome ends; see \link{get_cn_baselines}.
