@@ -260,8 +260,14 @@ get_ssm_by_regions = function(regions_list,
     # inclusive) for non-.bed files -- NOT "chr:start-end" per line (confirmed
     # empirically: colon-dash format silently matches zero rows, since with no
     # tabs present each line is read as a single literal chromosome name).
+    # tabix -R also requires the regions sorted by position within each
+    # chromosome: given an unsorted file it prints "regions are not sorted",
+    # reads nothing, and the pull silently came back empty (e.g. the aSHM
+    # region table, whose rows aren't in position order). Only the file is
+    # sorted; regions_parsed keeps the caller's order for the label join.
     regions_file = tempfile(fileext = ".txt")
-    write.table(regions_parsed, regions_file, sep = "\t", quote = FALSE,
+    write.table(regions_parsed[order(regions_parsed$chrom, regions_parsed$start, regions_parsed$end), ],
+               regions_file, sep = "\t", quote = FALSE,
                row.names = FALSE, col.names = FALSE)
     on.exit(unlink(regions_file), add = TRUE)
 
@@ -291,7 +297,15 @@ get_ssm_by_regions = function(regions_list,
       tabix_command = paste(tabix_bin, "-R", regions_file, full_maf_path_comp,
                             "| cut -f", paste(maf_indexes, collapse = ","))
       if(verbose) print(tabix_command)
-      muts = system(tabix_command, intern = TRUE)
+      # pipefail, so a tabix failure (e.g. an unreadable regions file or a
+      # bad index) stops here instead of being masked by cut's exit status
+      # and read as "no mutations in these regions"
+      muts = suppressWarnings(system(paste("bash -o pipefail -c", shQuote(tabix_command)), intern = TRUE))
+      tabix_status = attr(muts, "status")
+      if(!is.null(tabix_status) && tabix_status != 0){
+        stop("tabix failed (exit status ", tabix_status, ") reading ", full_maf_path_comp,
+             " for ", nrow(regions_parsed), " region(s); its error message is printed above.")
+      }
 
       if(length(muts) == 0){
         maf_types_sep = str_split(maf_column_types, pattern = "")[[1]] %>%
