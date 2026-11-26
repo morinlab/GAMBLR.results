@@ -80,10 +80,9 @@ A data frame with metadata for each biopsy in GAMBL
 \item{fastq_data_path}{Symbolic link to the fastq file (not usually relevant for GAMBLR)}
 \item{fastq_link_name}{Standardized naming for symbolic link for FASTQ file, if used (not usually relevant for GAMBLR)}
 \item{unix_group}{Whether a source is external and restricted by data access agreements (icgc_dart) or internal (gambl)}
-\item{COO_consensus}{TODO}
-\item{DHITsig_consensus}{TODO}
-\item{COO_PRPS_class}{TODO}
-\item{DHITsig_PRPS_class}{TODO}
+\item{COO_consensus}{Consensus cell of origin (ABC, GCB, UNCLASS): the DLBCL90 call, else gneSeqCOO.}
+\item{DHITsig_consensus}{Consensus DHITsig (DZsig) call (POS, NEG, UNCLASS): the DLBCL90 call, else gneSeqCOO's DZsig. DHITsig is a GCB signature but ABC tumours have calls too; use consensus_coo_dhitsig to compare DHITsig groups.}
+\item{consensus_coo_dhitsig}{Cell of origin and DHITsig combined, for DLBCL: ABC, DHITsigPos, DHITsigNeg or DHITsig-IND (unclassified DHITsig), from COO_consensus and DHITsig_consensus. NA outside DLBCL.}
 \item{DLBCL90_dlbcl_call}{TODO}
 \item{DLBCL90_dhitsig_call}{TODO}
 \item{res_id}{duplicate of sample_id for local samples and NA otherwise}
