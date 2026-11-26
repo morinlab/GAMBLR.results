@@ -361,19 +361,36 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       Tumor_Sample_Barcode = sample_id
       )
 
-  
+  all_meta_kept <- all_meta_kept %>% 
+    dplyr::mutate(DHITsig_consensus = case_when(
+      !is.na(DLBCL90_dhitsig_call) | !is.na(gneSeq_DZsig) ~ DHITsig_consensus
+    )) %>% 
+    dplyr::mutate(DZsig_consensus = DHITsig_consensus)
   all_meta_kept <- all_meta_kept %>%
     dplyr::mutate(
-        consensus_coo_dhitsig = case_when(
-            pathology != "DLBCL" ~ NA,
+        consensus_coo_dzsig = case_when(
+            !pathology %in% c(
+              "DLBCL", 
+              "COM", 
+              "COMFL", 
+              "DLBCL-BL-like", 
+              "DLBCL_ALK", 
+              "DLBCL_CNS_relapse", 
+              "DLBCL_extranodal", 
+              "DLBCL_testicular",
+              "HGBL", 
+              "HGBL-DH-BCL2", 
+              "HGBL-NOS", 
+              "NS1", 
+              "NS2", 
+              "PCNSL", 
+              "PMBCL", 
+              "UNSPECIFIED"
+              ) ~ NA,
             COO_consensus == "ABC" ~ COO_consensus,
-            DLBCL90_dhitsig_call == "POS" ~ "DHITsigPos",
-            DLBCL90_dhitsig_call == "NEG" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "DHITsigPos" ~ "DHITsigPos",
-            DHITsig_PRPS_class == "DHITsig+" ~ "DHITsigPos",
-            DHITsig_PRPS_class == "DHITsigNeg" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "DHITsig-" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
+            DZsig_consensus == "POS" ~ "DZ",
+            COO_consensus == "Unclassified" ~ "UNCLASS", 
+            !is.na(COO_consensus) ~ COO_consensus,
             TRUE ~ NA)
     )
   

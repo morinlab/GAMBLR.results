@@ -482,25 +482,39 @@ og_get_gambl_metadata = function(seq_type_filter = "genome",
   
   all_meta = mutate(all_meta, Tumor_Sample_Barcode = sample_id) #duplicate for convenience
   all_meta = all_meta %>%
-    dplyr::mutate(consensus_coo_dhitsig = case_when(pathology != "DLBCL" ~ pathology,
-                                                    COO_consensus == "ABC" ~ COO_consensus,
-                                                    DLBCL90_dhitsig_call == "POS" ~ "DHITsigPos",
-                                                    DLBCL90_dhitsig_call == "NEG" ~ "DHITsigNeg",
-                                                    DHITsig_PRPS_class == "DHITsigPos" ~ "DHITsigPos",
-                                                    DHITsig_PRPS_class == "DHITsig+" ~ "DHITsigPos",
-                                                    DHITsig_PRPS_class == "DHITsigNeg" ~ "DHITsigNeg",
-                                                    DHITsig_PRPS_class == "DHITsig-" ~ "DHITsigNeg",
-                                                    DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
-                                                    TRUE ~ "NA"))
+    dplyr::mutate(DHITsig_consensus = case_when(DHITsig_consensus == "NEG" ~ "DZsigNeg",
+                                                DHITsig_consensus == "POS" ~ "DZsigPos",
+                                                DHITsig_consensus == "UNCLASS" ~ "DZsig-IND",
+                                                DHITsig_consensus == "DHITsigNeg" ~ "DZsigNeg",
+                                                DHITsig_consensus == "DHITsigPos" ~ "DZsigPos"
+                                                )) %>% 
+                                                mutate(DZsig_consensus = DHITsig_consensus)
   
   all_meta = all_meta %>%
-    dplyr::mutate(DHITsig_consensus = case_when(DHITsig_consensus == "NEG" ~ "DHITsigNeg",
-                                                DHITsig_consensus == "POS" ~ "DHITsigPos",
-                                                DHITsig_consensus == "UNCLASS" ~ "DHITsig-IND",
-                                                DHITsig_consensus == "DHITsigNeg" ~ DHITsig_consensus,
-                                                DHITsig_consensus == "DHITsigPos" ~ DHITsig_consensus,
-                                                TRUE ~ "NA"))
+    dplyr::mutate(consensus_coo_dzsig = case_when(!pathology %in% c(
+              "DLBCL", 
+              "COM", 
+              "COMFL", 
+              "DLBCL-BL-like", 
+              "DLBCL_ALK", 
+              "DLBCL_CNS_relapse", 
+              "DLBCL_extranodal", 
+              "DLBCL_testicular",
+              "HGBL", 
+              "HGBL-DH-BCL2", 
+              "HGBL-NOS", 
+              "NS1", 
+              "NS2", 
+              "PCNSL", 
+              "PMBCL", 
+              "UNSPECIFIED"
+              ) ~ NA,
+              COO_consensus == "ABC" ~ COO_consensus,
+              DZsig_consensus == "DZsigPos" ~ "DZ",
+              !is.na(COO_consensus) ~ COO_consensus
+              ))
   
+    
   #assign a rank to each pathology for consistent and sensible ordering
   all_meta = all_meta %>%
     dplyr::mutate(pathology_rank = case_when(pathology == "B-ALL" ~ 0,
