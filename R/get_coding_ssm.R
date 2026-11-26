@@ -144,7 +144,8 @@ get_coding_ssm = function(these_samples_metadata = NULL,
     full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
   }
 
-  #read file
+  #read file: the MAF, or its gzipped copy (.maf.gz) if only that exists
+  full_maf_path = resolve_maf_path(full_maf_path)
 
   if(verbose){
     message(paste("reading from:", full_maf_path)) 

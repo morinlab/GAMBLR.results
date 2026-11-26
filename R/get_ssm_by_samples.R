@@ -160,7 +160,8 @@ get_ssm_by_samples = function(these_samples_metadata,
   # memory. Mirrors the same approach already used in get_ssm_by_sample().
   grep_classification_cmd = function(path, classifications){
     terms = paste(shQuote(classifications, type = "sh"), collapse = " -e ")
-    paste("grep -h -w -F -e Hugo_Symbol -e", terms, shQuote(path, type = "sh"))
+    # a gzipped (.gz) MAF is decompressed into the grep (see resolve_maf_path())
+    maf_stream_cmd(path, paste("grep -h -w -F -e Hugo_Symbol -e", terms))
   }
 
   if(flavour=="legacy"){
@@ -192,6 +193,7 @@ get_ssm_by_samples = function(these_samples_metadata,
       maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$deblacklisted")
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
+      full_maf_path = resolve_maf_path(full_maf_path)   # or its gzipped copy, if only that exists
       message(paste("using existing merge:", full_maf_path))
       #if(!file.exists(full_maf_path)){
       #  full_maf_path = paste0(full_maf_path,".bgz")
@@ -259,6 +261,7 @@ get_ssm_by_samples = function(these_samples_metadata,
       maf_template = check_config_and_value("results_flatfiles$ssm$template$merged$augmented")
       maf_path = glue::glue(maf_template)
       full_maf_path =  paste0(check_config_and_value("project_base"), maf_path)
+      full_maf_path = resolve_maf_path(full_maf_path)   # or its gzipped copy, if only that exists
       message(paste("using existing merge:", full_maf_path))
 
       #check for missingness

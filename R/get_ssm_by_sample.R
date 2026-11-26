@@ -212,7 +212,8 @@ get_ssm_by_sample = function(these_samples_metadata,
   # run on a remote host over ssh.
   grep_classification_cmd = function(path, classifications){
     terms = paste(shQuote(classifications, type = "sh"), collapse = " -e ")
-    paste("grep -h -w -F -e Hugo_Symbol -e", terms, shQuote(path, type = "sh"))
+    # a gzipped (.gz) MAF is decompressed into the grep (see resolve_maf_path())
+    maf_stream_cmd(path, paste("grep -h -w -F -e Hugo_Symbol -e", terms))
   }
   sample_ssm_loaded = FALSE
   
@@ -227,7 +228,8 @@ get_ssm_by_sample = function(these_samples_metadata,
     # Always sync all available files regardless of what the user requested
     # so we don't have to check if they exist remotely every time
 
-    if(!file.exists(local_aug_maf_path) & !file.exists(local_full_maf_path)){
+    # a gzipped local copy (.maf.gz) counts as present (see resolve_maf_path())
+    if(!maf_file_exists(local_aug_maf_path) & !maf_file_exists(local_full_maf_path)){
       #assume we need to sync everything that's available remotely
       if(verbose){
         print(paste("Missing both files:",local_aug_maf_path,local_full_maf_path))
@@ -307,7 +309,7 @@ get_ssm_by_sample = function(these_samples_metadata,
 
   }
   if(augmented){
-    if(file.exists(aug_maf_path)){
+    if(maf_file_exists(aug_maf_path)){
       if(verbose){
         print(paste("setting full_maf_path to",aug_maf_path))
       }
@@ -315,6 +317,8 @@ get_ssm_by_sample = function(these_samples_metadata,
     }
   }
   if(!sample_ssm_loaded){
+    # the MAF, or its gzipped copy (.maf.gz) if only that exists locally
+    full_maf_path = resolve_maf_path(full_maf_path)
     # Check if maf exists; if not, return empty data frame
     if(!file.exists(full_maf_path)){
       message(paste("warning: file does not exist, skipping it.", full_maf_path))

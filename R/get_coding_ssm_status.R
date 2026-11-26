@@ -180,7 +180,7 @@ get_coding_ssm_status = function(
 
   }else if (!is.null(maf_path)){
     message(paste("setting genome_build for MAF to:",genome_build))
-    coding_ssm = GAMBLR.utils::create_maf_data(fread_maf(maf_path,genome_build))
+    coding_ssm = GAMBLR.utils::create_maf_data(fread_maf(resolve_maf_path(maf_path),genome_build))
   }
 
   if(missing(maf_data) & is.null(maf_path)){
