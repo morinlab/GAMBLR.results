@@ -51,10 +51,9 @@
 #'   \item{fastq_data_path}{Symbolic link to the fastq file (not usually relevant for GAMBLR)}
 #'   \item{fastq_link_name}{Standardized naming for symbolic link for FASTQ file, if used (not usually relevant for GAMBLR)}
 #'   \item{unix_group}{Whether a source is external and restricted by data access agreements (icgc_dart) or internal (gambl)}
-#'   \item{COO_consensus}{TODO}
-#'   \item{DHITsig_consensus}{TODO}
-#'   \item{COO_PRPS_class}{TODO}
-#'   \item{DHITsig_PRPS_class}{TODO}
+#'   \item{COO_consensus}{Consensus cell of origin (ABC, GCB, UNCLASS): the DLBCL90 call, else gneSeqCOO.}
+#'   \item{DHITsig_consensus}{Consensus DHITsig (DZsig) call (POS, NEG, UNCLASS): the DLBCL90 call, else gneSeqCOO's DZsig. DHITsig is a GCB signature but ABC tumours have calls too; use consensus_coo_dhitsig to compare DHITsig groups.}
+#'   \item{consensus_coo_dhitsig}{Cell of origin and DHITsig combined, for DLBCL: ABC, DHITsigPos, DHITsigNeg or DHITsig-IND (unclassified DHITsig), from COO_consensus and DHITsig_consensus. NA outside DLBCL.}
 #'   \item{DLBCL90_dlbcl_call}{TODO}
 #'   \item{DLBCL90_dhitsig_call}{TODO}
 #'   \item{res_id}{duplicate of sample_id for local samples and NA otherwise}
@@ -362,18 +361,17 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
       )
 
   
+  # Cell of origin and DHITsig combined, from the consensus calls (DLBCL90, then gneSeq; the older PRPS calls are
+  # no longer in the biopsy metadata). DHITsig is a GCB signature, so ABC tumours are "ABC" whatever their
+  # DHITsig call; an unclassified DHITsig call is "DHITsig-IND".
   all_meta_kept <- all_meta_kept %>%
     dplyr::mutate(
         consensus_coo_dhitsig = case_when(
             pathology != "DLBCL" ~ NA,
             COO_consensus == "ABC" ~ COO_consensus,
-            DLBCL90_dhitsig_call == "POS" ~ "DHITsigPos",
-            DLBCL90_dhitsig_call == "NEG" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "DHITsigPos" ~ "DHITsigPos",
-            DHITsig_PRPS_class == "DHITsig+" ~ "DHITsigPos",
-            DHITsig_PRPS_class == "DHITsigNeg" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "DHITsig-" ~ "DHITsigNeg",
-            DHITsig_PRPS_class == "UNCLASS" ~ "DHITsigPos",
+            DHITsig_consensus == "POS" ~ "DHITsigPos",
+            DHITsig_consensus == "NEG" ~ "DHITsigNeg",
+            DHITsig_consensus == "UNCLASS" ~ "DHITsig-IND",
             TRUE ~ NA)
     )
   
