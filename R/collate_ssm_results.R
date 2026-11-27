@@ -49,8 +49,15 @@ compute_ssm_results_core <- function(sample_table,
   # min_read_support = 0 preserves this function's original behaviour of
   # not filtering by read support at all -- get_ssm_by_sample()'s own
   # filter is skipped when its threshold is 0/falsy.
+  # samples whose MAF doesn't exist get NA rows without being read (get_ssm_by_samples() fails when none of the
+  # requested MAFs exist)
+  readable = ssm_samples_with_input(sample_table, projection)
+  if(nrow(readable) == 0){
+    return(data.frame(sample_id = sample_table$sample_id, total_ssm = NA_integer_, mean_vaf = NA_real_,
+                      coding_ssm = NA_integer_))
+  }
   muts = get_ssm_by_samples(
-    these_samples_metadata = sample_table,
+    these_samples_metadata = readable,
     projection = projection,
     augmented = FALSE,
     min_read_support = 0,
@@ -164,4 +171,11 @@ ssm_input_files <- function(sample_table, projection = "grch37", flavour = "clus
     resolve_maf_path(if(remote_session) p$local_full_maf_path else p$full_maf_path)
   }, character(1))
   data.frame(sample_id = sample_table$sample_id, input_path = paths, stringsAsFactors = FALSE)
+}
+
+# The rows of sample_table whose SLMS-3 MAF (in this projection) exists
+ssm_samples_with_input = function(sample_table, projection = "grch37", flavour = "clustered"){
+  sample_table = as.data.frame(sample_table)
+  paths = ssm_input_files(sample_table, projection = projection, flavour = flavour)$input_path
+  sample_table[!is.na(paths) & file.exists(paths), , drop = FALSE]
 }

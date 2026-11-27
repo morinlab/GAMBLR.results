@@ -218,8 +218,14 @@ collate_stale_ids <- function(con, table_name, entry, scope, seq) {
     now <- collate_input_details(do.call(entry$input_files, list(scope_rows)), md5 = FALSE)
     was_mtime <- stored$input_mtime[check]
     was_size <- as.numeric(stored$input_size[check])
-    changed <- is.na(now$input_mtime) | is.na(was_mtime) | now$input_mtime != was_mtime |
-      is.na(was_size) | now$input_size != was_size
+    # a file that was missing when the row was computed and still is doesn't make the row stale; one that has
+    # appeared, disappeared or changed does
+    missing_now <- is.na(now$input_mtime)
+    missing_then <- is.na(was_mtime)
+    changed <- missing_now != missing_then
+    both <- !missing_now & !missing_then
+    changed[both] <- now$input_mtime[both] != was_mtime[both] | is.na(was_size[both]) |
+      now$input_size[both] != was_size[both]
     stale[check] <- changed
   }
   unique(stored$sample_id[stale])

@@ -39,6 +39,10 @@ compute_mutation_burden_core <- function(sample_table){
   out = list()
   for(fam in unique(sample_table$.family)){
     rows = sample_table[sample_table$.family == fam, , drop = FALSE]
+    # samples whose MAF doesn't exist get NA rows (from the join below) without being read
+    readable = ssm_samples_with_input(rows, projection = fam)
+    if(nrow(readable) == 0) next
+    rows = readable
     muts = get_ssm_by_samples(
       these_samples_metadata = rows,
       projection = fam,
@@ -74,6 +78,13 @@ compute_mutation_burden_core <- function(sample_table){
     }
   }
   result = dplyr::bind_rows(out)
+  if(nrow(result) == 0){
+    result = data.frame(sample_id = character(0), n_ssm = integer(0), n_snv = integer(0), n_indel = integer(0),
+                        burden_territory = character(0), burden_territory_source = character(0),
+                        burden_mb = numeric(0), burden_mutations = integer(0), burden_snv = integer(0),
+                        burden_indel = integer(0), burden_per_mb = numeric(0), burden_snv_per_mb = numeric(0),
+                        burden_indel_per_mb = numeric(0), stringsAsFactors = FALSE)
+  }
   # every requested sample gets a row, as for compute_ssm_results_core()
   dplyr::left_join(dplyr::select(as.data.frame(sample_table), sample_id), result, by = "sample_id")
 }
