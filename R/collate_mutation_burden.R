@@ -130,7 +130,7 @@ burden_territory = function(row, family, settings){
 .burden_target_cache = new.env(parent = emptyenv())
 burden_kit_targets = function(genome_build, capture_space, settings){
   key = paste(genome_build, capture_space, sep = "|")
-  if(exists(key, envir = .burden_target_cache, inherits = FALSE)) return(get(key, envir = .burden_target_cache))
+  if(base::exists(key, envir = .burden_target_cache, inherits = FALSE)) return(base::get(key, envir = .burden_target_cache))
   path = burden_kit_bed_path(genome_build, capture_space, settings)
   targets = NULL
   if(file.exists(path)){
@@ -147,7 +147,7 @@ burden_kit_targets = function(genome_build, capture_space, settings){
     attr(targets, "bp") = sum(vapply(merged, function(d) sum(d$end - d$start), numeric(1)))
     attr(targets, "path") = path
   }
-  assign(key, targets, envir = .burden_target_cache)
+  base::assign(key, targets, envir = .burden_target_cache)
   targets
 }
 
