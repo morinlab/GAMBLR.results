@@ -77,7 +77,13 @@
 #'   \item{lymphgen_cnv_noA53}{TODO}
 #'   \item{lymphgen_wright}{The LymphGen call for this sample from Wright et all (if applicable)}
 #'   \item{fl_grade}{TODO}
-#'   \item{transformation}{TODO}
+#'   \item{transformation}{Transformation status of the biopsy, from the patient-level
+#'     gambl_transformation_status.tsv (BC Cancer patients; NA elsewhere): "de novo" (a lymphoma from a patient
+#'     who never transformed; the pathology column says which, e.g. de novo DLBCL or an FL that never
+#'     transformed), "pre-transformation" (an indolent biopsy, e.g. FL, before the patient's first aggressive
+#'     biopsy), "transformed" (an aggressive biopsy, e.g. DLBCL, of a patient who transformed) or
+#'     "post-transformation" (an indolent biopsy after transformation). NA for other entities and for indolent
+#'     biopsies that can't be ordered.}
 #'   \item{relapse}{TODO}
 #'   \item{ighv_mutation_original}{TODO}
 #' }

@@ -98,7 +98,13 @@ A data frame with metadata for each biopsy in GAMBL
 \item{mrna_Ribodepletion_frozen_sample_id}{TODO}
 \item{mrna_Ribodepletion_frozen_sample_id}{TODO}
 \item{XXX_cohort}{Cohort name for batch effect correction(?)}
-\item{transformation}{TODO}
+\item{transformation}{Transformation status of the biopsy, from the patient-level
+gambl_transformation_status.tsv (BC Cancer patients; NA elsewhere): "de novo" (a lymphoma from a patient
+who never transformed; the pathology column says which, e.g. de novo DLBCL or an FL that never
+transformed), "pre-transformation" (an indolent biopsy, e.g. FL, before the patient's first aggressive
+biopsy), "transformed" (an aggressive biopsy, e.g. DLBCL, of a patient who transformed) or
+"post-transformation" (an indolent biopsy after transformation). NA for other entities and for indolent
+biopsies that can't be ordered.}
 \item{relapse}{TODO}
 \item{ighv_mutation_original}{TODO}
 \item{normal_sample_id}{TODO}
