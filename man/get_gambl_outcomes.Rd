@@ -19,7 +19,7 @@ get_gambl_outcomes(
 
 \item{censor_cbioportal}{Optionally request the censoring to be encoded in the specific style required by cBioPortal. Default is FALSE.}
 
-\item{complete_missing}{Optionally fill in any gaps to ensure we have values for every patient (censor at 0 if missing). Default is FALSE.}
+\item{complete_missing}{Optionally add a row for every requested patient missing from the outcome table, censored at time 0. Patients already in the table keep their missing values as NA. Default is FALSE.}
 
 \item{from_flatfile}{Optionally set to FALSE to use the database to get the survival data. Default is TRUE.}
 }
@@ -30,13 +30,41 @@ Data frame with one row for each patient_id.
 Get the patient-centric clinical metadata.
 }
 \details{
-INTERNAL FUNCTION called by \link{get_gambl_metadata}, not meant for out-of-package usage.
+One row per patient. To add these columns to sample metadata,
+join by \code{patient_id} only (\code{by = "patient_id"}): without it, dplyr joins on
+every shared column (e.g. \code{sex}), which silently fails to match rows whose
+values differ between the two tables.
+
+Cleaning applied to the outcome table:
+\itemize{
+\item \code{sex} is "M", "F" or NA (sources spell it e.g. "Male"/"Female").
+\item \code{IPI} and \code{FLIPI} codes of -1 (not assessable) are NA.
+\item \code{tx_primary_class} collapses the primary treatment (\code{tx_primary})
+into a few classes: the first systemic regimen decides (surgery,
+splenectomy or radiation given before it are skipped) and rituximab
+counts when a course of it is given (maintenance or consolidation
+alone don't). Classes: "R-CHOP-like" (CHOP, CEOP, ECHOP, COEP, ACOP or
+BPVACOP with rituximab), "BR" (bendamustine + rituximab), "R-CVP",
+"R-mono" (rituximab alone), "observation", "radiation" (radiation
+only), "chemo, no rituximab" (the CHOP-like or CVP regimens without
+rituximab) and "other" (anything else, including intensive regimens
+such as CODOX-M/IVAC or DA-EPOCH, fludarabine-based or targeted
+therapy, and free-text entries like "Systemic therapy"; free-text
+"Radiation therapy" alone is "radiation"; "R-CHOP-like", as recorded
+for published cohorts, is "R-CHOP-like" and "non-R-CHOP-like" is
+"other"). NA when unknown.
+\item \code{tx_ritu_maintenance}: TRUE if the primary treatment included
+rituximab maintenance, FALSE if a coded regimen didn't, NA when the
+treatment isn't a coded regimen.
+}
 }
 \examples{
 \dontrun{
   outcome_df = get_gambl_outcomes()
+  # join by patient_id only
   metadata_with_outcomes = dplyr::left_join(
                             get_gambl_metadata(),
-                            outcome_df)
+                            dplyr::select(outcome_df, -sex),
+                            by = "patient_id")
 }
 }
