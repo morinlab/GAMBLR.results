@@ -4,10 +4,22 @@
 #
 # these_samples_metadata: one row (sample_id, seq_type, unix_group, genome_build, pairing_status, normal_sample_id)
 # Returns a list with full_maf_path, local_full_maf_path, aug_maf_path, local_aug_maf_path and vcf_base_name.
-.ssm_sample_maf_paths = function(these_samples_metadata, projection = "grch37", flavour = "clustered"){
+# config: optional result of .ssm_maf_path_config(), to avoid re-reading the config for every sample in a loop
+.ssm_maf_path_config = function(flavour = "clustered"){
+  list(remote_base = check_config_and_value("project_base", config_name = "default"),
+       local_base = check_config_and_value("project_base"),
+       deblacklisted = check_config_and_value(paste0("results_flatfiles$ssm$template$", flavour, "$deblacklisted"),
+                                              config_name = "default"),
+       augmented = check_config_and_value(paste0("results_flatfiles$ssm$template$", flavour, "$augmented"),
+                                          config_name = "default"))
+}
+
+.ssm_sample_maf_paths = function(these_samples_metadata, projection = "grch37", flavour = "clustered",
+                                 config = NULL){
   if(!flavour %in% c("clustered", "sage")){
     stop("flavour must be \"clustered\" or \"sage\"")
   }
+  if(is.null(config)) config = .ssm_maf_path_config(flavour)
   # variables the config path templates refer to (glue resolves them in this frame)
   seq_type = dplyr::pull(these_samples_metadata, seq_type)
   sample_id = dplyr::pull(these_samples_metadata, sample_id)
@@ -27,15 +39,10 @@
   base_path = ""
   vcf_base_name = if(flavour == "clustered") "slms-3.final" else "sage.combined"
 
-  remote_base = check_config_and_value("project_base", config_name = "default")
-  local_base = check_config_and_value("project_base")
-  template_path = function(which){
-    template = check_config_and_value(paste0("results_flatfiles$ssm$template$", flavour, "$", which),
-                                      config_name = "default")
-    unname(unlist(glue::glue(template)))
-  }
-  deblacklisted = template_path("deblacklisted")
-  augmented = template_path("augmented")
+  remote_base = config$remote_base
+  local_base = config$local_base
+  deblacklisted = unname(unlist(glue::glue(config$deblacklisted)))
+  augmented = unname(unlist(glue::glue(config$augmented)))
   list(full_maf_path = paste0(remote_base, deblacklisted),
        local_full_maf_path = paste0(local_base, deblacklisted),
        aug_maf_path = paste0(remote_base, augmented),

@@ -155,8 +155,10 @@ collate_ssm_results = function(sample_table,
 #' @noRd
 ssm_input_files <- function(sample_table, projection = "grch37", flavour = "clustered"){
   remote_session = check_host()
+  config = .ssm_maf_path_config(flavour)   # read once, not per sample
   paths = vapply(seq_len(nrow(sample_table)), function(i){
-    p = tryCatch(.ssm_sample_maf_paths(sample_table[i, , drop = FALSE], projection = projection, flavour = flavour),
+    p = tryCatch(.ssm_sample_maf_paths(sample_table[i, , drop = FALSE], projection = projection, flavour = flavour,
+                                       config = config),
                  error = function(e) NULL)
     if(is.null(p)) return(NA_character_)
     resolve_maf_path(if(remote_session) p$local_full_maf_path else p$full_maf_path)

@@ -210,14 +210,17 @@ collate_stale_ids <- function(con, table_name, entry, scope, seq) {
   for (nm in names(prov <- collate_provenance_values(entry))) {
     stale <- stale | if (nm %in% names(stored)) is.na(stored[[nm]]) | stored[[nm]] != prov[[nm]] else TRUE
   }
-  if (!is.null(entry$input_files)) {
-    scope_rows <- scope[match(stored$sample_id, scope$sample_id), , drop = FALSE]
+  # only rows not already stale need their input file checked (rows written before provenance existed are stale
+  # without looking at any file)
+  check <- which(!stale)
+  if (!is.null(entry$input_files) && length(check) > 0) {
+    scope_rows <- scope[match(stored$sample_id[check], scope$sample_id), , drop = FALSE]
     now <- collate_input_details(do.call(entry$input_files, list(scope_rows)), md5 = FALSE)
-    was_mtime <- if ("input_mtime" %in% names(stored)) stored$input_mtime else NA
-    was_size <- if ("input_size" %in% names(stored)) as.numeric(stored$input_size) else NA
+    was_mtime <- stored$input_mtime[check]
+    was_size <- as.numeric(stored$input_size[check])
     changed <- is.na(now$input_mtime) | is.na(was_mtime) | now$input_mtime != was_mtime |
       is.na(was_size) | now$input_size != was_size
-    stale <- stale | changed
+    stale[check] <- changed
   }
   unique(stored$sample_id[stale])
 }
