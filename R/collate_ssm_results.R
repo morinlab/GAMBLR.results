@@ -136,3 +136,30 @@ collate_ssm_results = function(sample_table,
 
   return(sample_table)
 }
+
+#' @title Input MAF of each sample, for the collate cache's provenance.
+#'
+#' @description The per-sample MAF that `get_ssm_by_samples()` (and so
+#' `compute_ssm_results_core()`) reads for each sample: the GSC path when
+#' running there, the local mirror's otherwise, and a gzipped copy when only
+#' that exists (see `resolve_maf_path()`). Used by `collate_results_db()` to
+#' record each row's input file and to detect stale rows.
+#'
+#' @param sample_table Metadata rows (one per sample) with the columns
+#' `.ssm_sample_maf_paths()` needs.
+#' @param projection,flavour As for `get_ssm_by_samples()`.
+#'
+#' @return A data frame with `sample_id` and `input_path`.
+#'
+#' @keywords internal
+#' @noRd
+ssm_input_files <- function(sample_table, projection = "grch37", flavour = "clustered"){
+  remote_session = check_host()
+  paths = vapply(seq_len(nrow(sample_table)), function(i){
+    p = tryCatch(.ssm_sample_maf_paths(sample_table[i, , drop = FALSE], projection = projection, flavour = flavour),
+                 error = function(e) NULL)
+    if(is.null(p)) return(NA_character_)
+    resolve_maf_path(if(remote_session) p$local_full_maf_path else p$full_maf_path)
+  }, character(1))
+  data.frame(sample_id = sample_table$sample_id, input_path = paths, stringsAsFactors = FALSE)
+}

@@ -8,7 +8,9 @@ collate_results_db(
   these_samples_metadata,
   refresh = list(),
   batch_size = 50,
-  db_path = NULL
+  db_path = NULL,
+  include_provenance = FALSE,
+  tables = names(collate_registry)
 )
 }
 \arguments{
@@ -18,8 +20,10 @@ samples from \link{get_gambl_metadata} if omitted.}
 
 \item{refresh}{Optional named list, keyed by registry name (e.g.
 \code{"ssm_results"}), of sample_ids to force-recompute for that function
-even if already present in its table. Functions not named here use the
-default missing-only behaviour.}
+even if already present in its table, or \code{"stale"} to recompute that
+function's stale rows (see Details). \code{refresh = "stale"} does this for
+every registered function. Functions not named here use the default
+missing-only behaviour.}
 
 \item{batch_size}{Compute at most this many samples per call to a
 registered function's core function, writing each batch to its table
@@ -36,6 +40,13 @@ shared file reads rather than scaling with sample count.}
 
 \item{db_path}{Optional explicit path to the SQLite database, passed to
 \code{gambl_collated_db()}.}
+
+\item{include_provenance}{Also return each table's provenance columns
+(when and how each row was computed), prefixed with the table name, e.g.
+\code{ssm_results_computed_at}. Default \code{FALSE}.}
+
+\item{tables}{Which registered functions to compute and join (default
+all), e.g. \code{"ssm_results"}.}
 }
 \value{
 \code{these_samples_metadata} joined with every registered
@@ -62,6 +73,17 @@ else happens, with a message if it actually drops anything -- every
 registered core function's output grain follows the metadata scope it's
 given, so a duplicate row there would otherwise produce duplicate rows
 in every table it touches, and in the final result.
+
+\strong{Provenance and staleness:} every row written records when it
+was computed (\code{computed_at}, UTC) and with what (\code{gamblr_results_version}
+and the function's settings, e.g. pipeline, projection and
+\code{blacklist_version} for \code{ssm_results}). Functions that read a per-sample
+file (currently \code{ssm_results}, the SLMS-3 MAF) also record that file's
+path, modification time, size and md5. A row is stale when it was written
+before provenance was recorded, was computed with different settings, or
+its input file's modification time or size has changed since; use
+\code{refresh = "stale"} to recompute those rows, or \code{\link[=collate_stale_samples]{collate_stale_samples()}}
+to list them.
 }
 \examples{
 \dontrun{

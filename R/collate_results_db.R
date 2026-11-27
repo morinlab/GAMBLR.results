@@ -20,13 +20,31 @@
 #' given, so a duplicate row there would otherwise produce duplicate rows
 #' in every table it touches, and in the final result.
 #'
+#' \strong{Provenance and staleness:} every row written records when it
+#' was computed (`computed_at`, UTC) and with what (`gamblr_results_version`
+#' and the function's settings, e.g. pipeline, projection and
+#' `blacklist_version` for `ssm_results`). Functions that read a per-sample
+#' file (currently `ssm_results`, the SLMS-3 MAF) also record that file's
+#' path, modification time, size and md5. A row is stale when it was written
+#' before provenance was recorded, was computed with different settings, or
+#' its input file's modification time or size has changed since; use
+#' `refresh = "stale"` to recompute those rows, or [collate_stale_samples()]
+#' to list them.
+#'
 #' @param these_samples_metadata A metadata table with (at least)
 #' `sample_id` and `seq_type` columns. Defaults to all genome and capture
 #' samples from [GAMBLR.results::get_gambl_metadata] if omitted.
 #' @param refresh Optional named list, keyed by registry name (e.g.
 #' `"ssm_results"`), of sample_ids to force-recompute for that function
-#' even if already present in its table. Functions not named here use the
-#' default missing-only behaviour.
+#' even if already present in its table, or `"stale"` to recompute that
+#' function's stale rows (see Details). `refresh = "stale"` does this for
+#' every registered function. Functions not named here use the default
+#' missing-only behaviour.
+#' @param tables Which registered functions to compute and join (default
+#' all), e.g. `"ssm_results"`.
+#' @param include_provenance Also return each table's provenance columns
+#' (when and how each row was computed), prefixed with the table name, e.g.
+#' `ssm_results_computed_at`. Default `FALSE`.
 #' @param batch_size Compute at most this many samples per call to a
 #' registered function's core function, writing each batch to its table
 #' before moving to the next. Bounds memory to O(batch_size) rather than
@@ -59,7 +77,13 @@
 #'   refresh = list(ssm_results = c("sample1", "sample2"))
 #' )
 #' }
-collate_results_db <- function(these_samples_metadata, refresh = list(), batch_size = 50, db_path = NULL) {
+collate_results_db <- function(these_samples_metadata, refresh = list(), batch_size = 50, db_path = NULL,
+                               include_provenance = FALSE, tables = names(collate_registry)) {
+  unknown_tables <- setdiff(tables, names(collate_registry))
+  if (length(unknown_tables) > 0) {
+    stop("unknown table(s): ", paste(unknown_tables, collapse = ", "), "; registered: ",
+         paste(names(collate_registry), collapse = ", "))
+  }
   if (missing(these_samples_metadata)) {
     these_samples_metadata <- get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome", "capture"))
@@ -91,14 +115,26 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
   con <- gambl_collated_db(db_path = db_path)
   seq_types <- unique(these_samples_metadata$seq_type)
 
-  for (reg_name in names(collate_registry)) {
+  refresh_all_stale <- identical(refresh, "stale")
+  if (refresh_all_stale) refresh <- list()
+
+  for (reg_name in tables) {
     entry <- collate_registry[[reg_name]]
     refresh_ids <- refresh[[reg_name]]
     if (is.null(refresh_ids)) refresh_ids <- character(0)
+    refresh_stale <- refresh_all_stale || identical(refresh_ids, "stale")
+    if (refresh_stale) refresh_ids <- character(0)
 
     for (seq in seq_types) {
       scope <- dplyr::filter(these_samples_metadata, seq_type == seq)
       requested_ids <- scope$sample_id
+      if (refresh_stale) {
+        stale_ids <- collate_stale_ids(con, reg_name, entry, scope, seq)
+        if (length(stale_ids) > 0) {
+          message(sprintf("%s (%s): %d stale row(s) to recompute", reg_name, seq, length(stale_ids)))
+        }
+        refresh_ids <- union(refresh_ids, stale_ids)
+      }
 
       existing <- get_existing_collate_keys(con, reg_name)
       existing_ids <- if (nrow(existing) > 0) {
@@ -142,6 +178,7 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
         scope_subset <- dplyr::filter(scope, sample_id %in% batch_ids)
         call_args <- c(setNames(list(scope_subset), entry$metadata_arg), entry$extra_args)
         new_cols <- do.call(entry$core_fn, call_args)
+        new_cols <- stamp_collate_provenance(new_cols, entry, scope_subset)
         new_cols$seq_type <- seq
         write_collate_table(con, reg_name, new_cols)
       }
@@ -149,7 +186,7 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
   }
 
   result <- these_samples_metadata
-  for (reg_name in names(collate_registry)) {
+  for (reg_name in tables) {
     if (!DBI::dbExistsTable(con, reg_name)) next
     table_data <- DBI::dbReadTable(con, reg_name)
     if (nrow(table_data) == 0) next
@@ -161,6 +198,14 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
     # so re-joining qc_results here would otherwise collide on identical
     # column names and get silently .x/.y suffixed by dplyr rather than
     # erroring. Whatever the caller's metadata already carries wins.
+    # provenance columns (when and how each row was computed) are shared by every table, so they are left out of
+    # the joined result unless asked for, and then prefixed with the table name
+    prov_cols <- intersect(names(table_data), collate_provenance_columns(collate_registry[[reg_name]]))
+    if (include_provenance && length(prov_cols) > 0) {
+      names(table_data)[match(prov_cols, names(table_data))] <- paste0(reg_name, "_", prov_cols)
+    } else {
+      table_data <- dplyr::select(table_data, -dplyr::all_of(prov_cols))
+    }
     value_cols <- setdiff(names(table_data), c("sample_id", "seq_type"))
     conflicting <- intersect(value_cols, names(result))
     if (length(conflicting) > 0) {
@@ -176,4 +221,44 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
     result <- dplyr::left_join(result, table_data, by = c("sample_id", "seq_type"))
   }
   result
+}
+
+#' @title Samples whose collated results are stale.
+#'
+#' @description Lists, for each function registered with
+#' [collate_results_db()], the samples whose cached rows are stale: written
+#' before provenance was recorded, computed with different settings, or whose
+#' input file (e.g. the SLMS-3 MAF for `ssm_results`) has changed since. Runs
+#' no computation; recompute them with `collate_results_db(refresh = "stale")`.
+#'
+#' @param these_samples_metadata A metadata table with `sample_id` and
+#' `seq_type`. Defaults to all genome and capture samples.
+#' @param db_path Optional explicit path to the SQLite database.
+#'
+#' @return A data frame with `table`, `seq_type` and `sample_id`, one row per
+#' stale sample.
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' stale <- collate_stale_samples()
+#' dplyr::count(stale, table, seq_type)
+#' }
+collate_stale_samples <- function(these_samples_metadata, db_path = NULL) {
+  if (missing(these_samples_metadata)) {
+    these_samples_metadata <- get_gambl_metadata() %>%
+      dplyr::filter(seq_type %in% c("genome", "capture"))
+  }
+  these_samples_metadata <- dplyr::distinct(these_samples_metadata, sample_id, seq_type, .keep_all = TRUE)
+  con <- gambl_collated_db(db_path = db_path)
+  out <- list()
+  for (reg_name in names(collate_registry)) {
+    for (seq in unique(these_samples_metadata$seq_type)) {
+      scope <- dplyr::filter(these_samples_metadata, seq_type == seq)
+      ids <- collate_stale_ids(con, reg_name, collate_registry[[reg_name]], scope, seq)
+      if (length(ids) > 0) out[[length(out) + 1]] <- data.frame(table = reg_name, seq_type = seq, sample_id = ids)
+    }
+  }
+  if (length(out) == 0) return(data.frame(table = character(), seq_type = character(), sample_id = character()))
+  do.call(rbind, out)
 }

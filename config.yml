@@ -31,6 +31,22 @@ default:
         manta_sv:
             gambl: "gambl/manta-2.3/merges/manta.genome--{projection}.bedpe"
             icgc_dart: "all_the_things/manta-2.3/merges/manta.genome--{projection}.bedpe"
+    mutation_burden:
+        # Territories for the per-Mb mutation burden (collate_results_db(), table mutation_burden)
+        # Exomes: the kit's unpadded target regions from the pipelines' reference files, under repo_base
+        capture_space_bed: "ref/lcr-modules-references/genomes/{genome_build}/capture_space/{capture_space}.bed"
+        # Genomes: non-N reference length (the deepTools effective genome sizes); replace if a callable-region
+        # file becomes available
+        effective_genome_mb:
+            grch37: 2864.79
+            hg38: 2913.02
+        effective_genome_source: "non-N bases of the reference (deepTools effective genome size)"
+        # Exomes whose kit isn't known: coding-sequence calls over the merged protein-coding CDS
+        fallback_coding_exome_mb:
+            grch37: 35.46
+            hg38: 35.51
+        fallback_coding_exome_source: "GENCODE 33 protein-coding CDS, merged (pipelines' reference annotation)"
+        fallback_capture_spaces: "none,exome-utr-grch37,exome-utr-grch38"
     results_merged_wildcards:
         lymphgen_template: "no_cnvs.no_sv.with_A53,no_cnvs.no_sv.no_A53,no_cnvs.with_sv.with_A53,with_cnvs.no_sv.no_A53,no_cnvs.with_sv.no_A53,with_cnvs.no_sv.with_A53,with_cnvs.with_sv.no_A53,with_cnvs.with_sv.with_A53"
     results_versioned:

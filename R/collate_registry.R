@@ -44,7 +44,20 @@
 #'     cost is high enough that even the global default is too much
 #'     memory/work per call (e.g. `ssm_results`, via
 #'     `get_ssm_by_samples()`).}
+#'   \item{input_files}{Optional. Name of a function that takes the sample
+#'     scope and returns `sample_id` and `input_path`: the per-sample file
+#'     the core function reads (e.g. `ssm_input_files()`). With it,
+#'     `collate_results_db()` records each row's input path, modification
+#'     time, size and md5, and `refresh = "stale"` recomputes rows whose
+#'     input file has changed.}
+#'   \item{provenance}{Optional. A function returning a named list of the
+#'     settings the results depend on (e.g. pipeline, projection,
+#'     blacklist_version). Each is stored as a column; rows computed with
+#'     different settings count as stale.}
 #' }
+#'
+#' Every row written also records `computed_at` (UTC) and
+#' `gamblr_results_version`.
 #'
 #' @keywords internal
 #' @noRd
@@ -53,7 +66,38 @@ collate_registry <- list(
     core_fn = "compute_ssm_results_core",
     metadata_arg = "sample_table",
     extra_args = list(),
-    batch_size = 20
+    batch_size = 20,
+    input_files = "ssm_input_files",
+    provenance = function() list(
+      pipeline = "slms-3",
+      flavour = "clustered",
+      projection = "grch37",
+      blacklist_version = .check_blacklist_version(eval(formals(get_ssm_by_samples)$blacklist_version)),
+      min_read_support = 0,
+      include_silent = isTRUE(eval(formals(compute_ssm_results_core)$include_silent))
+    )
+  ),
+  mutation_burden = list(
+    core_fn = "compute_mutation_burden_core",
+    metadata_arg = "sample_table",
+    extra_args = list(),
+    batch_size = 20,
+    input_files = "mutation_burden_input_files",
+    provenance = function() {
+      s = burden_settings()
+      list(
+        pipeline = "slms-3",
+        flavour = "clustered",
+        projection = "native build (grch37 or hg38)",
+        blacklist_version = .check_blacklist_version(eval(formals(get_ssm_by_samples)$blacklist_version)),
+        min_read_support = 0,
+        effective_genome_mb = paste(names(s$effective_genome_mb), unlist(s$effective_genome_mb), sep = "=",
+                                    collapse = ";"),
+        fallback_coding_exome_mb = paste(names(s$fallback_coding_exome_mb), unlist(s$fallback_coding_exome_mb),
+                                         sep = "=", collapse = ";"),
+        capture_space_bed = s$capture_space_bed
+      )
+    }
   ),
   sage_results = list(
     core_fn = "compute_sage_results_core",

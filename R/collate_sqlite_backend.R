@@ -159,3 +159,71 @@ write_collate_table <- function(con, table_name, new_data, key_cols = c("sample_
 
   invisible(new_data)
 }
+
+# --- provenance -------------------------------------------------------------------------------------------------
+
+# Details of each input file (path, modification time in UTC, size, md5); NA for files that don't exist
+collate_input_details <- function(inputs, md5 = TRUE) {
+  exists <- !is.na(inputs$input_path) & file.exists(inputs$input_path)
+  info <- file.info(ifelse(exists, inputs$input_path, NA_character_))
+  data.frame(
+    sample_id = inputs$sample_id,
+    input_path = inputs$input_path,
+    input_mtime = ifelse(exists, format(info$mtime, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"), NA_character_),
+    input_size = ifelse(exists, as.numeric(info$size), NA_real_),
+    input_md5 = if (md5) ifelse(exists, unname(tools::md5sum(ifelse(exists, inputs$input_path, ""))), NA_character_)
+                else NA_character_,
+    stringsAsFactors = FALSE
+  )
+}
+
+# The settings a registry entry's results depend on, as one-row character values (empty list if none)
+collate_provenance_values <- function(entry) {
+  if (is.null(entry$provenance)) return(list())
+  values <- entry$provenance()
+  lapply(values, function(v) paste(as.character(v), collapse = ","))
+}
+
+# Add provenance to rows about to be written: when (computed_at, UTC) and with what (gamblr_results_version and the
+# entry's settings), and, for entries with input_files, the input file's path, modification time, size and md5.
+stamp_collate_provenance <- function(new_cols, entry, scope) {
+  new_cols$computed_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  new_cols$gamblr_results_version <- as.character(utils::packageVersion("GAMBLR.results"))
+  for (nm in names(prov <- collate_provenance_values(entry))) new_cols[[nm]] <- prov[[nm]]
+  if (!is.null(entry$input_files)) {
+    details <- collate_input_details(do.call(entry$input_files, list(scope)))
+    new_cols <- dplyr::left_join(dplyr::select(new_cols, -dplyr::any_of(setdiff(names(details), "sample_id"))),
+                                 details, by = "sample_id")
+  }
+  new_cols
+}
+
+# Sample_ids of `scope` whose stored rows in `table_name` are stale: written before provenance was recorded (no
+# computed_at), computed with different settings than the entry's current ones, or, for entries with input_files,
+# whose input file's modification time or size has changed (or is now missing). Cheap: no md5 is computed.
+collate_stale_ids <- function(con, table_name, entry, scope, seq) {
+  if (!DBI::dbExistsTable(con, table_name)) return(character(0))
+  stored <- DBI::dbReadTable(con, table_name)
+  stored <- stored[stored$seq_type == seq & stored$sample_id %in% scope$sample_id, , drop = FALSE]
+  if (nrow(stored) == 0) return(character(0))
+  stale <- if ("computed_at" %in% names(stored)) is.na(stored$computed_at) else rep(TRUE, nrow(stored))
+  for (nm in names(prov <- collate_provenance_values(entry))) {
+    stale <- stale | if (nm %in% names(stored)) is.na(stored[[nm]]) | stored[[nm]] != prov[[nm]] else TRUE
+  }
+  if (!is.null(entry$input_files)) {
+    scope_rows <- scope[match(stored$sample_id, scope$sample_id), , drop = FALSE]
+    now <- collate_input_details(do.call(entry$input_files, list(scope_rows)), md5 = FALSE)
+    was_mtime <- if ("input_mtime" %in% names(stored)) stored$input_mtime else NA
+    was_size <- if ("input_size" %in% names(stored)) as.numeric(stored$input_size) else NA
+    changed <- is.na(now$input_mtime) | is.na(was_mtime) | now$input_mtime != was_mtime |
+      is.na(was_size) | now$input_size != was_size
+    stale <- stale | changed
+  }
+  unique(stored$sample_id[stale])
+}
+
+# Names of the provenance columns a registry entry's table can hold
+collate_provenance_columns <- function(entry) {
+  c("computed_at", "gamblr_results_version", names(collate_provenance_values(entry)),
+    if (!is.null(entry$input_files)) c("input_path", "input_mtime", "input_size", "input_md5"))
+}

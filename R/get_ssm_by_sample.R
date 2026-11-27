@@ -130,78 +130,26 @@ get_ssm_by_sample = function(these_samples_metadata,
       }
   }}
   
-  seq_type = pull(these_samples_metadata,seq_type)
-
-  sample_id = pull(these_samples_metadata,sample_id)
-  tumour_sample_id = sample_id
-  unix_group = pull(these_samples_metadata, unix_group)
-  genome_build = pull(these_samples_metadata, genome_build)
-  target_builds = projection
-  pair_status = pull(these_samples_metadata, pairing_status)
   if(verbose){
-    print(paste("group:", unix_group, "genome:", genome_build))
+    print(paste("group:", pull(these_samples_metadata, unix_group),
+                "genome:", pull(these_samples_metadata, genome_build)))
   }
-  # Get unmatched normal if necessary. This is done using the unmatched normals that were added to the GAMBLR config.
-  # That will need to be kept up to date if/when any new references are added.
-  if(pair_status == "unmatched"){
-    keys = paste0("unmatched_normal_ids$",unix_group,"$",seq_type,"$",genome_build)
-    normal_sample_id = check_config_and_value(keys)
-  }else{
-    normal_sample_id = pull(these_samples_metadata, normal_sample_id)
-  }
-  base_path = ""
   if(flavour == "legacy"){
     warning("Access to the old variant calls is not currently supported in this function")
     warning("Use get_ssm_by_samples to access the legacy flavour")
     # To be fixed maybe if we decide it's needed.
     # Implementation of backwards compatability will be a lot harder because of the old naming scheme.
     return()
-  }else if(flavour == "clustered"){
-    vcf_base_name = "slms-3.final"
-    path_template = check_config_and_value(
-      "results_flatfiles$ssm$template$clustered$deblacklisted",
-      config_name="default"
-      )
-    path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(
-      check_config_and_value("project_base",
-      config_name="default"),
-      path_complete)
-    local_full_maf_path = paste0(
-      check_config_and_value("project_base"),
-      path_complete)
-    path_template = check_config_and_value(
-        "results_flatfiles$ssm$template$clustered$augmented",
-        config_name="default")
-    path_complete = unname(unlist(glue::glue(path_template)))
-    aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
-    local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
-
-  }else if(flavour == "sage"){
-    vcf_base_name = "sage.combined"
-    path_template = check_config_and_value(
-      "results_flatfiles$ssm$template$sage$deblacklisted",
-      config_name="default"
-      )
-    path_complete = unname(unlist(glue::glue(path_template)))
-    full_maf_path = paste0(
-      check_config_and_value("project_base",
-      config_name="default"),
-      path_complete)
-    local_full_maf_path = paste0(
-      check_config_and_value("project_base"),
-      path_complete)
-    path_template = check_config_and_value(
-        "results_flatfiles$ssm$template$sage$augmented",
-        config_name="default")
-    path_complete = unname(unlist(glue::glue(path_template)))
-    aug_maf_path = paste0(check_config_and_value("project_base",config_name="default"), path_complete)
-    local_aug_maf_path = paste0(check_config_and_value("project_base"), path_complete)
-
-  }
-  else{
+  }else if(!flavour %in% c("clustered", "sage")){
     warning("Currently the only flavour available to this function is 'clustered'")
   }
+  # the GSC and local-mirror paths of this sample's MAFs (shared with the collate cache's provenance)
+  seq_type = pull(these_samples_metadata, seq_type)
+  maf_paths = .ssm_sample_maf_paths(these_samples_metadata, projection = projection, flavour = flavour)
+  full_maf_path = maf_paths$full_maf_path
+  local_full_maf_path = maf_paths$local_full_maf_path
+  aug_maf_path = maf_paths$aug_maf_path
+  local_aug_maf_path = maf_paths$local_aug_maf_path
 
   #stop()
   # When variant_classification_filter is set, build a grep command that
