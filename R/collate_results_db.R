@@ -91,6 +91,8 @@ collate_results_db <- function(these_samples_metadata, refresh = list(), batch_s
   if (!all(c("sample_id", "seq_type") %in% names(these_samples_metadata))) {
     stop("these_samples_metadata must include sample_id and seq_type columns.")
   }
+  # the cached results are all DNA (SSM-based); mRNA-seq samples have no calls
+  these_samples_metadata <- GAMBLR.utils::drop_mrna_samples(these_samples_metadata, "collate_results_db")
 
   # Every core function keys its output on (sample_id, seq_type) via
   # dplyr::select(sample_table, sample_id) %>% left_join(...) -- if the
@@ -249,6 +251,7 @@ collate_stale_samples <- function(these_samples_metadata, db_path = NULL) {
     these_samples_metadata <- get_gambl_metadata() %>%
       dplyr::filter(seq_type %in% c("genome", "capture"))
   }
+  these_samples_metadata <- GAMBLR.utils::drop_mrna_samples(these_samples_metadata, "collate_stale_samples")
   these_samples_metadata <- dplyr::distinct(these_samples_metadata, sample_id, seq_type, .keep_all = TRUE)
   con <- gambl_collated_db(db_path = db_path)
   out <- list()
