@@ -19,6 +19,7 @@ get_gambl_metadata(
   invert = FALSE,
   exclude = "promethION",
   min_corrected_cov = 15,
+  with_outcomes = FALSE,
   ...
 )
 }
@@ -52,6 +53,11 @@ metadata output. A numeric value is expected. The default is set to 15.
 This prevents metadata from containing anythong other than the three standard
 seq_type (genome, capture, mrna). Default setting will exclude "promethION".}
 
+\item{with_outcomes}{Set to TRUE to add the patient-level outcome columns
+of \link{get_gambl_outcomes} (e.g. OS_YEARS, CODE_OS,
+PFS_YEARS, IPI, tx_primary_class), joined by patient_id. Default:
+FALSE. \code{sex} is always included either way (see Details).}
+
 \item{...}{Additional arguments}
 }
 \value{
@@ -79,6 +85,7 @@ A data frame with metadata for each biopsy in GAMBL
 \item{link_name}{Standardized naming for symbolic link (not usually relevant for GAMBLR)}
 \item{fastq_data_path}{Symbolic link to the fastq file (not usually relevant for GAMBLR)}
 \item{fastq_link_name}{Standardized naming for symbolic link for FASTQ file, if used (not usually relevant for GAMBLR)}
+\item{sex}{Sex of the patient ("M", "F" or NA), from the patient-level GAMBL outcome table (see Details).}
 \item{unix_group}{Whether a source is external and restricted by data access agreements (icgc_dart) or internal (gambl)}
 \item{COO_consensus}{Consensus cell of origin (ABC, GCB, UNCLASS): the DLBCL90 call, else gneSeqCOO.}
 \item{DHITsig_consensus}{Consensus DHITsig (DZsig) call (POS, NEG, UNCLASS): the DLBCL90 call, else gneSeqCOO's DZsig. DHITsig is a GCB signature but ABC tumours have calls too; use consensus_coo_dhitsig to compare DHITsig groups.}
@@ -125,6 +132,11 @@ This function returns metadata for GAMBL samples.
 This replaces the functionality of the original version, which is still available under the new name \link{og_get_gambl_metadata}.
 The purpose of this function is to provide the metadata for the non-redundant set of samples from GAMBL, dealing with all
 types of redundancy caused by samples or biopsies that have data from >1 seq_type (genome or capture), different capture protocols (exome or targeted capture) etc.
+
+\code{sex} is patient-level: it always comes from the GAMBL outcome table
+(gambl_all_outcomes.tsv, via \link{get_gambl_outcomes}), which
+has one value per patient, not from the per-sample metadata, whose rows
+for one patient can disagree. It's NA for patients without a known sex.
 }
 \examples{
 #basic usage

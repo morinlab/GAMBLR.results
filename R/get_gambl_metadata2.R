@@ -7,6 +7,11 @@
 #' The purpose of this function is to provide the metadata for the non-redundant set of samples from GAMBL, dealing with all
 #' types of redundancy caused by samples or biopsies that have data from >1 seq_type (genome or capture), different capture protocols (exome or targeted capture) etc.
 #'
+#' `sex` is patient-level: it always comes from the GAMBL outcome table
+#' (gambl_all_outcomes.tsv, via [GAMBLR.results::get_gambl_outcomes]), which
+#' has one value per patient, not from the per-sample metadata, whose rows
+#' for one patient can disagree. It's NA for patients without a known sex.
+#'
 #' @param dna_seq_type_priority The default is "genome" and the only other option is "capture". For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param capture_protocol_priority For duplicate biopsy_id/patient combinations with different seq_type available, prioritize this seq_type and drop the others.
 #' @param exome_capture_space_priority A vector specifying how to prioritize exome capture space #TODO: implement and test once examples are available
@@ -18,6 +23,10 @@
 #' @param include_unavailable Set to TRUE to include samples with `bam_available == FALSE`. Default: FALSE - only samples with `bam_available = TRUE` are retained.
 #' @param verbose Set to TRUE for a chatty output (mostly for debugging)
 #' @param exclude Specify one or more seq_type to drop from the output. 
+#' @param with_outcomes Set to TRUE to add the patient-level outcome columns
+#'      of [GAMBLR.results::get_gambl_outcomes] (e.g. OS_YEARS, CODE_OS,
+#'      PFS_YEARS, IPI, tx_primary_class), joined by patient_id. Default:
+#'      FALSE. `sex` is always included either way (see Details).
 #' @param min_corrected_cov Minimum value for the MeanCorrectedCoverage QC
 #'      metric for the genome and capture samples. The samples with
 #'      MeanCorrectedCoverage below this value will be excluded from the
@@ -50,6 +59,7 @@
 #'   \item{link_name}{Standardized naming for symbolic link (not usually relevant for GAMBLR)}
 #'   \item{fastq_data_path}{Symbolic link to the fastq file (not usually relevant for GAMBLR)}
 #'   \item{fastq_link_name}{Standardized naming for symbolic link for FASTQ file, if used (not usually relevant for GAMBLR)}
+#'   \item{sex}{Sex of the patient ("M", "F" or NA), from the patient-level GAMBL outcome table (see Details).}
 #'   \item{unix_group}{Whether a source is external and restricted by data access agreements (icgc_dart) or internal (gambl)}
 #'   \item{COO_consensus}{Consensus cell of origin (ABC, GCB, UNCLASS): the DLBCL90 call, else gneSeqCOO.}
 #'   \item{DHITsig_consensus}{Consensus DHITsig (DZsig) call (POS, NEG, UNCLASS): the DLBCL90 call, else gneSeqCOO's DZsig. DHITsig is a GCB signature but ABC tumours have calls too; use consensus_coo_dhitsig to compare DHITsig groups.}
@@ -122,9 +132,12 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
                                invert=FALSE,
                                exclude = "promethION",
                                min_corrected_cov = 15,
+                               with_outcomes = FALSE,
                               ...){
-  if(any(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))){
-    args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% formalArgs(og_get_gambl_metadata))]
+  # arguments only the original function has (not those both have, e.g. with_outcomes)
+  og_only_args = setdiff(formalArgs(og_get_gambl_metadata), formalArgs(sys.function()))
+  if(any(names(match.call(expand.dots = TRUE)) %in% og_only_args)){
+    args_match = names(match.call(expand.dots = TRUE))[which(names(match.call(expand.dots = TRUE)) %in% og_only_args)]
     message("one or more arguments for the original get_gambl_metadata detected, reverting to that function")
     print("THE CODE THAT CAUSED THIS SHOULD BE FIXED TO USE THE NEW FUNCTION")
     print(args_match)
@@ -395,6 +408,36 @@ get_gambl_metadata = function(dna_seq_type_priority = "genome",
             coalesce(MeanCorrectedCoverage >= min_corrected_cov, TRUE)
         )
 
+    all_meta_kept <- add_patient_outcomes(all_meta_kept, with_outcomes = with_outcomes)
+
     return(all_meta_kept)
 
+}
+
+# Patient-level columns from the GAMBL outcome table: always sex (replacing the per-sample value, in place), and
+# with with_outcomes = TRUE the outcome columns too. Joined by patient_id only, so a column in both tables can't
+# become a join key. Stops if the GAMBL repo's outcome table predates patient-level sex (the code is newer than the
+# data), and warns about patients whose samples have a sex but who are missing from the table (it needs
+# regenerating with src/metadata/tidy_outcomes_metadata.R).
+add_patient_outcomes = function(metadata, with_outcomes = FALSE){
+  outcomes = get_gambl_outcomes()
+  if(!"sex_source" %in% colnames(outcomes)){
+    stop("The outcome table in your GAMBL repo (", check_config_and_value("table_flatfiles$outcomes"),
+         " under repo_base ", check_config_and_value("repo_base"), ") predates patient-level sex, which this ",
+         "version of GAMBLR.results requires (get_gambl_metadata() takes sex from that table). Update your GAMBL ",
+         "clone (git pull) so the table has a sex_source column, then try again.", call. = FALSE)
+  }
+  sample_sex = standardize_sex(metadata$sex)
+  missing = unique(metadata$patient_id[!is.na(sample_sex) & !metadata$patient_id %in% outcomes$patient_id])
+  if(length(missing) > 0){
+    warning(length(missing), " patient(s) with a sex in the sample metadata are missing from the outcome table, ",
+            "so their sex is NA (e.g. ", paste(utils::head(missing, 5), collapse = ", "), "). The outcome table ",
+            "needs regenerating in the GAMBL repo (src/metadata/tidy_outcomes_metadata.R).", call. = FALSE)
+  }
+  metadata$sex = outcomes$sex[match(metadata$patient_id, outcomes$patient_id)]
+  if(with_outcomes){
+    outcome_cols = dplyr::select(outcomes, -sex, -dplyr::any_of(setdiff(colnames(metadata), "patient_id")))
+    metadata = dplyr::left_join(metadata, outcome_cols, by = "patient_id")
+  }
+  metadata
 }
