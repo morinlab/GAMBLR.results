@@ -384,7 +384,8 @@ get_cn_segments <- function(these_samples_metadata,
       message(sum(!chosen$all_gates_passed), " sample(s) had no pipeline passing every QC gate; the eligible ",
               "pipeline closest to passing is used (see attr(<result>, \"selection\"))")
     }
-    if(source_rule %in% c("qc_score", "preference") && !isTRUE(getOption("GAMBLR.results.shown_selection_tip"))){
+    if(is.character(source_rule) && length(source_rule) == 1 && source_rule %in% c("qc_score", "preference") &&
+       !isTRUE(getOption("GAMBLR.results.shown_selection_tip"))){
       message("(the choice can change when the merges change; to keep it, save attr(<result>, \"selection\") ",
               "and pass it as source_rule)")
       options(GAMBLR.results.shown_selection_tip = TRUE)
